@@ -16,7 +16,6 @@ const works = (await getCollection('works', ({ data }) => !data.draft)).sort(
 
 <Base>
   <section class="hero">
-    <p class="eyebrow">作品归档</p>
     <h1 class="hero-title">{heroTitle}</h1>
     {heroSubtitle && <p class="hero-subtitle">{heroSubtitle}</p>}
     <p class="hero-intro">{heroIntro}</p>

@@ -227,36 +227,59 @@ main {
 }
 
 /* ---------- 首页 hero ---------- */
+/*
+  排版层级只用一条规则：
+  大标题 = 衬线（宋体）+ 近黑，负责「气质」
+  副标题 = 无衬线 + 字距拉开 + 棕色，负责「身份标签」
+  正文   = 无衬线 + 灰，负责「读起来舒服」
+  衬线只出现在大标题上，避免两种衬线互相打架。
+*/
 .hero {
-  padding-block: clamp(3.5rem, 9vw, 7rem) clamp(2.5rem, 5vw, 4rem);
-  max-width: 46rem;
+  padding-block: clamp(3.75rem, 9vw, 7.5rem) clamp(2.75rem, 5vw, 4.5rem);
+  max-width: 44rem;
 }
 
 .hero-title {
   font-family: var(--font-serif);
-  font-size: clamp(2rem, 5.2vw, 3.4rem);
-  line-height: 1.24;
-  letter-spacing: -0.01em;
+  font-size: clamp(1.875rem, 5.6vw, 3.5rem);
+  line-height: 1.2;
   font-weight: 500;
-  margin-block: 1.1rem 1.4rem;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  margin: 0;
   text-wrap: balance;
 }
 
-/* 副标题：比大标题小一档，比正文大 */
+/* 副标题：小、疏、棕 —— 像一枚身份标签 */
 .hero-subtitle {
-  font-family: var(--font-serif);
-  font-size: clamp(1.0625rem, 2.1vw, 1.5rem);
-  font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.1rem 0 0;
+  font-family: var(--font-sans);
+  font-size: clamp(0.8125rem, 1.05vw, 0.9375rem);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.22em;
   color: var(--accent);
-  margin-block: -0.5rem 1.25rem;
+}
+
+/* 副标题前面那根短横线 */
+.hero-subtitle::before {
+  content: '';
+  flex: none;
+  width: 1.75rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
 }
 
 .hero-intro {
+  margin-top: 1.75rem;
   color: var(--ink-soft);
   font-size: 1.0625rem;
-  max-width: 38rem;
+  line-height: 1.85;
+  max-width: 34rem;
 }
 
 /* ---------- 作品列表 ---------- */
