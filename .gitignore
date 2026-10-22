@@ -1,0 +1,18 @@
+# 依赖与构建产物
+node_modules/
+dist/
+.astro/
+.pnpm-store/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 本地环境
+.env
+.env.local
+
+# 本地临时文件（隧道测试、一次性脚本、打好的压缩包）
+cloudflared.exe
+_tmp_*
+*.zip
