@@ -84,7 +84,7 @@ content:
       - name: imageAlt
         label: 配图说明
         type: string
-        description: 显示在图下方，同时作为图片的替代文字。
+        description: 不会显示在页面上，只给读屏软件和搜索引擎看。写一句话描述图片内容即可。
       - name: imageAspect
         label: 图框比例
         type: string

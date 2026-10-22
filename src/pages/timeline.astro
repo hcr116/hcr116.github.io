@@ -50,20 +50,17 @@ const rows = await Promise.all(
 
               {
                 entry.data.image && (
-                  <>
-                    <div
-                      class="tl-media"
-                      style={entry.data.imageAspect ? `--tl-ratio: ${entry.data.imageAspect}` : undefined}
-                    >
-                      <img
-                        src={entry.data.image}
-                        alt={entry.data.imageAlt ?? ''}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </div>
-                    {entry.data.imageAlt && <p class="tl-figcaption">{entry.data.imageAlt}</p>}
-                  </>
+                  <div
+                    class="tl-media"
+                    style={entry.data.imageAspect ? `--tl-ratio: ${entry.data.imageAspect}` : undefined}
+                  >
+                    <img
+                      src={entry.data.image}
+                      alt={entry.data.imageAlt ?? ''}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
                 )
               }
 

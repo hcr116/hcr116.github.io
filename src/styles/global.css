@@ -1077,14 +1077,6 @@ main {
   color: var(--ink-faint);
 }
 
-.tl-figcaption {
-  max-width: 32rem;
-  margin-top: 0.5rem;
-  font-size: 0.8125rem;
-  color: var(--ink-faint);
-  line-height: 1.6;
-}
-
 @media (max-width: 560px) {
   .tl-entry {
     grid-template-columns: 3.4rem 1.1rem minmax(0, 1fr);
