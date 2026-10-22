@@ -14,6 +14,7 @@ const year = new Date().getFullYear();
 const navItems = [
   { label: '作品', href: '/' },
   { label: '关于', href: '/about/' },
+  { label: '时间线', href: '/timeline/' },
 ];
 
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
@@ -50,7 +51,6 @@ const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
               </a>
             ))
           }
-          <a href={`mailto:${SITE.email}`}>联系</a>
         </nav>
       </div>
     </header>

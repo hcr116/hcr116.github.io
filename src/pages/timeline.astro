@@ -1,0 +1,55 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { SITE } from '../consts';
+
+/** '至今' 永远排最上，其余按年份数字倒序 */
+const weight = (year: string) => {
+  if (/至今|现在/.test(year)) return 9999;
+  const n = Number.parseInt(year.replace(/\D/g, ''), 10);
+  return Number.isNaN(n) ? -1 : n;
+};
+
+const entries = (await getCollection('timeline', ({ data }) => !data.draft)).sort(
+  (a, b) => weight(b.data.year) - weight(a.data.year),
+);
+
+const rows = await Promise.all(
+  entries.map(async (entry) => ({ entry, Content: (await render(entry)).Content })),
+);
+---
+
+<Base title={`时间线 · ${SITE.name}`} description={`${SITE.name} 的时间线`}>
+  <header class="about-header">
+    <p class="eyebrow">时间线</p>
+    <h1>做过什么，按年份排一遍。</h1>
+  </header>
+
+  {
+    rows.length === 0 ? (
+      <div class="placeholder-block">
+        <p>还没有内容。</p>
+        <p>在 src/content/timeline/ 下新建一个 .md 文件就能添加一条。</p>
+      </div>
+    ) : (
+      <ol class="timeline-feed">
+        {rows.map(({ entry, Content }) => (
+          <li class="tl-entry">
+            <span class="tl-year" data-now={/至今|现在/.test(entry.data.year) ? '' : undefined}>
+              {entry.data.year}
+            </span>
+            <span class="tl-rail" aria-hidden="true">
+              <i class="tl-dot" />
+            </span>
+            <div class="tl-content">
+              {entry.data.title && <h2 class="tl-title">{entry.data.title}</h2>}
+              <div class="prose tl-prose">
+                <Content />
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
+    )
+  }
+</Base>

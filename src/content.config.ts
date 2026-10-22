@@ -51,4 +51,23 @@ const works = defineCollection({
   }),
 });
 
-export const collections = { works };
+/**
+ * 时间线。
+ * 每个 .md 文件 = 时间线上的一个节点。
+ * 文件名随意（只用来区分），排序看 year 字段。
+ */
+const timeline = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/timeline' }),
+  schema: z.object({
+    /** 时间标签：'至今'、'2025'、'2024' …… 显示在左侧刻度上 */
+    year: z.string(),
+
+    /** 这一段的小标题，可留空 */
+    title: z.string().optional(),
+
+    /** 设为 true 时这一条不显示 */
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { works, timeline };
