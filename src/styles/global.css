@@ -1113,6 +1113,12 @@ main {
   margin-bottom: 1.6rem;
 }
 
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
 .button {
   display: inline-block;
   font-size: 0.875rem;

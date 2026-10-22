@@ -1,0 +1,41 @@
+---
+// 这个地址改用 / 了（有趣界面）。
+// 留一个跳转页，避免旧链接、浏览器历史、书签打开时报 404。
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta http-equiv="refresh" content="0; url=/" />
+    <title>正在跳转…</title>
+    <script is:inline>
+      location.replace('/');
+    </script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        display: grid;
+        place-items: center;
+        background: #14141a;
+        color: #9b99a5;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+          'Microsoft YaHei', sans-serif;
+        font-size: 14px;
+        letter-spacing: 0.08em;
+      }
+      a {
+        color: #ff6f5e;
+      }
+    </style>
+  </head>
+  <body>
+    <p>正在跳转到 <a href="/">首页</a>…</p>
+  </body>
+</html>
