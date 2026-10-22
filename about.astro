@@ -1,0 +1,100 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE, SKILLS, TIMELINE, WECHAT } from '../consts';
+---
+
+<Base title={`关于 · ${SITE.name}`} description={`关于 ${SITE.name}`}>
+  <header class="about-header">
+    <p class="eyebrow">关于</p>
+    <h1>{SITE.tagline}</h1>
+  </header>
+
+  <section class="about-block">
+    <h2>自述</h2>
+    <div class="prose" style="padding-block: 0;">
+      <p>
+        我是 <strong>huang</strong>，在 B 站叫 <strong>horob</strong>，公众号叫
+        <strong>「{WECHAT.name}」</strong>。
+      </p>
+      <p>
+        这个站用来归档我做过的东西 —— 完整的项目、写过的说明文档，还有一些过程记录。
+        按时间倒序排列，点进去能看到细节。
+      </p>
+      <p>
+        这里正在陆续补充内容。如果你是通过某个作品找过来的，欢迎直接邮件联系我。
+      </p>
+    </div>
+  </section>
+
+  {
+    SKILLS.length > 0 && (
+      <section class="about-block">
+        <h2>能力</h2>
+        <div class="skill-groups">
+          {SKILLS.map((group) => (
+            <div class="skill-group" data-level={group.level}>
+              <h3>{group.group}</h3>
+              <ul class="chips">
+                {group.items.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    TIMELINE.length > 0 && (
+      <section class="about-block">
+        <h2>经历</h2>
+        <dl class="timeline">
+          {TIMELINE.map((item) => (
+            <div class="timeline-item">
+              <dt>{item.year}</dt>
+              <dd>
+                <h3>{item.title}</h3>
+                <p>{item.detail}</p>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    )
+  }
+
+  <section class="about-block">
+    <h2>联系</h2>
+    <div class="contact-list">
+      <a href={`mailto:${SITE.email}`}>
+        <span>{SITE.email}</span>
+        <span class="contact-label">邮件</span>
+      </a>
+      {
+        SITE.links.map((link) => (
+          <a href={link.href} target="_blank" rel="noopener">
+            <span>{link.href.replace(/^https?:\/\//, '')}</span>
+            <span class="contact-label">{link.label}</span>
+          </a>
+        ))
+      }
+    </div>
+
+    <div class="wechat-card">
+      <img
+        src={WECHAT.qr}
+        alt={`微信公众号「${WECHAT.name}」二维码`}
+        width="180"
+        height="180"
+        loading="lazy"
+        decoding="async"
+      />
+      <div class="wechat-meta">
+        <p class="wechat-name">公众号 · {WECHAT.name}</p>
+        <p class="wechat-note">{WECHAT.note}</p>
+      </div>
+    </div>
+  </section>
+</Base>

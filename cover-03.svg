@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" role="img" aria-label="文档占位封面">
+  <rect width="1600" height="1000" fill="#f2efe9" />
+  <rect x="360" y="150" width="640" height="820" fill="#fffdfa" stroke="#d8d2c6" stroke-width="2" />
+  <g fill="#8a5a3b" opacity="0.75">
+    <rect x="420" y="230" width="300" height="26" rx="3" opacity="0.75" />
+    <rect x="420" y="284" width="180" height="14" rx="3" opacity="0.35" />
+  </g>
+  <g fill="#17171a" opacity="0.22">
+    <rect x="420" y="370" width="520" height="12" rx="3" />
+    <rect x="420" y="400" width="520" height="12" rx="3" />
+    <rect x="420" y="430" width="400" height="12" rx="3" />
+    <rect x="420" y="500" width="520" height="12" rx="3" />
+    <rect x="420" y="530" width="470" height="12" rx="3" />
+    <rect x="420" y="560" width="520" height="12" rx="3" />
+    <rect x="420" y="590" width="330" height="12" rx="3" />
+  </g>
+  <rect x="420" y="650" width="520" height="150" fill="#f2efea" stroke="#ddd7cb" stroke-width="2" />
+  <g fill="#8a5a3b" opacity="0.45">
+    <rect x="444" y="676" width="240" height="10" rx="3" />
+    <rect x="444" y="702" width="360" height="10" rx="3" />
+    <rect x="444" y="728" width="180" height="10" rx="3" />
+  </g>
+  <g fill="#17171a" opacity="0.2">
+    <rect x="420" y="840" width="420" height="12" rx="3" />
+    <rect x="420" y="870" width="500" height="12" rx="3" />
+    <rect x="420" y="900" width="260" height="12" rx="3" />
+  </g>
+  <rect x="1040" y="240" width="240" height="240" fill="#c8926a" opacity="0.12" />
+  <circle cx="1160" cy="360" r="58" fill="none" stroke="#8a5a3b" stroke-opacity="0.4" stroke-width="2" />
+  <line x1="1118" y1="402" x2="1202" y2="318" stroke="#8a5a3b" stroke-opacity="0.4" stroke-width="2" />
+</svg>

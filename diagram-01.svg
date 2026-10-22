@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" role="img" aria-label="流程结构示意图">
+  <rect width="1200" height="600" fill="#f7f5f1" />
+  <g font-family="-apple-system, Segoe UI, Microsoft YaHei, sans-serif" font-size="22" fill="#17171a" text-anchor="middle">
+    <rect x="70" y="230" width="240" height="140" rx="8" fill="#fffdfa" stroke="#d5cec1" stroke-width="2" />
+    <text x="190" y="300" font-size="20">原始数据</text>
+    <text x="190" y="332" font-size="16" fill="#8b8b95">12 张分散报表</text>
+
+    <rect x="480" y="230" width="240" height="140" rx="8" fill="#fffdfa" stroke="#8a5a3b" stroke-width="2" />
+    <text x="600" y="300" font-size="20">统一口径</text>
+    <text x="600" y="332" font-size="16" fill="#8b8b95">字段对照 + 对齐</text>
+
+    <rect x="890" y="230" width="240" height="140" rx="8" fill="#17171a" />
+    <text x="1010" y="300" font-size="20" fill="#faf9f7">一个看板</text>
+    <text x="1010" y="332" font-size="16" fill="#a8a6a1">6 个核心指标</text>
+  </g>
+  <g stroke="#8a5a3b" stroke-opacity="0.45" stroke-width="2" stroke-linecap="round" fill="none">
+    <line x1="310" y1="300" x2="466" y2="300" />
+    <line x1="720" y1="300" x2="876" y2="300" />
+    <path d="M456 292 L470 300 L456 308" />
+    <path d="M866 292 L880 300 L866 308" />
+  </g>
+</svg>
