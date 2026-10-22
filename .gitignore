@@ -19,3 +19,8 @@ _tmp_*
 
 # 本地快捷方式
 *.bat
+
+# 隐私规则与个人资料，只放本地，绝不提交
+_PRIVATE.md
+_private/
+*.local.md

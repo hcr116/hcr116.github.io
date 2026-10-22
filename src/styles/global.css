@@ -1005,6 +1005,16 @@ main {
   margin-bottom: 0.35rem;
 }
 
+/* 只有公司名、没有正文时：收紧间距，名字放大一档 */
+.tl-content.is-sparse {
+  padding-bottom: 2.5rem;
+}
+
+.tl-content.is-sparse .tl-title {
+  font-size: 1.1875rem;
+  margin-bottom: 0;
+}
+
 .tl-prose {
   max-width: none;
   margin-inline: 0;

@@ -15,7 +15,11 @@ const entries = (await getCollection('timeline', ({ data }) => !data.draft)).sor
 );
 
 const rows = await Promise.all(
-  entries.map(async (entry) => ({ entry, Content: (await render(entry)).Content })),
+  entries.map(async (entry) => ({
+    entry,
+    Content: (await render(entry)).Content,
+    hasBody: (entry.body ?? '').trim().length > 0,
+  })),
 );
 ---
 
@@ -33,7 +37,7 @@ const rows = await Promise.all(
       </div>
     ) : (
       <ol class="timeline-feed">
-        {rows.map(({ entry, Content }) => (
+        {rows.map(({ entry, Content, hasBody }) => (
           <li class="tl-entry">
             <span class="tl-year" data-now={/至今|现在/.test(entry.data.year) ? '' : undefined}>
               {entry.data.year}
@@ -41,39 +45,35 @@ const rows = await Promise.all(
             <span class="tl-rail" aria-hidden="true">
               <i class="tl-dot" />
             </span>
-            <div class="tl-content">
+            <div class:list={['tl-content', { 'is-sparse': !hasBody }]}>
               {entry.data.title && <h2 class="tl-title">{entry.data.title}</h2>}
 
-              <div
-                class:list={['tl-media', { 'is-empty': !entry.data.image }]}
-                style={entry.data.imageAspect ? `--tl-ratio: ${entry.data.imageAspect}` : undefined}
-              >
-                {entry.data.image ? (
-                  <img
-                    src={entry.data.image}
-                    alt={entry.data.imageAlt ?? ''}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <span class="tl-media-hint">
-                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                      <rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" />
-                      <circle cx="8.5" cy="10" r="1.6" fill="currentColor" />
-                      <path d="M4 17l5-5 4 4 3-2.5 4 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-                    </svg>
-                    图位
-                  </span>
-                )}
-              </div>
+              {
+                entry.data.image && (
+                  <>
+                    <div
+                      class="tl-media"
+                      style={entry.data.imageAspect ? `--tl-ratio: ${entry.data.imageAspect}` : undefined}
+                    >
+                      <img
+                        src={entry.data.image}
+                        alt={entry.data.imageAlt ?? ''}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                    {entry.data.imageAlt && <p class="tl-figcaption">{entry.data.imageAlt}</p>}
+                  </>
+                )
+              }
 
-              {entry.data.imageAlt && entry.data.image && (
-                <p class="tl-figcaption">{entry.data.imageAlt}</p>
-              )}
-
-              <div class="prose tl-prose">
-                <Content />
-              </div>
+              {
+                hasBody && (
+                  <div class="prose tl-prose">
+                    <Content />
+                  </div>
+                )
+              }
             </div>
           </li>
         ))}
