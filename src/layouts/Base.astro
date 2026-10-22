@@ -1,0 +1,72 @@
+---
+import '../styles/global.css';
+import { SITE } from '../consts';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = SITE.title, description = SITE.intro } = Astro.props;
+const path = Astro.url.pathname;
+const year = new Date().getFullYear();
+
+const navItems = [
+  { label: '作品', href: '/' },
+  { label: '关于', href: '/about/' },
+];
+
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121213" media="(prefers-color-scheme: dark)" />
+  </head>
+
+  <body>
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href="/">{SITE.name}<span class="dot">.</span></a>
+        <nav class="nav" aria-label="主导航">
+          {
+            navItems.map((item) => (
+              <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            ))
+          }
+          <a href={`mailto:${SITE.email}`}>联系</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <p>© {year} {SITE.name}{SITE.location ? ` · ${SITE.location}` : ''}</p>
+        <div class="footer-links">
+          {SITE.links.map((link) => <a href={link.href}>{link.label}</a>)}
+          <a href={`mailto:${SITE.email}`}>邮件</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
