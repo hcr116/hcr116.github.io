@@ -1,4 +1,5 @@
 ---
+import { getEntry } from 'astro:content';
 import '../styles/global.css';
 import { SITE } from '../consts';
 
@@ -10,6 +11,11 @@ interface Props {
 const { title = SITE.title, description = SITE.intro } = Astro.props;
 const path = Astro.url.pathname;
 const year = new Date().getFullYear();
+
+// 背景音乐设置来自 src/content/settings/settings.md
+const settings = await getEntry('settings', 'settings');
+const bgmSrc = settings?.data.bgm?.trim() ?? '';
+const bgmVolume = Math.min(100, Math.max(0, settings?.data.bgmVolume ?? 35)) / 100;
 
 const navItems = [
   { label: '作品', href: '/' },
@@ -51,6 +57,30 @@ const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
               </a>
             ))
           }
+          {
+            bgmSrc && (
+              <button
+                type="button"
+                class="sound-toggle"
+                id="sound-toggle"
+                data-on="false"
+                data-src={bgmSrc}
+                data-volume={bgmVolume}
+                aria-pressed="false"
+                aria-label="播放背景音乐"
+                title="播放背景音乐"
+              >
+                <svg data-icon="off" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" />
+                  <path d="M16.5 8.5l5 5m0-5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
+                </svg>
+                <svg data-icon="on" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" />
+                  <path d="M16.5 8.2a5 5 0 0 1 0 7.6M19 5.8a8.5 8.5 0 0 1 0 12.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
+                </svg>
+              </button>
+            )
+          }
         </nav>
       </div>
     </header>
@@ -68,5 +98,54 @@ const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
         </div>
       </div>
     </footer>
+
+    <script>
+      // 背景音乐开关：浏览器禁止带声音的自动播放，
+      // 所以默认静音，用户点一下才播；选择记在 localStorage 里，翻页后保持。
+      const btn = document.getElementById('sound-toggle');
+      if (btn) {
+        const audio = new Audio();
+        audio.src = btn.dataset.src || '';
+        audio.loop = true;
+        audio.preload = 'none';
+        audio.volume = Number(btn.dataset.volume || 0.35);
+
+        const KEY = 'bgm-on';
+        const setUI = (on) => {
+          btn.dataset.on = String(on);
+          btn.setAttribute('aria-pressed', String(on));
+          const label = on ? '关闭背景音乐' : '播放背景音乐';
+          btn.setAttribute('aria-label', label);
+          btn.title = label;
+        };
+
+        setUI(false);
+
+        const play = async () => {
+          try {
+            await audio.play();
+            setUI(true);
+            localStorage.setItem(KEY, '1');
+          } catch {
+            // 被浏览器拦下（多半是还没交互过），保持关闭状态
+            setUI(false);
+          }
+        };
+
+        const pause = () => {
+          audio.pause();
+          setUI(false);
+          localStorage.setItem(KEY, '0');
+        };
+
+        btn.addEventListener('click', () => {
+          if (audio.paused) play();
+          else pause();
+        });
+
+        // 上次开着的话，这次尽量接着放；被拦下就静音等着用户点
+        if (localStorage.getItem(KEY) === '1') play();
+      }
+    </script>
   </body>
 </html>

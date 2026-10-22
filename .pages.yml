@@ -1,12 +1,61 @@
 # Pages CMS 配置：https://pagescms.org
 # 这个文件决定后台里能编辑什么。改坏了后台会读不到内容，改动前先记下原样。
 
-# 图片上传到哪里、写进正文时用什么路径
+# 上传文件的存放位置。images 存图片，audio 存背景音乐。
 media:
-  input: public/images
-  output: /images
+  - name: images
+    label: 图片
+    input: public/images
+    output: /images
+    categories: [image]
+  - name: audio
+    label: 音频
+    input: public/audio
+    output: /audio
+    categories: [audio]
 
 content:
+  # ---------- 首页 ----------
+  - name: home
+    label: 首页 · 文案
+    type: file
+    path: src/content/home/home.md
+    format: yaml-frontmatter
+    fields:
+      - name: title
+        label: 大标题
+        type: string
+        required: true
+        description: 首屏最大那行字。
+      - name: subtitle
+        label: 副标题
+        type: string
+        description: 显示在大标题下面，字号小一档。比如「战斗策划」。
+      - name: intro
+        label: 自我介绍
+        type: text
+        description: 副标题下面这段。两三句话说明你是谁、在做什么。
+
+  # ---------- 站点设置 ----------
+  - name: settings
+    label: 站点设置 · 背景音乐
+    type: file
+    path: src/content/settings/settings.md
+    format: yaml-frontmatter
+    fields:
+      - name: bgm
+        label: 背景音乐
+        type: file
+        options:
+          media: audio
+          categories: [audio]
+          rename: safe
+        description: 选一个 mp3 上传。留空则右上角不显示喇叭按钮。请使用你有权使用的音乐。
+      - name: bgmVolume
+        label: 音量（0-100）
+        type: number
+        description: 建议 25-40，背景音乐不该盖过人声。
+
   # ---------- 时间线 ----------
   - name: timeline
     label: 时间线
@@ -66,6 +115,8 @@ content:
       - name: cover
         label: 封面图
         type: image
+        options:
+          media: images
       - name: coverAlt
         label: 封面图说明
         type: string

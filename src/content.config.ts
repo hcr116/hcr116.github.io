@@ -79,4 +79,33 @@ const about = defineCollection({
   schema: z.object({}),
 });
 
-export const collections = { works, timeline, about };
+/**
+ * 首页文案：大标题、副标题、自我介绍。
+ * 只有一个文件，改这里不用碰模板。
+ */
+const home = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/home' }),
+  schema: z.object({
+    /** 首屏最大那行字 */
+    title: z.string(),
+    /** 大标题下面的副标题，字号小一档 */
+    subtitle: z.string().optional(),
+    /** 副标题下面的自我介绍 */
+    intro: z.string().optional(),
+  }),
+});
+
+/**
+ * 站点设置：背景音乐。
+ */
+const settings = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/settings' }),
+  schema: z.object({
+    /** 背景音乐路径，如 /audio/bgm.mp3。留空则不显示喇叭按钮 */
+    bgm: z.string().optional().default(''),
+    /** 音量 0-100 */
+    bgmVolume: z.number().min(0).max(100).default(35),
+  }),
+});
+
+export const collections = { works, timeline, about, home, settings };

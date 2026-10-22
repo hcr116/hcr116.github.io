@@ -1,7 +1,13 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import { SITE } from '../consts';
+
+// 首屏文案来自 src/content/home/home.md，可以在后台改
+const home = await getEntry('home', 'home');
+const heroTitle = home?.data.title || SITE.tagline;
+const heroSubtitle = home?.data.subtitle ?? '';
+const heroIntro = home?.data.intro || SITE.intro;
 
 const works = (await getCollection('works', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.order - a.data.order || b.data.year.localeCompare(a.data.year),
@@ -11,8 +17,9 @@ const works = (await getCollection('works', ({ data }) => !data.draft)).sort(
 <Base>
   <section class="hero">
     <p class="eyebrow">作品归档</p>
-    <h1 class="hero-title">{SITE.tagline}</h1>
-    <p class="hero-intro">{SITE.intro}</p>
+    <h1 class="hero-title">{heroTitle}</h1>
+    {heroSubtitle && <p class="hero-subtitle">{heroSubtitle}</p>}
+    <p class="hero-intro">{heroIntro}</p>
     {
       SITE.showPlaceholderNotice && (
         <p class="notice">
