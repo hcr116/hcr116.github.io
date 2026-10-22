@@ -719,6 +719,24 @@ main {
   padding-block: 2.5rem 0;
 }
 
+/* 没有页头标题时，第一块自己撑起顶部留白 */
+.about-block--first {
+  padding-top: clamp(2.75rem, 6vw, 4.5rem);
+}
+
+/* 只给屏幕阅读器看、视觉上不占位 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .about-block > h2 {
   font-size: 0.75rem;
   letter-spacing: 0.14em;

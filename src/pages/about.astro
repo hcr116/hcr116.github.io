@@ -9,12 +9,10 @@ const AboutContent = aboutEntry ? (await render(aboutEntry)).Content : null;
 ---
 
 <Base title={`关于 · ${SITE.name}`} description={`关于 ${SITE.name}`}>
-  <header class="about-header">
-    <p class="eyebrow">关于</p>
-    <h1>{SITE.tagline}</h1>
-  </header>
+  {/* 页面上不显示标题，但保留一个给屏幕阅读器和搜索引擎的 h1 */}
+  <h1 class="sr-only">关于 {SITE.name}</h1>
 
-  <section class="about-block">
+  <section class="about-block about-block--first">
     <h2>自述</h2>
     <div class="prose" style="padding-block: 0;">
       {AboutContent ? <AboutContent /> : <p>还没有写自述。</p>}
