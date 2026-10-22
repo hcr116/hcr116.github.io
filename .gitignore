@@ -16,3 +16,6 @@ Thumbs.db
 cloudflared.exe
 _tmp_*
 *.zip
+
+# 本地快捷方式
+*.bat
