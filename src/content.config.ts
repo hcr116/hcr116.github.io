@@ -71,6 +71,9 @@ const timeline = defineCollection({
     /** 配图的文字说明，也当作 alt */
     imageAlt: z.string().optional(),
 
+    /** 图框比例，CSS 写法，如 '1 / 1'、'4 / 3'。默认 16 / 10 */
+    imageAspect: z.string().optional(),
+
     /** 设为 true 时这一条不显示 */
     draft: z.boolean().default(false),
   }),

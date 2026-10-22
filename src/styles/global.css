@@ -1031,10 +1031,10 @@ main {
   margin-top: 0.9em;
 }
 
-/* 时间线的配图位：固定 16:10，没有图时显示虚线占位 */
+/* 时间线的配图位：默认 16:10，可按条目用 --tl-ratio 覆盖；没有图时显示虚线占位 */
 .tl-media {
   position: relative;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: var(--tl-ratio, 16 / 10);
   max-width: 32rem;
   margin-top: 0.9rem;
   border: 1px solid var(--line);

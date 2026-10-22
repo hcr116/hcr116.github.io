@@ -85,6 +85,10 @@ content:
         label: 配图说明
         type: string
         description: 显示在图下方，同时作为图片的替代文字。
+      - name: imageAspect
+        label: 图框比例
+        type: string
+        description: 照图片实际比例填，避免被裁切。例如 16 / 10、4 / 3、1 / 1。留空默认 16 / 10。
       - name: draft
         label: 隐藏这一条
         type: boolean

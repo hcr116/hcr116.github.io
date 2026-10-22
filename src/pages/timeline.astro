@@ -44,7 +44,10 @@ const rows = await Promise.all(
             <div class="tl-content">
               {entry.data.title && <h2 class="tl-title">{entry.data.title}</h2>}
 
-              <div class:list={['tl-media', { 'is-empty': !entry.data.image }]}>
+              <div
+                class:list={['tl-media', { 'is-empty': !entry.data.image }]}
+                style={entry.data.imageAspect ? `--tl-ratio: ${entry.data.imageAspect}` : undefined}
+              >
                 {entry.data.image ? (
                   <img
                     src={entry.data.image}
