@@ -206,3 +206,43 @@ git push -u origin main
 - 作品卡片布局：`global.css` 里的 `.work-grid` / `.work-card`
 
 改之前建议先 `git commit` 一次，方便回退。
+
+---
+
+## 八、在浏览器里改内容（不用碰代码）
+
+内容都放在 `src/content/` 下，是普通 Markdown 文件，有两种改法：
+
+### 方式 A：GitHub 网页（零配置）
+
+打开仓库 → 进 `src/content/timeline/`（或 `works/`、`about/`）→ 点文件名 → 右上角铅笔图标 → 改完 `Commit changes`。
+大约 1 分钟后 GitHub Actions 自动重新部署。
+
+插图要两步：先把图片传到 `public/images/`，再在 Markdown 里写 `![说明](/images/文件名.jpg)`。
+
+### 方式 B：Pages CMS 图形后台（推荐）
+
+仓库根目录的 `.pages.yml` 已经配好，接上就有表单界面：
+
+1. 打开 <https://app.pagescms.org> → `Sign in with GitHub`
+2. 授权 GitHub App，选中 `hcr116/hcr116.github.io` 这一个仓库
+3. 进入后会看到三块内容：**时间线**、**作品**、**关于页 · 自述**
+4. 改完点保存，它会直接提交到仓库，Actions 自动重新部署
+
+好处是图片能直接拖拽上传，会自动存进 `public/images/` 并把路径写进正文。
+不需要服务器、不需要数据库，编辑记录就是 Git 提交历史，改错了可以在 GitHub 上回退。
+
+想撤销授权：<https://github.com/settings/installations>
+
+### 分不清该改哪
+
+| 想改 | 改哪里 |
+|---|---|
+| 时间线上的年份、备注、图片 | `src/content/timeline/*.md` |
+| 作品 | `src/content/works/*.md` |
+| 关于页自述 | `src/content/about/about.md` |
+| 名字、邮箱、B 站、公众号、首页那句话 | `src/consts.ts` |
+| 配色、排版、布局 | `src/styles/global.css`、`src/pages/*.astro`（建议找 AI 改） |
+
+`.pages.yml` 只覆盖前三类；`consts.ts` 是 TypeScript 文件，后台读不了，要改得在 GitHub 上直接编辑。
+

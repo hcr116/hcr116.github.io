@@ -1,0 +1,110 @@
+# Pages CMS 配置：https://pagescms.org
+# 这个文件决定后台里能编辑什么。改坏了后台会读不到内容，改动前先记下原样。
+
+# 图片上传到哪里、写进正文时用什么路径
+media:
+  input: public/images
+  output: /images
+
+content:
+  # ---------- 时间线 ----------
+  - name: timeline
+    label: 时间线
+    type: collection
+    path: src/content/timeline
+    format: yaml-frontmatter
+    view:
+      primary: year
+    fields:
+      - name: year
+        label: 时间标签
+        type: string
+        required: true
+        description: 写「至今」或「2025」这样的年份。至今永远排最上面，其余按年份从大到小自动排序。
+      - name: title
+        label: 小标题
+        type: string
+        description: 可以留空。
+      - name: draft
+        label: 隐藏这一条
+        type: boolean
+      - name: body
+        label: 正文
+        type: rich-text
+        description: 备注、工作履历、感悟都可以写在这里。图片可以直接拖进来。
+
+  # ---------- 作品 ----------
+  - name: works
+    label: 作品
+    type: collection
+    path: src/content/works
+    format: yaml-frontmatter
+    view:
+      primary: title
+    fields:
+      - name: title
+        label: 标题
+        type: string
+        required: true
+      - name: summary
+        label: 一句话说明
+        type: text
+        required: true
+        description: 说清解决了什么问题、做成了什么。
+      - name: year
+        label: 年份
+        type: string
+        required: true
+        description: 写成 2024 或 2024.06（加引号更稳）。
+      - name: role
+        label: 你的角色
+        type: string
+      - name: tags
+        label: 标签
+        type: string
+        list: true
+      - name: cover
+        label: 封面图
+        type: image
+      - name: coverAlt
+        label: 封面图说明
+        type: string
+        description: 给看不见图的人一句话描述，也利于搜索。
+      - name: video
+        label: 视频嵌入地址
+        type: string
+        description: B 站格式：//player.bilibili.com/player.html?bvid=BV号&page=1&high_quality=1
+      - name: docs
+        label: 说明文档
+        type: object
+        list: true
+        fields:
+          - name: label
+            label: 文档名称
+            type: string
+          - name: href
+            label: 文件路径
+            type: string
+            description: PDF 放进 public/docs/ 后，这里填 /docs/文件名.pdf
+      - name: order
+        label: 排序
+        type: number
+        description: 数字越大越靠前。
+      - name: draft
+        label: 隐藏这个作品
+        type: boolean
+      - name: body
+        label: 正文
+        type: rich-text
+        description: 建议按「背景 → 我做了什么 → 结果 → 一点反思」写。
+
+  # ---------- 关于页自述 ----------
+  - name: about
+    label: 关于页 · 自述
+    type: file
+    path: src/content/about/about.md
+    format: yaml-frontmatter
+    fields:
+      - name: body
+        label: 自述正文
+        type: rich-text

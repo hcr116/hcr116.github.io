@@ -70,4 +70,13 @@ const timeline = defineCollection({
   }),
 });
 
-export const collections = { works, timeline };
+/**
+ * 关于页的自述正文。
+ * 只有一个文件，正文用 Markdown 写，改文案不用碰模板。
+ */
+const about = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/about' }),
+  schema: z.object({}),
+});
+
+export const collections = { works, timeline, about };

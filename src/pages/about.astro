@@ -1,6 +1,11 @@
 ---
+import { getEntry, render } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import { SITE, SKILLS, TIMELINE, WECHAT } from '../consts';
+
+// 自述正文在 src/content/about/about.md，可以直接编辑那个文件
+const aboutEntry = await getEntry('about', 'about');
+const AboutContent = aboutEntry ? (await render(aboutEntry)).Content : null;
 ---
 
 <Base title={`关于 · ${SITE.name}`} description={`关于 ${SITE.name}`}>
@@ -12,17 +17,7 @@ import { SITE, SKILLS, TIMELINE, WECHAT } from '../consts';
   <section class="about-block">
     <h2>自述</h2>
     <div class="prose" style="padding-block: 0;">
-      <p>
-        我是 <strong>huang</strong>，在 B 站叫 <strong>horob</strong>，公众号叫
-        <strong>「{WECHAT.name}」</strong>。
-      </p>
-      <p>
-        这个站用来归档我做过的东西 —— 完整的项目、写过的说明文档，还有一些过程记录。
-        按时间倒序排列，点进去能看到细节。
-      </p>
-      <p>
-        这里正在陆续补充内容。如果你是通过某个作品找过来的，欢迎直接邮件联系我。
-      </p>
+      {AboutContent ? <AboutContent /> : <p>还没有写自述。</p>}
     </div>
   </section>
 
