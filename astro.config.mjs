@@ -1,9 +1,9 @@
 import { defineConfig } from 'astro/config';
 
-// 部署到 EdgeOne Pages / Cloudflare Pages / GitHub Pages 时，
-// 把 site 改成你的正式域名，有助于生成正确的 canonical 与 sitemap。
+// 部署到 GitHub Pages 时用你的用户名地址；
+// 以后换成自己的域名（如 https://huang.com），改下面这一行即可。
 export default defineConfig({
-  site: 'https://your-site.edgeone.app',
+  site: 'https://hcr116.github.io',
   build: {
     format: 'directory',
   },
