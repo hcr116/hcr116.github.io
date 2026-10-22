@@ -1,0 +1,61 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Length 1818 >>
+stream
+BT /F2 8 Tf 0.541 0.353 0.231 rg 64 771.65 Td (SAMPLE DOCUMENT) Tj ET
+0.8 w 0.878 0.863 0.831 RG 64 759.89 m 531.28 759.89 l S
+BT /F2 26 Tf 0.09 0.09 0.102 rg 64 709.61 Td (Placeholder document) Tj ET
+BT /F1 12 Tf 0.337 0.337 0.373 rg 64 660.53 Td (Delete public/docs/sample-doc.pdf and drop your own PDF in here.) Tj ET
+BT /F1 12 Tf 0.337 0.337 0.373 rg 64 640.53 Td (Visitors open it by clicking the attachment on the work detail page.) Tj ET
+BT /F2 8 Tf 0.545 0.545 0.584 rg 64 595.65 Td (DOCUMENT) Tj ET
+BT /F1 10 Tf 0.337 0.337 0.373 rg 176 595.09 Td (sample-doc.pdf) Tj ET
+BT /F2 8 Tf 0.545 0.545 0.584 rg 64 571.65 Td (SIZE) Tj ET
+BT /F1 10 Tf 0.337 0.337 0.373 rg 176 571.09 Td (keep it under 5 MB) Tj ET
+BT /F2 8 Tf 0.545 0.545 0.584 rg 64 547.65 Td (NOTE) Tj ET
+BT /F1 10 Tf 0.337 0.337 0.373 rg 176 547.09 Td (Word and PPT cannot be previewed  export to PDF) Tj ET
+0.8 w 0.878 0.863 0.831 RG 64 521.89 m 531.28 521.89 l S
+BT /F2 13 Tf 0.09 0.09 0.102 rg 64 487.75 Td (Why a PDF) Tj ET
+0.91 0.894 0.867 rg 64 458.89 467.28 7 re f
+0.91 0.894 0.867 rg 64 440.89 452 7 re f
+0.91 0.894 0.867 rg 64 422.89 430 7 re f
+0.91 0.894 0.867 rg 64 404.89 467.28 7 re f
+0.91 0.894 0.867 rg 64 386.89 300 7 re f
+0.91 0.894 0.867 rg 64 354.89 467.28 7 re f
+0.91 0.894 0.867 rg 64 336.89 400 7 re f
+0.91 0.894 0.867 rg 64 318.89 250 7 re f
+0.8 w 0.878 0.863 0.831 RG 64 209.89 467.28 74 re S
+BT /F2 10 Tf 0.541 0.353 0.231 rg 80 261.09 Td (Tip) Tj ET
+BT /F1 10 Tf 0.337 0.337 0.373 rg 80 243.09 Td (Attach the most useful file first  a one-page brief beats a 40-page manual.) Tj ET
+BT /F1 10 Tf 0.337 0.337 0.373 rg 80 227.09 Td (Name the file so it is obvious what it contains, e.g. dashboard-spec.pdf.) Tj ET
+BT /F1 8 Tf 0.545 0.545 0.584 rg 187.64 55.65 Td (This file ships with the starter template  replace it.) Tj ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000257 00000 n 
+0000000354 00000 n 
+0000000456 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2326
+%%EOF
