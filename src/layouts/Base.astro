@@ -6,11 +6,28 @@ import { SITE } from '../consts';
 interface Props {
   title?: string;
   description?: string;
+  /** 加到 <body> 上的额外 class，用来切换整站配色（如简易模式） */
+  bodyClass?: string;
+  /** 覆盖 <main> 的 class，默认是 wrap（限宽居中） */
+  mainClass?: string;
+  /** 为 true 时不显示右上角导航 */
+  hideNav?: boolean;
 }
 
-const { title = SITE.title, description = SITE.intro } = Astro.props;
+const {
+  title = SITE.title,
+  description = SITE.intro,
+  bodyClass = '',
+  mainClass = 'wrap',
+  hideNav = false,
+} = Astro.props;
 const path = Astro.url.pathname;
 const year = new Date().getFullYear();
+
+// 当前是否在「简易」模式（/simple 开头的路由）
+const isSimple = path.startsWith('/simple');
+const toggleHref = isSimple ? '/' : '/simple/';
+const toggleLabel = isSimple ? '有趣' : '简易';
 
 // 背景音乐设置来自 src/content/settings/settings.md
 const settings = await getEntry('settings', 'settings');
@@ -45,17 +62,24 @@ const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
     <meta name="theme-color" content="#121213" media="(prefers-color-scheme: dark)" />
   </head>
 
-  <body>
+  <body class={bodyClass}>
     <header class="site-header">
       <div class="wrap header-inner">
-        <a class="brand" href="/">{SITE.name}<span class="dot">.</span></a>
+        <a
+          class="mode-toggle"
+          href={toggleHref}
+          aria-label={isSimple ? '返回常规首页' : '切换到简易模式'}
+        >
+          {toggleLabel}
+        </a>
         <nav class="nav" aria-label="主导航">
           {
-            navItems.map((item) => (
-              <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
-                {item.label}
-              </a>
-            ))
+            !hideNav &&
+              navItems.map((item) => (
+                <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+                  {item.label}
+                </a>
+              ))
           }
           {
             bgmSrc && (
@@ -85,7 +109,7 @@ const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
       </div>
     </header>
 
-    <main class="wrap">
+    <main class={mainClass}>
       <slot />
     </main>
 

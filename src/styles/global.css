@@ -1127,6 +1127,215 @@ main {
   color: var(--accent);
 }
 
+/* ---------- 模式切换按钮（替换原来的品牌名） ---------- */
+.mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  font-size: 0.8125rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-soft);
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease),
+    background-color 0.2s var(--ease);
+}
+
+.mode-toggle::after {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.mode-toggle:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+/* ---------- 简易模式（/simple）---------- */
+.mode-simple {
+  --simple-bg: #15151a;
+  --simple-ink: #f1efea;
+  --simple-muted: #9c9aa6;
+  --simple-faint: #6b6975;
+  --simple-line: #2a2a33;
+  --simple-accent: #ff6f5e;
+
+  background: var(--simple-bg);
+  color: var(--simple-ink);
+}
+
+.mode-simple .site-header {
+  background: color-mix(in srgb, var(--simple-bg) 86%, transparent);
+  border-bottom-color: var(--simple-line);
+}
+
+.mode-simple .mode-toggle {
+  color: var(--simple-ink);
+  border-color: #3a3a45;
+}
+
+.mode-simple .mode-toggle:hover {
+  border-color: var(--simple-accent);
+  color: var(--simple-accent);
+}
+
+.mode-simple .mode-toggle::after {
+  background: var(--simple-accent);
+}
+
+.mode-simple .sound-toggle {
+  color: var(--simple-muted);
+  border-color: var(--simple-line);
+}
+
+.mode-simple .sound-toggle[data-on='true'] {
+  color: var(--simple-accent);
+  border-color: var(--simple-accent);
+}
+
+.mode-simple .site-footer {
+  border-top-color: var(--simple-line);
+  color: var(--simple-faint);
+}
+
+.mode-simple .footer-links a:hover {
+  color: var(--simple-ink);
+}
+
+.simple-main {
+  padding: 0;
+}
+
+.simple-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(2rem, 5vw, 4.5rem);
+  max-width: 1200px;
+  margin-inline: auto;
+  padding: clamp(2.5rem, 6vw, 5rem) clamp(1.25rem, 4vw, 3rem);
+}
+
+@media (max-width: 880px) {
+  .simple-stage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+    padding-block: 2.5rem 1rem;
+  }
+}
+
+/* 左侧：英文抬头 + 名字 + 副标题 + 菜单 */
+.simple-title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+}
+
+.simple-title-en {
+  display: block;
+  font-size: clamp(1.75rem, 4.6vw, 3rem);
+  color: var(--simple-ink);
+}
+
+.simple-title-name {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: clamp(2.5rem, 7.5vw, 5rem);
+  color: var(--simple-accent);
+}
+
+.simple-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 1.15rem;
+  font-size: clamp(0.8125rem, 1.3vw, 0.9375rem);
+  letter-spacing: 0.16em;
+  color: var(--simple-muted);
+}
+
+.simple-mark {
+  flex: none;
+  width: 0.55rem;
+  height: 0.55rem;
+  background: var(--simple-accent);
+}
+
+.simple-menu {
+  display: grid;
+  gap: 0;
+  margin-top: clamp(2rem, 5vw, 3rem);
+  max-width: 21rem;
+}
+
+.simple-menu a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--simple-line);
+  font-size: 1rem;
+  color: var(--simple-ink);
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.simple-menu a em {
+  font-style: normal;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  color: var(--simple-faint);
+}
+
+.simple-menu a:hover {
+  color: var(--simple-accent);
+  border-bottom-color: var(--simple-accent);
+}
+
+.simple-menu a:hover em {
+  color: var(--simple-accent);
+}
+
+/* 右侧：环形图腾 */
+.simple-art {
+  display: grid;
+  place-items: center;
+  color: var(--simple-accent);
+}
+
+.emblem {
+  width: min(100%, 32rem);
+  height: auto;
+}
+
+.emblem-spin {
+  transform-origin: 200px 200px;
+  animation: emblem-rotate 34s linear infinite;
+}
+
+@keyframes emblem-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.simple-caption {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 4vw, 3rem) clamp(2.5rem, 6vw, 4rem);
+  text-align: center;
+  font-size: 0.8125rem;
+  letter-spacing: 0.1em;
+  line-height: 1.8;
+  color: var(--simple-faint);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
