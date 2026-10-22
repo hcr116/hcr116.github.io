@@ -1,82 +1,108 @@
 ---
-import { getCollection, getEntry } from 'astro:content';
+import { getEntry } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import { SITE } from '../consts';
 
-// 首屏文案来自 src/content/home/home.md，可以在后台改
+// 副标题和简介可以在后台「首页 · 文案」里改
 const home = await getEntry('home', 'home');
-const heroTitle = home?.data.title || SITE.tagline;
-const heroSubtitle = home?.data.subtitle ?? '';
-const heroIntro = home?.data.intro || SITE.intro;
+const role = home?.data.subtitle || '动作游戏战斗策划';
 
-const works = (await getCollection('works', ({ data }) => !data.draft)).sort(
-  (a, b) => b.data.order - a.data.order || b.data.year.localeCompare(a.data.year),
-);
+const menu = [
+  { label: '简介', en: 'BRIEF', href: '/about/' },
+  { label: '作品', en: 'WORKS', href: '/home/' },
+  { label: '时间线', en: 'TIMELINE', href: '/timeline/' },
+  { label: '联系', en: 'CONTACT', href: `mailto:${SITE.email}` },
+];
+
+const social = [
+  ...SITE.links.map((l) => ({ label: l.label.split(' · ')[0], href: l.href })),
+  { label: '公众号', href: '/about/' },
+];
 ---
 
-<Base>
-  <section class="hero">
-    <h1 class="hero-title">{heroTitle}</h1>
-    {heroSubtitle && <p class="hero-subtitle">{heroSubtitle}</p>}
-    <p class="hero-intro">{heroIntro}</p>
-    {
-      SITE.showPlaceholderNotice && (
-        <p class="notice">
-          <strong>整理中</strong>
-          <span>{SITE.notice}</span>
-        </p>
-      )
-    }
+<Base
+  title={SITE.title}
+  description={SITE.intro}
+  bodyClass="mode-fun"
+  mainClass="fun-main"
+  hideNav
+>
+  <section class="fun-stage">
+    <div class="fun-glow" aria-hidden="true"></div>
+
+    <div class="fun-lead">
+      <p class="fun-eyebrow">HI I'M</p>
+      <h1 class="fun-name">{SITE.cnName}</h1>
+
+      <p class="fun-role">
+        <span class="fun-mark" aria-hidden="true"></span>
+        <span>{role}</span>
+      </p>
+
+      <nav class="fun-menu" aria-label="主导航">
+        {
+          menu.map((item, i) => (
+            <a href={item.href}>
+              <span class="fun-menu-idx">{String(i + 1).padStart(2, '0')}</span>
+              <span class="fun-menu-cn">{item.label}</span>
+              <em>{item.en}</em>
+            </a>
+          ))
+        }
+      </nav>
+
+      <div class="fun-social">
+        {
+          social.map((item) => (
+            <a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel="noopener">
+              {item.label}
+            </a>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="fun-art" aria-hidden="true">
+      <svg class="emblem" viewBox="0 0 400 400" role="presentation">
+        <circle cx="200" cy="200" r="178" fill="none" stroke="#26262e" stroke-width="1" />
+        <circle cx="200" cy="200" r="152" fill="none" stroke="#2b2b34" stroke-width="1.5" stroke-dasharray="2 10" />
+
+        <g class="emblem-spin">
+          <circle
+            cx="200"
+            cy="200"
+            r="128"
+            fill="none"
+            stroke="currentColor"
+            stroke-opacity="0.6"
+            stroke-width="1.5"
+            stroke-dasharray="34 16"
+          />
+          <circle cx="200" cy="72" r="5.5" fill="currentColor" />
+        </g>
+
+        <g class="emblem-spin-reverse">
+          <circle
+            cx="200"
+            cy="200"
+            r="100"
+            fill="none"
+            stroke="#6b6975"
+            stroke-opacity="0.6"
+            stroke-width="1"
+            stroke-dasharray="1 12"
+          />
+          <circle cx="100" cy="200" r="3" fill="currentColor" fill-opacity="0.75" />
+        </g>
+
+        <circle cx="200" cy="200" r="78" fill="#1b1b22" stroke="#34343f" stroke-width="1.5" />
+        <circle cx="200" cy="200" r="46" fill="none" stroke="currentColor" stroke-opacity="0.8" stroke-width="1.5" />
+        <circle cx="200" cy="200" r="11" fill="currentColor" />
+      </svg>
+    </div>
   </section>
 
-  <div class="section-head">
-    <h2>全部作品</h2>
-    {works.length > 0 && <span>{works.length} 件</span>}
-  </div>
-
-  {
-    works.length === 0 ? (
-      <div class="placeholder-block">
-        <p>作品还在整理，弄好一个放一个。</p>
-        <p>如果是通过某个东西找过来的，或者有具体的事想聊，直接写信给我就行。</p>
-        <a class="button" href={`mailto:${SITE.email}`}>
-          写信给我
-        </a>
-      </div>
-    ) : (
-      <ol class="work-grid">
-        {works.map((work) => (
-          <li>
-            <a class="work-card" href={`/works/${work.id}/`}>
-              <span class="work-index" aria-hidden="true" />
-              <div class="work-cover">
-                {work.data.cover && (
-                  <img
-                    src={work.data.cover}
-                    alt={work.data.coverAlt || work.data.title}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                )}
-              </div>
-              <div class="work-body">
-                <div class="work-head">
-                  <h3>{work.data.title}</h3>
-                  <span class="work-year">{work.data.year}</span>
-                </div>
-                <p class="work-summary">{work.data.summary}</p>
-                {work.data.tags.length > 0 && (
-                  <ul class="tag-list">
-                    {work.data.tags.map((tag) => (
-                      <li>{tag}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </a>
-          </li>
-        ))}
-      </ol>
-    )
-  }
+  <p class="fun-caption">
+    这个页面刚开始搭，后面会往里塞点好玩的东西<span class="fun-caret" aria-hidden="true"></span>
+  </p>
 </Base>

@@ -1,0 +1,82 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { SITE } from '../consts';
+
+// 首屏文案来自 src/content/home/home.md，可以在后台改
+const home = await getEntry('home', 'home');
+const heroTitle = home?.data.title || SITE.tagline;
+const heroSubtitle = home?.data.subtitle ?? '';
+const heroIntro = home?.data.intro || SITE.intro;
+
+const works = (await getCollection('works', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.order - a.data.order || b.data.year.localeCompare(a.data.year),
+);
+---
+
+<Base title={SITE.title} description={heroIntro}>
+  <section class="hero">
+    <h1 class="hero-title">{heroTitle}</h1>
+    {heroSubtitle && <p class="hero-subtitle">{heroSubtitle}</p>}
+    <p class="hero-intro">{heroIntro}</p>
+    {
+      SITE.showPlaceholderNotice && (
+        <p class="notice">
+          <strong>整理中</strong>
+          <span>{SITE.notice}</span>
+        </p>
+      )
+    }
+  </section>
+
+  <div class="section-head">
+    <h2>全部作品</h2>
+    {works.length > 0 && <span>{works.length} 件</span>}
+  </div>
+
+  {
+    works.length === 0 ? (
+      <div class="placeholder-block">
+        <p>作品还在整理，弄好一个放一个。</p>
+        <p>如果是通过某个东西找过来的，或者有具体的事想聊，直接写信给我就行。</p>
+        <a class="button" href={`mailto:${SITE.email}`}>
+          写信给我
+        </a>
+      </div>
+    ) : (
+      <ol class="work-grid">
+        {works.map((work) => (
+          <li>
+            <a class="work-card" href={`/works/${work.id}/`}>
+              <span class="work-index" aria-hidden="true" />
+              <div class="work-cover">
+                {work.data.cover && (
+                  <img
+                    src={work.data.cover}
+                    alt={work.data.coverAlt || work.data.title}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
+              </div>
+              <div class="work-body">
+                <div class="work-head">
+                  <h3>{work.data.title}</h3>
+                  <span class="work-year">{work.data.year}</span>
+                </div>
+                <p class="work-summary">{work.data.summary}</p>
+                {work.data.tags.length > 0 && (
+                  <ul class="tag-list">
+                    {work.data.tags.map((tag) => (
+                      <li>{tag}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </a>
+          </li>
+        ))}
+      </ol>
+    )
+  }
+</Base>

@@ -1155,185 +1155,293 @@ main {
   border-color: var(--line-strong);
 }
 
-/* ---------- 简易模式（/simple）---------- */
-.mode-simple {
-  --simple-bg: #15151a;
-  --simple-ink: #f1efea;
-  --simple-muted: #9c9aa6;
-  --simple-faint: #6b6975;
-  --simple-line: #2a2a33;
-  --simple-accent: #ff6f5e;
+/* ---------- 有趣模式（首页 /）---------- */
+.mode-fun {
+  --fun-bg: #14141a;
+  --fun-ink: #f2f0ea;
+  --fun-muted: #9b99a5;
+  --fun-faint: #6a6875;
+  --fun-line: #292933;
+  --fun-accent: #ff6f5e;
 
-  background: var(--simple-bg);
-  color: var(--simple-ink);
+  background: var(--fun-bg);
+  color: var(--fun-ink);
 }
 
-.mode-simple .site-header {
-  background: color-mix(in srgb, var(--simple-bg) 86%, transparent);
-  border-bottom-color: var(--simple-line);
+.mode-fun .site-header {
+  background: color-mix(in srgb, var(--fun-bg) 84%, transparent);
+  border-bottom-color: var(--fun-line);
 }
 
-.mode-simple .mode-toggle {
-  color: var(--simple-ink);
-  border-color: #3a3a45;
+.mode-fun .mode-toggle {
+  color: var(--fun-ink);
+  border-color: #3c3c48;
 }
 
-.mode-simple .mode-toggle:hover {
-  border-color: var(--simple-accent);
-  color: var(--simple-accent);
+.mode-fun .mode-toggle:hover {
+  border-color: var(--fun-accent);
+  color: var(--fun-accent);
 }
 
-.mode-simple .mode-toggle::after {
-  background: var(--simple-accent);
+.mode-fun .mode-toggle::after {
+  background: var(--fun-accent);
 }
 
-.mode-simple .sound-toggle {
-  color: var(--simple-muted);
-  border-color: var(--simple-line);
+.mode-fun .sound-toggle {
+  color: var(--fun-muted);
+  border-color: var(--fun-line);
 }
 
-.mode-simple .sound-toggle[data-on='true'] {
-  color: var(--simple-accent);
-  border-color: var(--simple-accent);
+.mode-fun .sound-toggle[data-on='true'] {
+  color: var(--fun-accent);
+  border-color: var(--fun-accent);
 }
 
-.mode-simple .site-footer {
-  border-top-color: var(--simple-line);
-  color: var(--simple-faint);
+.mode-fun .site-footer {
+  border-top-color: var(--fun-line);
+  color: var(--fun-faint);
 }
 
-.mode-simple .footer-links a:hover {
-  color: var(--simple-ink);
+.mode-fun .footer-links a:hover {
+  color: var(--fun-ink);
 }
 
-.simple-main {
+.fun-main {
   padding: 0;
 }
 
-.simple-stage {
+.fun-stage {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
   align-items: center;
   gap: clamp(2rem, 5vw, 4.5rem);
-  max-width: 1200px;
+  max-width: 1180px;
   margin-inline: auto;
-  padding: clamp(2.5rem, 6vw, 5rem) clamp(1.25rem, 4vw, 3rem);
+  padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.25rem, 4vw, 3rem) clamp(1.25rem, 3vw, 2rem);
+  min-height: min(84svh, 46rem);
 }
 
-@media (max-width: 880px) {
-  .simple-stage {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2.5rem;
-    padding-block: 2.5rem 1rem;
-  }
+/* 右侧图形背后的暖光 */
+.fun-glow {
+  position: absolute;
+  top: 48%;
+  right: 2%;
+  width: 40rem;
+  height: 40rem;
+  transform: translate(10%, -50%);
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--fun-accent) 16%, transparent) 0%,
+    transparent 62%
+  );
+  filter: blur(12px);
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* 左侧：英文抬头 + 名字 + 副标题 + 菜单 */
-.simple-title {
+.fun-lead,
+.fun-art {
+  position: relative;
+  z-index: 1;
+}
+
+.fun-eyebrow {
+  margin: 0 0 0.6rem;
+  font-size: clamp(0.75rem, 1.05vw, 0.8125rem);
+  letter-spacing: 0.42em;
+  color: var(--fun-faint);
+}
+
+.fun-name {
   margin: 0;
   font-family: var(--font-sans);
   font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.02;
+  font-size: clamp(2.75rem, 8.2vw, 5.5rem);
+  line-height: 1;
+  letter-spacing: -0.015em;
+  color: var(--fun-ink);
 }
 
-.simple-title-en {
-  display: block;
-  font-size: clamp(1.75rem, 4.6vw, 3rem);
-  color: var(--simple-ink);
-}
-
-.simple-title-name {
-  display: block;
-  margin-top: 0.35rem;
-  font-size: clamp(2.5rem, 7.5vw, 5rem);
-  color: var(--simple-accent);
-}
-
-.simple-sub {
+.fun-role {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  margin-top: 1.15rem;
-  font-size: clamp(0.8125rem, 1.3vw, 0.9375rem);
+  gap: 0.7rem;
+  margin-top: 1.2rem;
+  font-size: clamp(0.875rem, 1.35vw, 1rem);
   letter-spacing: 0.16em;
-  color: var(--simple-muted);
+  color: var(--fun-muted);
 }
 
-.simple-mark {
+.fun-mark {
   flex: none;
-  width: 0.55rem;
-  height: 0.55rem;
-  background: var(--simple-accent);
+  width: 0.6rem;
+  height: 0.6rem;
+  background: var(--fun-accent);
 }
 
-.simple-menu {
+.fun-menu {
   display: grid;
-  gap: 0;
-  margin-top: clamp(2rem, 5vw, 3rem);
-  max-width: 21rem;
+  margin-top: clamp(2rem, 4.5vw, 2.75rem);
+  max-width: 22rem;
 }
 
-.simple-menu a {
-  display: flex;
+.fun-menu a {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.65rem 0;
-  border-bottom: 1px solid var(--simple-line);
+  gap: 0.5rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--fun-line);
   font-size: 1rem;
-  color: var(--simple-ink);
-  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+  color: var(--fun-ink);
+  transition: color 0.22s var(--ease), border-color 0.22s var(--ease),
+    padding-left 0.22s var(--ease);
 }
 
-.simple-menu a em {
+.fun-menu a:hover {
+  color: var(--fun-accent);
+  border-bottom-color: var(--fun-accent);
+  padding-left: 0.35rem;
+}
+
+.fun-menu-idx {
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  color: var(--fun-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.fun-menu-cn {
+  letter-spacing: 0.04em;
+}
+
+.fun-menu em {
   font-style: normal;
   font-size: 0.6875rem;
-  letter-spacing: 0.16em;
-  color: var(--simple-faint);
+  letter-spacing: 0.18em;
+  color: var(--fun-faint);
 }
 
-.simple-menu a:hover {
-  color: var(--simple-accent);
-  border-bottom-color: var(--simple-accent);
+.fun-menu a:hover em,
+.fun-menu a:hover .fun-menu-idx {
+  color: var(--fun-accent);
 }
 
-.simple-menu a:hover em {
-  color: var(--simple-accent);
+.fun-social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: clamp(1.75rem, 4vw, 2.5rem);
 }
 
-/* 右侧：环形图腾 */
-.simple-art {
+.fun-social a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.75rem;
+  border: 1px solid var(--fun-line);
+  border-radius: 2px;
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  color: var(--fun-muted);
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease),
+    background-color 0.2s var(--ease);
+}
+
+.fun-social a:hover {
+  color: var(--fun-bg);
+  background: var(--fun-accent);
+  border-color: var(--fun-accent);
+}
+
+.fun-art {
   display: grid;
   place-items: center;
-  color: var(--simple-accent);
+  color: var(--fun-accent);
 }
 
 .emblem {
-  width: min(100%, 32rem);
+  width: min(100%, 30rem);
   height: auto;
+  filter: drop-shadow(0 0 44px color-mix(in srgb, var(--fun-accent) 14%, transparent));
 }
 
 .emblem-spin {
   transform-origin: 200px 200px;
-  animation: emblem-rotate 34s linear infinite;
+  animation: emblem-spin 34s linear infinite;
 }
 
-@keyframes emblem-rotate {
+.emblem-spin-reverse {
+  transform-origin: 200px 200px;
+  animation: emblem-spin 26s linear infinite reverse;
+}
+
+@keyframes emblem-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
-.simple-caption {
-  max-width: 34rem;
+.fun-caption {
+  max-width: 36rem;
   margin: 0 auto;
   padding: 0 clamp(1.25rem, 4vw, 3rem) clamp(2.5rem, 6vw, 4rem);
   text-align: center;
   font-size: 0.8125rem;
-  letter-spacing: 0.1em;
-  line-height: 1.8;
-  color: var(--simple-faint);
+  letter-spacing: 0.08em;
+  color: var(--fun-faint);
+}
+
+.fun-caret {
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 0.3em;
+  background: var(--fun-accent);
+  vertical-align: -0.12em;
+  animation: fun-caret-blink 1.1s steps(1) infinite;
+}
+
+@keyframes fun-caret-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .fun-stage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.25rem;
+    min-height: 0;
+    padding-block: 2.25rem 1rem;
+  }
+
+  .fun-glow {
+    top: 34%;
+    right: 50%;
+    width: 22rem;
+    height: 22rem;
+    transform: translate(50%, -50%);
+    opacity: 0.75;
+  }
+
+  .fun-art {
+    order: 2;
+  }
+
+  .emblem {
+    width: min(100%, 17rem);
+  }
+
+  .fun-menu {
+    max-width: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
