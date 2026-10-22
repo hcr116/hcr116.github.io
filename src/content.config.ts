@@ -65,6 +65,12 @@ const timeline = defineCollection({
     /** 这一段的小标题，可留空 */
     title: z.string().optional(),
 
+    /** 配图路径，如 /images/timeline/boss.jpg。留空则显示占位图框 */
+    image: z.string().optional(),
+
+    /** 配图的文字说明，也当作 alt */
+    imageAlt: z.string().optional(),
+
     /** 设为 true 时这一条不显示 */
     draft: z.boolean().default(false),
   }),

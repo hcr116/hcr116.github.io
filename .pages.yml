@@ -74,6 +74,17 @@ content:
         label: 小标题
         type: string
         description: 可以留空。
+      - name: image
+        label: 配图
+        type: image
+        options:
+          media: images
+          path: public/images/timeline
+        description: 建议 16:10、宽 1600px 以内。不填则显示虚线占位框。
+      - name: imageAlt
+        label: 配图说明
+        type: string
+        description: 显示在图下方，同时作为图片的替代文字。
       - name: draft
         label: 隐藏这一条
         type: boolean

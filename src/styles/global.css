@@ -1031,6 +1031,50 @@ main {
   margin-top: 0.9em;
 }
 
+/* 时间线的配图位：固定 16:10，没有图时显示虚线占位 */
+.tl-media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  max-width: 32rem;
+  margin-top: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  overflow: hidden;
+}
+
+.tl-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tl-media.is-empty {
+  border-style: dashed;
+  border-color: var(--line-strong);
+  background: color-mix(in srgb, var(--bg-soft) 60%, transparent);
+}
+
+.tl-media-hint {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
+}
+
+.tl-figcaption {
+  max-width: 32rem;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--ink-faint);
+  line-height: 1.6;
+}
+
 @media (max-width: 560px) {
   .tl-entry {
     grid-template-columns: 3.4rem 1.1rem minmax(0, 1fr);

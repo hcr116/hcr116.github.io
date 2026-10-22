@@ -43,6 +43,31 @@ const rows = await Promise.all(
             </span>
             <div class="tl-content">
               {entry.data.title && <h2 class="tl-title">{entry.data.title}</h2>}
+
+              <div class:list={['tl-media', { 'is-empty': !entry.data.image }]}>
+                {entry.data.image ? (
+                  <img
+                    src={entry.data.image}
+                    alt={entry.data.imageAlt ?? ''}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <span class="tl-media-hint">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                      <rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" />
+                      <circle cx="8.5" cy="10" r="1.6" fill="currentColor" />
+                      <path d="M4 17l5-5 4 4 3-2.5 4 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                    </svg>
+                    图位
+                  </span>
+                )}
+              </div>
+
+              {entry.data.imageAlt && entry.data.image && (
+                <p class="tl-figcaption">{entry.data.imageAlt}</p>
+              )}
+
               <div class="prose tl-prose">
                 <Content />
               </div>
