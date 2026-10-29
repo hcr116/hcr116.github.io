@@ -2,21 +2,49 @@
 import { getEntry } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import { SITE } from '../consts';
+import '../styles/menu-glitch.css';
 
 // 副标题和简介可以在后台「首页 · 文案」里改
 const home = await getEntry('home', 'home');
 const role = home?.data.subtitle || '动作游戏战斗策划';
 
-const menu = [
-  { label: '简介', en: 'BRIEF', href: '/about/' },
-  { label: '作品', en: 'WORKS', href: '/home/' },
-  { label: '时间线', en: 'TIMELINE', href: '/timeline/' },
-  { label: '联系', en: 'CONTACT', href: `mailto:${SITE.email}` },
+// signal: true 的那一项走「老电视信号差」那套效果，见 global.css 里 a.is-signal
+const menu: { label: string; en: string; href: string; signal?: boolean }[] = [
+  { label: '简介', en: 'BRIEF', href: '/brief/' },
+  { label: '作品', en: 'WORKS', href: '/works/' },
+  { label: '文章', en: 'ARTICLES', href: '/articles/' },
+  { label: '联系', en: 'CONTACT', href: '/about/' },
+  // 阿比斯不是「这个站里的另一页」，是从别处接进来的一路信号，所以只有它抖
+  { label: '阿比斯', en: 'ABYSS', href: '/abyss/', signal: true },
 ];
 
 const social = [
   ...SITE.links.map((l) => ({ label: l.label.split(' · ')[0], href: l.href })),
   { label: '公众号', href: '/about/' },
+];
+
+// 右侧图形的线条图标（纯 path，省得引图片），下标和 menu 一一对应
+const figureIcons = [
+  // BRIEF：一张文档
+  ['M17 9h20l10 10v36H17z', 'M37 9v10h10', 'M24 27h20', 'M24 35h20', 'M24 43h13'],
+  // WORKS：四宫格
+  ['M14 14h15v15H14z', 'M35 14h15v15H35z', 'M14 35h15v15H14z', 'M35 35h15v15H35z'],
+  // ARTICLES：摊开的书
+  ['M32 19c-5.5-4.5-13-5.5-19-5.5v31c6 0 13.5 1 19 5.5', 'M32 19c5.5-4.5 13-5.5 19-5.5v31c-6 0-13.5 1-19 5.5', 'M32 19v31'],
+  // CONTACT：信封
+  ['M12 18h40v28H12z', 'M12 18l20 16 20-16'],
+  // ABYSS：向下的箭头
+  ['M32 12v34', 'M20 34l12 12 12-12'],
+];
+
+// 图形第一项是「默认态」：鼠标没停在菜单上时显示它，停在某一项才换成那一项的图
+const figures = [
+  {
+    en: 'HCR',
+    cn: 'HOROB',
+    icon: ['M32 7l4.8 20.2L57 32l-20.2 4.8L32 57l-4.8-20.2L7 32l20.2-4.8z'],
+  },
+  ...menu.map((item, i) => ({ en: item.en, cn: item.label, icon: figureIcons[i] })),
 ];
 ---
 
@@ -39,12 +67,20 @@ const social = [
         <span>{role}</span>
       </p>
 
-      <nav class="fun-menu" aria-label="主导航">
+      <nav class="fun-menu" aria-label="主导航" data-fun-nav>
         {
           menu.map((item, i) => (
-            <a href={item.href}>
+            <a
+              href={item.href}
+              class:list={[item.signal && 'is-signal']}
+              /* 站内链接走「下潜」转场；mailto 之类的保持原样 */
+              data-dive={item.href.startsWith('/') ? 'on' : undefined}
+              /* 悬停时切换右侧图形：0 是默认态，所以菜单从 1 开始 */
+              data-figure-target={i + 1}
+            >
               <span class="fun-menu-idx">{String(i + 1).padStart(2, '0')}</span>
-              <span class="fun-menu-cn">{item.label}</span>
+              {/* data-text 给撕裂用的两片重影当内容 */}
+              <span class="fun-menu-cn" data-text={item.label}>{item.label}</span>
               <em>{item.en}</em>
             </a>
           ))
@@ -64,45 +100,112 @@ const social = [
 
     <div class="fun-art" aria-hidden="true">
       <svg class="emblem" viewBox="0 0 400 400" role="presentation">
-        <circle cx="200" cy="200" r="178" fill="none" stroke="#26262e" stroke-width="1" />
-        <circle cx="200" cy="200" r="152" fill="none" stroke="#2b2b34" stroke-width="1.5" stroke-dasharray="2 10" />
+        <defs>
+          <!-- 盘边那圈光：靠不透明度忽明忽暗来「亮一下」 -->
+          <radialGradient id="emblem-halo" cx="50%" cy="50%" r="50%">
+            <stop offset="58%" stop-color="currentColor" stop-opacity="0" />
+            <stop offset="84%" stop-color="currentColor" stop-opacity="0.3" />
+            <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
+          </radialGradient>
 
-        <g class="emblem-spin">
-          <circle
-            cx="200"
-            cy="200"
-            r="128"
-            fill="none"
-            stroke="currentColor"
-            stroke-opacity="0.6"
-            stroke-width="1.5"
-            stroke-dasharray="34 16"
-          />
-          <circle cx="200" cy="72" r="5.5" fill="currentColor" />
+          {/* 外圈描边用竖向渐变：上亮下灭，像光从水面往下散掉，不再是一圈硬线 */}
+          <linearGradient
+            id="emblem-ring-fade"
+            x1="200"
+            y1="18"
+            x2="200"
+            y2="382"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop offset="0" stop-color="#2b2b34" stop-opacity="0" />
+            <stop offset="0.2" stop-color="#2b2b34" stop-opacity="0.9" />
+            <stop offset="0.52" stop-color="#2b2b34" stop-opacity="0.55" />
+            <stop offset="0.78" stop-color="#2b2b34" stop-opacity="0.18" />
+            <stop offset="1" stop-color="#2b2b34" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+
+        <circle cx="200" cy="200" r="178" fill="none" stroke="url(#emblem-ring-fade)" stroke-width="1" />
+        <circle
+          cx="200"
+          cy="200"
+          r="152"
+          fill="none"
+          stroke="url(#emblem-ring-fade)"
+          stroke-width="1.5"
+          stroke-dasharray="2 10"
+        />
+
+        <!-- 这一组整体跟着心跳缩放（盘、内圈、光一起动） -->
+        <g class="emblem-core">
+          <circle class="emblem-halo" cx="200" cy="200" r="126" fill="url(#emblem-halo)" />
+
+          <g class="emblem-spin">
+            <circle
+              cx="200"
+              cy="200"
+              r="128"
+              fill="none"
+              stroke="currentColor"
+              stroke-opacity="0.6"
+              stroke-width="1.5"
+              stroke-dasharray="34 16"
+            />
+            <circle cx="200" cy="72" r="5.5" fill="currentColor" />
+          </g>
+
+          <g class="emblem-spin-reverse">
+            <circle
+              cx="200"
+              cy="200"
+              r="100"
+              fill="none"
+              stroke="#6b6975"
+              stroke-opacity="0.6"
+              stroke-width="1"
+              stroke-dasharray="1 12"
+            />
+            <circle cx="100" cy="200" r="3" fill="currentColor" fill-opacity="0.75" />
+          </g>
+
+          <!-- 涟漪：从盘边往外甩，垫在圆盘下面才像从里头涌出来的。
+               压在光晕和虚线环之上，才不会糊成一团雾 -->
+          <g class="emblem-ripples">
+            <circle class="emblem-ripple" cx="200" cy="200" r="96" />
+            <circle class="emblem-ripple" cx="200" cy="200" r="96" />
+            <circle class="emblem-ripple emblem-ripple-wide" cx="200" cy="200" r="96" />
+          </g>
+
+          <circle cx="200" cy="200" r="96" fill="#1b1b22" stroke="#34343f" stroke-width="1.5" />
         </g>
-
-        <g class="emblem-spin-reverse">
-          <circle
-            cx="200"
-            cy="200"
-            r="100"
-            fill="none"
-            stroke="#6b6975"
-            stroke-opacity="0.6"
-            stroke-width="1"
-            stroke-dasharray="1 12"
-          />
-          <circle cx="100" cy="200" r="3" fill="currentColor" fill-opacity="0.75" />
-        </g>
-
-        <circle cx="200" cy="200" r="78" fill="#1b1b22" stroke="#34343f" stroke-width="1.5" />
-        <circle cx="200" cy="200" r="46" fill="none" stroke="currentColor" stroke-opacity="0.8" stroke-width="1.5" />
-        <circle cx="200" cy="200" r="11" fill="currentColor" />
       </svg>
+
+      <!-- 悬停菜单时，这一叠图形整体上下滑动切换 -->
+      <div class="fun-figures">
+        {
+          figures.map((fig, i) => (
+            <figure class:list={['fun-figure', i === 0 ? 'is-active' : 'is-down']} data-figure>
+              <svg class="fun-figure-icon" viewBox="0 0 64 64" role="presentation">
+                {fig.icon.map((d) => (
+                  <path d={d} />
+                ))}
+              </svg>
+              <span class="fun-figure-word">{fig.en}</span>
+              <span class="fun-figure-sub">{fig.cn}</span>
+            </figure>
+          ))
+        }
+      </div>
     </div>
   </section>
 
   <p class="fun-caption">
     这个页面刚开始搭，后面会往里塞点好玩的东西<span class="fun-caret" aria-hidden="true"></span>
   </p>
+
+  {/* 下潜转场由 Base 统一绑定（data-dive），这里只管悬停换图 */}
+  <script>
+    import '../scripts/fun-art';
+    import '../scripts/menu-glitch';
+  </script>
 </Base>

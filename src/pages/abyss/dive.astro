@@ -1,0 +1,264 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../consts';
+
+// 和「简介」同一套下潜结构，只是文案换成了深渊
+const motes = [
+  { x: 14, y: 22, s: 2, o: 0.5 },
+  { x: 78, y: 16, s: 3, o: 0.35 },
+  { x: 32, y: 64, s: 2, o: 0.45 },
+  { x: 88, y: 58, s: 4, o: 0.22 },
+  { x: 22, y: 84, s: 3, o: 0.3 },
+  { x: 62, y: 34, s: 2, o: 0.55 },
+  { x: 46, y: 12, s: 2, o: 0.28 },
+  { x: 8, y: 46, s: 4, o: 0.18 },
+  { x: 92, y: 78, s: 2, o: 0.4 },
+  { x: 54, y: 88, s: 3, o: 0.24 },
+  { x: 70, y: 72, s: 2, o: 0.5 },
+  { x: 38, y: 44, s: 3, o: 0.2 },
+];
+
+// 右侧下潜剖面：一个 viewBox 100×580 的尖角折线。
+// 故意混三种走法——几乎竖直的直坠、突然横切一大段的回头、幅度不一的外扩，
+// 这样才像被岩壁挤着往下钻的路线，而不是一条均匀的锯齿。
+const ROUTE_PATH =
+  'M 62 0 L 70 34 L 34 62 L 48 96 L 24 128 L 66 158 L 58 196 L 80 224 ' +
+  'L 40 262 L 44 300 L 18 336 L 56 368 L 50 404 L 78 436 L 36 474 ' +
+  'L 30 512 L 60 546 L 52 580';
+
+// 深度刻度。数字不是一开始就全写出来的——下潜到那一层才亮起来，
+// 所以每格带上自己的深度，JS 拿当前深度跟它比。
+const ROUTE_TICKS = [
+  { depth: 0, label: '0' },
+  { depth: 2000, label: '2,000' },
+  { depth: 4000, label: '4,000' },
+  { depth: 6000, label: '6,000' },
+  { depth: 8000, label: '8,000' },
+];
+---
+
+<Base
+  title={`阿比斯 · 深渊 · ${SITE.name}`}
+  description="往下，再往下"
+  bodyClass="mode-fun mode-abyss"
+  mainClass="dive-main"
+>
+  <section class="dive" data-dive-track data-max-depth="8000">
+    <div class="dive-stage" data-dive-stage>
+      <div class="dive-scene" aria-hidden="true">
+        <div class="dive-layer dive-layer--glow" data-speed="0.05"></div>
+
+        <div class="dive-layer" data-speed="0.16">
+          <span class="dive-ring" style="--r: 21rem"></span>
+          <span class="dive-ring" style="--r: 33rem"></span>
+          <span class="dive-ring" style="--r: 45rem"></span>
+        </div>
+
+        <div class="dive-layer" data-speed="0.5">
+          {
+            motes.map((m) => (
+              <span
+                class="dive-mote"
+                style={`--x:${m.x}%;--y:${m.y}%;--s:${m.s}px;--o:${m.o}`}
+              />
+            ))
+          }
+        </div>
+
+        <div class="dive-layer dive-layer--grain" data-speed="0.92"></div>
+      </div>
+
+      {/*
+        越深越暗：三层固定图层，只让脚本改它们的 opacity（合成层，不重绘渐变）。
+        a 是外圈压暗，b 是视野收紧，c 是全屏沉黑。
+      */}
+      <div class="dive-dim" aria-hidden="true">
+        <span class="dive-dim-a"></span>
+        <span class="dive-dim-b"></span>
+        <span class="dive-dim-c"></span>
+      </div>
+
+      <div class="dive-hud" aria-hidden="true">
+        <span class="dive-hud-label">下潜深度</span>
+        <span class="dive-hud-value">
+          <b data-depth>0</b>
+          <em>米</em>
+        </span>
+
+        <span class="dive-risk">
+          <span class="dive-risk-label">危险等级</span>
+          <b data-risk data-level="1">Ⅰ</b>
+        </span>
+
+        {/* 区域分层留的口子：src/consts.ts 的 ABYSS_ZONES 填了才会出现这一行 */}
+        <span class="dive-zone" data-zone hidden></span>
+      </div>
+
+      {/* 右侧路线：崎岖的下潜剖面 + 红点，滚轮往下走，点沿线爬 */}
+      <div class="dive-scale dive-scale--route" aria-hidden="true">
+        <ol class="dive-route-ticks">
+          {
+            ROUTE_TICKS.map((t) => (
+              <li data-tick={t.depth}>
+                <b>{t.label}</b>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="dive-route-plot">
+          <svg class="dive-route" viewBox="0 0 100 580" preserveAspectRatio="none">
+            <defs>
+              {/* 越往下越沉：亮线本身也随深度变暗，像光啃不到的深处 */}
+              <linearGradient
+                id="diveRouteStroke"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="580"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop offset="0" stop-color="#ff5a3c" stop-opacity="1" />
+                <stop offset="0.55" stop-color="#f0482f" stop-opacity="0.92" />
+                <stop offset="1" stop-color="#8c1f16" stop-opacity="0.7" />
+              </linearGradient>
+              {/* 没走到的部分：虚线，越往下越看不见 */}
+              <linearGradient
+                id="diveRouteGhost"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="580"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop offset="0" stop-color="#ff5a3c" stop-opacity="0.34" />
+                <stop offset="0.6" stop-color="#ff5a3c" stop-opacity="0.2" />
+                <stop offset="1" stop-color="#ff5a3c" stop-opacity="0.06" />
+              </linearGradient>
+              {/*
+                亮线露到哪儿，由这条横幅决定——高度每帧跟红点的 y 走。
+                折线的 y 是单调递增的，所以「按 y 裁」和「按里程走」是同一件事，
+                但裁剪是精确的，不会像 stroke-dasharray 那样算出来差一截。
+              */}
+              <clipPath id="diveReveal">
+                <rect data-route-reveal x="-6" y="-6" width="112" height="0" />
+              </clipPath>
+
+              {/* 雷达扇形改成 HTML 那边画了（conic-gradient 才有角向柔化），
+                  这里只留一条细的波前弧，跟着圆的半径走 */}
+              <linearGradient id="diveRouteStrokeDeep" x1="0" y1="0" x2="0" y2="580" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#ffe3ae" stop-opacity="1" />
+                <stop offset="0.55" stop-color="#ffc266" stop-opacity="0.95" />
+                <stop offset="1" stop-color="#8a5f1c" stop-opacity="0.75" />
+              </linearGradient>
+
+
+              {/* 被扫到的那一段：圆形裁出去，下面再叠一层「只在红点之下」 */}
+              <clipPath id="diveRadarClip" clipPathUnits="userSpaceOnUse">
+                <circle data-radar-clip r="1" cx="0" cy="0" />
+              </clipPath>
+              <clipPath id="diveRadarBelow" clipPathUnits="userSpaceOnUse">
+                <rect data-radar-below x="-12" y="0" width="124" height="800" />
+              </clipPath>
+            </defs>
+
+            <path class="dive-route-ghost" d={ROUTE_PATH} />
+
+            <g clip-path="url(#diveReveal)">
+              <path class="dive-route-line" data-route d={ROUTE_PATH} />
+            </g>
+
+            {/* 雷达扫出来的那截路线：亮一下就退回去 */}
+            <g class="dive-radar-hit" data-radar-hit opacity="0" clip-path="url(#diveRadarBelow)">
+              <g clip-path="url(#diveRadarClip)">
+                <path class="dive-route-ping" d={ROUTE_PATH} />
+              </g>
+            </g>
+
+            {/* 回波：扫过之后剩下的碎线，比刚才那一下活得久，最后自己碎掉 */}
+            <g class="dive-radar-echo" data-radar-echo opacity="0" clip-path="url(#diveRadarBelow)">
+              <g clip-path="url(#diveRadarClip)">
+                <path class="dive-route-echo" d={ROUTE_PATH} />
+              </g>
+            </g>
+          </svg>
+
+          {/*
+            扇形雷达：用 CSS 的 conic-gradient 画。
+            扇形之所以边上生硬，是因为 SVG 的路径边界是硬的；
+            conic-gradient 可以让角度方向也渐隐，再叠一层径向遮罩收远边，
+            外面再套一层左右渐隐，四条边就全是化开的。
+          */}
+          <span class="dive-radar-fade" aria-hidden="true">
+            <span class="dive-radar" data-radar></span>
+            <span class="dive-radar-ring" data-radar-ring></span>
+          </span>
+
+          {/* 跟着红点上下的一道横线，读作「我在这一层」 */}
+          <span class="dive-route-cursor" data-route-cursor></span>
+          {/* 到底那一下的一层暖光 */}
+          <span class="dive-deep-flash" aria-hidden="true"></span>
+          <span class="dive-route-dot" data-route-dot></span>
+        </div>
+      </div>
+
+      <div class="dive-panels">
+        <article class="dive-panel" data-at="0.06">
+          <p class="dive-eyebrow">记录 01 · 深度 0 米</p>
+          <h1 class="dive-title">阿比斯</h1>
+          <p class="dive-text">
+            放下铅锤，四十米还没到底。回声要两秒才回来。<br />
+            我在岸上写这几行字的时候，天还亮着。
+          </p>
+          <p class="dive-hint">
+            <span class="dive-hint-arrow" aria-hidden="true">↓</span>
+            向下滚动开始下潜
+          </p>
+        </article>
+
+        <article class="dive-panel" data-at="0.44">
+          <p class="dive-eyebrow">记录 07 · 深度 3,283 米</p>
+          <h2 class="dive-title">越往下，越安静</h2>
+          <p class="dive-text">
+            光到这里就没有了。声音还在，只是改成从骨头里传进来。<br />
+            我数了三次心跳，每一次的数字都不一样。
+          </p>
+        </article>
+
+        <article class="dive-panel" data-at="0.84">
+          <p class="dive-eyebrow">记录 ? · 深度 7,451 米</p>
+          <h2 class="dive-title">到底了</h2>
+          <p class="dive-text">
+            我数了……我数了几次？<br />
+            笔还在，纸是空的。
+          </p>
+          <p class="dive-links">
+            <a href="/abyss/">回入口</a>
+            <a href="/">回首页</a>
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="dive-end">
+    <p class="dive-end-note">记录到这里就没有了。笔和纸都在原处，人不在。</p>
+
+    <p class="dive-locked">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="5" y="10.5" width="14" height="10" rx="2" />
+        <path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3" />
+      </svg>
+      更深处 · 尚未开放
+    </p>
+
+    <div class="dive-end-links">
+      <a href="/abyss/">回入口</a>
+      <a href="/">回首页</a>
+    </div>
+  </section>
+
+  <script>
+    import '../../scripts/dive-scroll';
+  </script>
+</Base>

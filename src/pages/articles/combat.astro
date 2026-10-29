@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../consts';
+// 正文在 src/articles/combat.md，改那个文件就行
+import Body from '../../articles/combat.md';
+---
+
+<Base
+  title={`战斗策划经验 · ${SITE.name}`}
+  description="战斗系统拆解、数值与手感"
+  bodyClass="mode-fun"
+  mainClass="article-main"
+>
+  <article class="article">
+    <header class="article-head">
+      <p class="works-eyebrow">文章 · 01</p>
+      <h1 class="article-title">战斗策划经验</h1>
+      <p class="article-en">COMBAT DESIGN</p>
+    </header>
+
+    <div class="article-body">
+      <Body />
+    </div>
+
+    <p class="works-foot">
+      <a href="/articles/">回文章</a>
+      <a href="/">回首页</a>
+    </p>
+  </article>
+</Base>

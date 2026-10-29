@@ -1,0 +1,86 @@
+/*
+ * 菜单行「信号」效果需要的样式。
+ * 单独一个文件，避免去动已经很长、而且编码被写坏过的 global.css。
+ */
+
+/* 承载复制的行 */
+.fun-menu a.is-signal {
+  position: relative;
+  /* 镶边要混在字后面，所以给这一行单独建一个混合上下文 */
+  isolation: isolate;
+}
+
+/* 被复制的行：绝对定位盖在原行上，永不吃鼠标事件 */
+.fun-menu a.sig-band,
+.fun-menu a.sig-fringe {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* 像素带：正常混合，推出去的那一条直接盖在原字上，才像「整行被挪走」 */
+.fun-menu a.sig-band {
+  z-index: 2;
+}
+
+/* 镶边：两层染色副本，压在字的**下面**，只在笔画边缘露出一点色差。
+   放在字上面的话 screen 混合会把白字整体冲淡，看起来发灰。 */
+.fun-menu a.sig-fringe {
+  z-index: -1;
+  mix-blend-mode: screen;
+}
+
+.fun-menu a.sig-fringe.c {
+  color: #38e8ff;
+  opacity: 0.46;
+}
+
+.fun-menu a.sig-fringe.m {
+  color: #ff2d8e;
+  opacity: 0.4;
+}
+
+/* 复制出来的行里，字色要跟着走，不然染色不生效 */
+.fun-menu a.sig-fringe.c .fun-menu-cn,
+.fun-menu a.sig-fringe.c em,
+.fun-menu a.sig-fringe.c .fun-menu-idx,
+.fun-menu a.sig-fringe.m .fun-menu-cn,
+.fun-menu a.sig-fringe.m em,
+.fun-menu a.sig-fringe.m .fun-menu-idx {
+  color: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fun-menu a.sig-band,
+  .fun-menu a.sig-fringe {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------
+   把 global.css 里那套旧效果关掉。
+   旧的是「整行位移 + 两片重影撕裂 + 色差」，就是之前嫌乱的那种；
+   现在由上面的像素带接管，旧的必须让路，否则两套叠在一起会更脏。
+   用 !important 是因为 global.css 的规则更靠后、也更具体，这里不抢就压不住。
+   ------------------------------------------------------------------ */
+.fun-menu a.is-signal {
+  animation: none !important;
+  transform: none !important;
+}
+
+.fun-menu a.is-signal::before,
+.fun-menu a.is-signal::after {
+  display: none !important;
+}
+
+.fun-menu a.is-signal .fun-menu-cn::before,
+.fun-menu a.is-signal .fun-menu-cn::after {
+  display: none !important;
+}
+
+.fun-menu a.is-signal .fun-menu-cn,
+.fun-menu a.is-signal em {
+  text-shadow: none !important;
+}

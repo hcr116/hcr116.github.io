@@ -1,0 +1,145 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../consts';
+
+// 三个门类。后两个锁着，主页下方可以输密钥解锁。
+const books = [
+  {
+    id: 'combat',
+    cn: '战斗策划经验',
+    en: 'COMBAT DESIGN',
+    spineEn: 'COMBAT',
+    spine: '#b3492f',
+    href: '/articles/combat/',
+    locked: false,
+  },
+  {
+    id: 'play',
+    cn: '各游戏体验记录',
+    en: 'PLAY LOGS',
+    spineEn: 'PLAYS',
+    spine: '#2f6f7d',
+    href: '/articles/play/',
+    locked: true,
+  },
+  {
+    id: 'assets',
+    cn: '游戏素材库收集',
+    en: 'ASSET LIBRARY',
+    spineEn: 'ASSETS',
+    spine: '#6a4a86',
+    href: '/articles/assets/',
+    locked: true,
+  },
+];
+---
+
+<Base
+  title={`文章 · ${SITE.name}`}
+  description={`${SITE.cnName}的文章：战斗策划经验、游戏体验记录、素材库`}
+  bodyClass="mode-fun"
+  mainClass="works-main"
+>
+  <section class="works-hero">
+    <p class="works-eyebrow">ARTICLES · 三个门类</p>
+    <h1 class="works-title">
+      把想法写下来，<br />才不会丢。
+    </h1>
+    <p class="works-lead">
+      战斗策划的拆解、玩过的游戏、攒下的素材。后两格先锁着。
+    </p>
+  </section>
+
+  <section class="works-shelf" aria-label="文章分类">
+    <ul class="shelf">
+      {
+        books.map((book, i) => (
+          <li class:list={['shelf-book', book.locked && 'is-locked']} style={`--spine:${book.spine}`}>
+            <a href={book.href} data-book={book.id} data-locked={book.locked ? 'on' : undefined}>
+              <span class="book-no">{String(i + 1).padStart(2, '0')}</span>
+              <span class="book-cn">{book.cn}</span>
+              <span class="book-en">{book.spineEn ?? book.en}</span>
+              {book.locked ? (
+                <svg class="book-lock" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="5" y="10.5" width="14" height="10" rx="2" />
+                  <path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3" />
+                </svg>
+              ) : (
+                <span class="book-dot" aria-hidden="true" />
+              )}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <span class="shelf-board" aria-hidden="true"></span>
+  </section>
+
+  {/* 被点开的那本书：书飞起来 → 封面翻开 → 书页里输密钥 */}
+  <div
+    class="book-gate"
+    id="book-gate"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="gate-title"
+    hidden
+  >
+    <div class="book-gate-scrim" data-gate-close></div>
+
+    <div class="book-gate-stage">
+      <div class="book-gate-book">
+        <div class="book-gate-page">
+          <p class="gate-eyebrow">
+            <span data-gate-no>01</span>
+            <span class="gate-dot">·</span>
+            <span data-gate-en>COMBAT</span>
+          </p>
+          <h2 class="gate-title" id="gate-title" data-gate-title>战斗策划经验</h2>
+
+          <div class="gate-body" data-gate-locked>
+            <p class="gate-copy">这一格锁着。翻得开就进去。</p>
+            <form class="gate-form" id="key-form" novalidate>
+              <label class="gate-label" for="key-input">密钥</label>
+              <div class="gate-row">
+                <input
+                  class="gate-input"
+                  id="key-input"
+                  type="password"
+                  name="key"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="密钥"
+                />
+                <button class="gate-submit" type="submit">翻开</button>
+              </div>
+              <p class="gate-msg" id="key-msg" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+
+          <div class="gate-body gate-body--open" data-gate-open hidden>
+            <p class="gate-copy">翻开了。往下走。</p>
+          </div>
+
+          <button class="gate-close" type="button" data-gate-close>合上</button>
+        </div>
+
+        <div class="book-gate-cover" data-gate-cover aria-hidden="true">
+          <div class="cover-face cover-face--front">
+            <span class="cover-no" data-gate-no>01</span>
+            <span class="cover-cn" data-gate-title>战斗策划经验</span>
+            <span class="cover-en" data-gate-en>COMBAT</span>
+          </div>
+          <div class="cover-face cover-face--back"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="works-foot">
+    <a href="/">回首页</a>
+  </p>
+</Base>
+
+<script>
+  import '../../scripts/articles-unlock';
+</script>

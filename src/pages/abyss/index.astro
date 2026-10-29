@@ -1,0 +1,33 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE, ABYSS_META } from '../../consts';
+---
+
+<Base
+  title={`阿比斯 · ${SITE.name}`}
+  description="阿比斯：深渊入口"
+  bodyClass="mode-fun mode-abyss"
+  mainClass="abyss-main"
+>
+  <section class="abyss-gate">
+    <p class="abyss-eyebrow">ABYSS · 阿比斯</p>
+
+    <p class="abyss-count">
+      你是第 <b data-abyss-count>—</b> 个下潜的勇士
+    </p>
+
+    <p class="abyss-ready">
+      准备好<a class="abyss-enter" href="/abyss/dive/" data-dive="on" data-abyss-enter="on">下潜</a>探索深渊了么
+    </p>
+
+    <p class="abyss-note">下面很深，慢慢来。</p>
+
+    <p class="abyss-meta">
+      {ABYSS_META.version} · 第 {ABYSS_META.iteration} 次迭代 · {ABYSS_META.updated}
+    </p>
+  </section>
+</Base>
+
+<script>
+  import '../../scripts/abyss-counter';
+</script>

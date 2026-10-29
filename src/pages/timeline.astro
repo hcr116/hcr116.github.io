@@ -1,7 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { SITE } from '../consts';
+import { SITE, TIMELINE_PUBLIC } from '../consts';
 
 /** '至今' 永远排最上，其余按年份数字倒序 */
 const weight = (year: string) => {
@@ -10,9 +10,11 @@ const weight = (year: string) => {
   return Number.isNaN(n) ? -1 : n;
 };
 
-const entries = (await getCollection('timeline', ({ data }) => !data.draft)).sort(
-  (a, b) => weight(b.data.year) - weight(a.data.year),
-);
+const entries = TIMELINE_PUBLIC
+  ? (await getCollection('timeline', ({ data }) => !data.draft)).sort(
+      (a, b) => weight(b.data.year) - weight(a.data.year),
+    )
+  : [];
 
 const rows = await Promise.all(
   entries.map(async (entry) => ({
@@ -23,58 +25,75 @@ const rows = await Promise.all(
 );
 ---
 
-<Base title={`时间线 · ${SITE.name}`} description={`${SITE.name} 的时间线`}>
-  <header class="about-header">
-    <p class="eyebrow">时间线</p>
-    <h1>做过什么，按年份排一遍。</h1>
-  </header>
-
+<Base
+  title={`时间线 · ${SITE.name}`}
+  description={`${SITE.name} 的时间线`}
+  noindex={!TIMELINE_PUBLIC}
+>
   {
-    rows.length === 0 ? (
-      <div class="placeholder-block">
-        <p>还没有内容。</p>
-        <p>在 src/content/timeline/ 下新建一个 .md 文件就能添加一条。</p>
-      </div>
+    !TIMELINE_PUBLIC ? (
+      <header class="about-header">
+        <p class="eyebrow">时间线</p>
+        <h1>这一页暂时不对外。</h1>
+        <p class="works-lead">整理好了会放出来。</p>
+        <p class="works-foot">
+          <a href="/">回首页</a>
+        </p>
+      </header>
     ) : (
-      <ol class="timeline-feed">
-        {rows.map(({ entry, Content, hasBody }) => (
-          <li class="tl-entry">
-            <span class="tl-year" data-now={/至今|现在/.test(entry.data.year) ? '' : undefined}>
-              {entry.data.year}
-            </span>
-            <span class="tl-rail" aria-hidden="true">
-              <i class="tl-dot" />
-            </span>
-            <div class:list={['tl-content', { 'is-sparse': !hasBody }]}>
-              {entry.data.title && <h2 class="tl-title">{entry.data.title}</h2>}
+      <>
+        <header class="about-header">
+          <p class="eyebrow">时间线</p>
+          <h1>做过什么，按年份排一遍。</h1>
+        </header>
 
-              {
-                entry.data.image && (
-                  <div
-                    class="tl-media"
-                    style={entry.data.imageAspect ? `--tl-ratio: ${entry.data.imageAspect}` : undefined}
-                  >
-                    <img
-                      src={entry.data.image}
-                      alt={entry.data.imageAlt ?? ''}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                )
-              }
+        {rows.length === 0 ? (
+          <div class="placeholder-block">
+            <p>还没有内容。</p>
+            <p>在 src/content/timeline/ 下新建一个 .md 文件就能添加一条。</p>
+          </div>
+        ) : (
+          <ol class="timeline-feed">
+            {rows.map(({ entry, Content, hasBody }) => (
+              <li class="tl-entry">
+                <span class="tl-year" data-now={/至今|现在/.test(entry.data.year) ? '' : undefined}>
+                  {entry.data.year}
+                </span>
+                <span class="tl-rail" aria-hidden="true">
+                  <i class="tl-dot" />
+                </span>
+                <div class:list={['tl-content', { 'is-sparse': !hasBody }]}>
+                  {entry.data.title && <h2 class="tl-title">{entry.data.title}</h2>}
 
-              {
-                hasBody && (
-                  <div class="prose tl-prose">
-                    <Content />
-                  </div>
-                )
-              }
-            </div>
-          </li>
-        ))}
-      </ol>
+                  {
+                    entry.data.image && (
+                      <div
+                        class="tl-media"
+                        style={entry.data.imageAspect ? `--tl-ratio: ${entry.data.imageAspect}` : undefined}
+                      >
+                        <img
+                          src={entry.data.image}
+                          alt={entry.data.imageAlt ?? ''}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                    )
+                  }
+
+                  {
+                    hasBody && (
+                      <div class="prose tl-prose">
+                        <Content />
+                      </div>
+                    )
+                  }
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </>
     )
   }
 </Base>

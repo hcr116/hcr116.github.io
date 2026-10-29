@@ -1,7 +1,7 @@
 ---
 import { getEntry } from 'astro:content';
 import '../styles/global.css';
-import { SITE } from '../consts';
+import { SITE, GOATCOUNTER, TIMELINE_PUBLIC } from '../consts';
 
 interface Props {
   title?: string;
@@ -12,6 +12,8 @@ interface Props {
   mainClass?: string;
   /** 为 true 时不显示右上角导航 */
   hideNav?: boolean;
+  /** 为 true 时告诉搜索引擎别收录这一页 */
+  noindex?: boolean;
 }
 
 const {
@@ -20,6 +22,7 @@ const {
   bodyClass = '',
   mainClass = 'wrap',
   hideNav = false,
+  noindex = false,
 } = Astro.props;
 const path = Astro.url.pathname;
 const year = new Date().getFullYear();
@@ -27,8 +30,20 @@ const year = new Date().getFullYear();
 // 首页是「有趣」界面（/），常规站移到 /home/
 // 按钮显示的是「点下去会去哪」：有趣界面显示「简易」，常规页显示「有趣」
 const isFunRoute = path === '/';
+// 「沉浸页」：从有趣主页点进来、自己撑满一屏的页面。
+// 左上角从「简易」换成「返回」（点回主页），右上角的站内导航整体收起来。
+const IMMERSIVE = ['/brief/', '/timeline/', '/works/', '/articles/', '/abyss/'];
+const here = path.endsWith('/') ? path : `${path}/`;
+// 前缀匹配，所以 /articles/ 下的子页也自动算沉浸页
+const isImmersive = IMMERSIVE.some((p) => here === p || here.startsWith(p));
+
 const toggleHref = isFunRoute ? '/home/' : '/';
-const toggleLabel = isFunRoute ? '简易' : '有趣';
+const toggleLabel = isFunRoute ? '简易' : isImmersive ? '返回' : '有趣';
+const toggleAria = isFunRoute
+  ? '切换到简易版主页'
+  : isImmersive
+    ? '返回主页'
+    : '回到有趣的主页';
 
 // 背景音乐设置来自 src/content/settings/settings.md
 const settings = await getEntry('settings', 'settings');
@@ -38,7 +53,8 @@ const bgmVolume = Math.min(100, Math.max(0, settings?.data.bgmVolume ?? 35)) / 1
 const navItems = [
   { label: '作品', href: '/home/' },
   { label: '关于', href: '/about/' },
-  { label: '时间线', href: '/timeline/' },
+  // 时间线默认不公开（consts.ts 里 TIMELINE_PUBLIC 控制），先筛掉再渲染
+  ...(TIMELINE_PUBLIC ? [{ label: '时间线', href: '/timeline/' }] : []),
 ];
 
 const isActive = (href: string) => (href === '/home/' ? path === '/home/' : path.startsWith(href));
@@ -52,30 +68,83 @@ const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    {canonical && <link rel="canonical" href={canonical} />}
+    {/* noai / noimageai 是非标准标记，愿意遵守的爬虫会读；真正的拦截在 robots.txt */}
+    <meta
+      name="robots"
+      content={noindex ? 'noindex, nofollow, noai, noimageai' : 'index, follow, noai, noimageai'}
+    />
+    {canonical && !noindex && <link rel="canonical" href={canonical} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <!--
+      换页那一帧先铺深色：首页点菜单时会在 sessionStorage 留一个标记，
+      目标页在样式生效前就读到它，避免「白闪」盖住下潜转场。
+      真正的揭幕在 src/scripts/dive-transition.ts 里。
+    -->
+    <script is:inline>
+      (function () {
+        try {
+          if (!sessionStorage.getItem('dive-to')) return;
+          var root = document.documentElement;
+          root.classList.add('dive-arriving');
+          // 兜底：万一下潜脚本没跑起来，1.8 秒后恢复成正常页面，不会一片黑
+          window.setTimeout(function () {
+            root.classList.remove('dive-arriving');
+          }, 1800);
+        } catch (e) {
+          /* 隐私模式下读不到，就按普通加载处理 */
+        }
+      })();
+    </script>
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)" />
+    <meta property="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#121213" media="(prefers-color-scheme: dark)" />
+
+    {/* 访问统计：在 src/consts.ts 里填了 GOATCOUNTER 才加载，留空则一个字节都不发 */}
+    {
+      GOATCOUNTER && (
+        <script
+          is:inline
+          data-goatcounter={`https://${GOATCOUNTER}.goatcounter.com/count`}
+          async
+          src="https://gc.zgo.at/count.js"
+        />
+      )
+    }
   </head>
 
   <body class={bodyClass}>
+    <script>
+      // 承接上一页的「下潜」：首帧在 head 里已经铺好深色，这里把遮罩揭开
+      // 顺便把所有 data-dive 的站内链接统一接上转场（首页菜单、沉浸页的「返回」）
+      import { diveIn, bindDiveLinks, bindDiveLifecycle } from '../scripts/dive-transition';
+      import { attachSfx } from '../scripts/sfx';
+
+      diveIn();
+      bindDiveLinks();
+      bindDiveLifecycle();
+      attachSfx();
+    </script>
+
     <header class="site-header">
       <div class="wrap header-inner">
         <a
           class="mode-toggle"
           href={toggleHref}
-          aria-label={isFunRoute ? '切换到简易版主页' : '回到有趣的主页'}
+          aria-label={toggleAria}
+          /* 「返回」也走同一个下潜转场，来回观感一致 */
+          data-dive={isImmersive ? 'on' : undefined}
         >
           {toggleLabel}
         </a>
         <nav class="nav" aria-label="主导航">
           {
             !hideNav &&
+              !isImmersive &&
               navItems.map((item) => (
                 <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
                   {item.label}
@@ -84,26 +153,44 @@ const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
           }
           {
             bgmSrc && (
-              <button
-                type="button"
-                class="sound-toggle"
-                id="sound-toggle"
-                data-on="false"
-                data-src={bgmSrc}
-                data-volume={bgmVolume}
-                aria-pressed="false"
-                aria-label="播放背景音乐"
-                title="播放背景音乐"
-              >
-                <svg data-icon="off" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" />
-                  <path d="M16.5 8.5l5 5m0-5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
-                </svg>
-                <svg data-icon="on" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" />
-                  <path d="M16.5 8.2a5 5 0 0 1 0 7.6M19 5.8a8.5 8.5 0 0 1 0 12.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
-                </svg>
-              </button>
+              <div class="sound-control">
+                <button
+                  type="button"
+                  class="sound-toggle"
+                  id="sound-toggle"
+                  data-on="false"
+                  data-src={bgmSrc}
+                  data-volume={bgmVolume}
+                  aria-expanded="false"
+                  aria-controls="sound-panel"
+                  aria-label="声音设置"
+                  title="声音设置"
+                >
+                  <span class="sound-wave" aria-hidden="true" />
+                  <span class="sound-wave" aria-hidden="true" />
+                  <svg data-icon="off" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" />
+                    <path d="M16.5 8.5l5 5m0-5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
+                  </svg>
+                  <svg data-icon="on" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" />
+                    <path d="M16.5 8.2a5 5 0 0 1 0 7.6M19 5.8a8.5 8.5 0 0 1 0 12.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
+                  </svg>
+                </button>
+
+                <div class="sound-panel" id="sound-panel" hidden>
+                  <label class="sound-row">
+                    <span class="sound-row-label">音效</span>
+                    <input class="sound-range" id="sfx-volume" type="range" min="0" max="100" step="1" />
+                    <b class="sound-row-value" data-sfx-value>75</b>
+                  </label>
+                  <label class="sound-row">
+                    <span class="sound-row-label">音乐</span>
+                    <input class="sound-range" id="bgm-volume" type="range" min="0" max="100" step="1" />
+                    <b class="sound-row-value" data-bgm-value>0</b>
+                  </label>
+                </div>
+              </div>
             )
           }
         </nav>
@@ -125,51 +212,147 @@ const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
     </footer>
 
     <script>
-      // 背景音乐开关：浏览器禁止带声音的自动播放，
-      // 所以默认静音，用户点一下才播；选择记在 localStorage 里，翻页后保持。
+      /*
+       * 声音设置：右上角那个圆钮现在只管「打开设置面板」，真正的开关在面板里的两条滑杆上。
+       *   · 音效 —— 控制界面音效（sfx.ts 的主音量），默认 75
+       *   · 音乐 —— 控制背景音乐，默认 0（也就是关着）
+       * 两个值都记在 localStorage，翻页后保持。
+       *
+       * 浏览器禁止带声音的自动播放，所以音乐滑杆拉起来时才算一次用户手势，
+       * 那一刻调用 play() 是允许的；如果是刷新后恢复音量，play 可能被拦，
+       * 就先挂着，等第一次点按再补上。
+       */
+      import { setSfxVolume } from '../scripts/sfx';
+      import { attachBgmBeat } from '../scripts/bgm-beat';
+
       const btn = document.getElementById('sound-toggle');
+
       if (btn) {
+        const panel = document.getElementById('sound-panel');
+        const sfxInput = document.getElementById('sfx-volume') as HTMLInputElement | null;
+        const bgmInput = document.getElementById('bgm-volume') as HTMLInputElement | null;
+        const sfxOut = document.querySelector('[data-sfx-value]');
+        const bgmOut = document.querySelector('[data-bgm-value]');
+
         const audio = new Audio();
         audio.src = btn.dataset.src || '';
         audio.loop = true;
         audio.preload = 'none';
-        audio.volume = Number(btn.dataset.volume || 0.35);
+        // 节拍检测：音乐真的开起来之后，才把 <audio> 接进 Web Audio 量低频
+        attachBgmBeat(audio);
 
-        const KEY = 'bgm-on';
-        const setUI = (on) => {
-          btn.dataset.on = String(on);
-          btn.setAttribute('aria-pressed', String(on));
-          const label = on ? '关闭背景音乐' : '播放背景音乐';
-          btn.setAttribute('aria-label', label);
-          btn.title = label;
-        };
+        const SFX_KEY = 'sfx-volume';
+        const BGM_KEY = 'bgm-volume';
+        const SFX_DEFAULT = 75;
+        const BGM_DEFAULT = 0;
 
-        setUI(false);
-
-        const play = async () => {
+        const clamp = (n: number): number => Math.min(100, Math.max(0, Math.round(n)));
+        const read = (key: string, fallback: number): number => {
           try {
-            await audio.play();
-            setUI(true);
-            localStorage.setItem(KEY, '1');
+            const raw = localStorage.getItem(key);
+            if (raw === null) return fallback;
+            const n = Number(raw);
+            return Number.isNaN(n) ? fallback : clamp(n);
           } catch {
-            // 被浏览器拦下（多半是还没交互过），保持关闭状态
-            setUI(false);
+            return fallback;
+          }
+        };
+        const write = (key: string, value: number): void => {
+          try {
+            localStorage.setItem(key, String(value));
+          } catch {
+            /* 隐私模式存不了，本次会话内有效 */
           }
         };
 
-        const pause = () => {
-          audio.pause();
-          setUI(false);
-          localStorage.setItem(KEY, '0');
+        // 老版本只存了「开/关」，迁过来
+        let legacyOn = false;
+        try {
+          legacyOn = localStorage.getItem('bgm-on') === '1';
+        } catch {
+          legacyOn = false;
+        }
+
+        let sfxValue = read(SFX_KEY, SFX_DEFAULT);
+        let bgmValue = read(BGM_KEY, legacyOn ? 35 : BGM_DEFAULT);
+
+        const render = (): void => {
+          const musicOn = bgmValue > 0;
+          btn.dataset.on = String(musicOn);
+          btn.setAttribute('aria-label', musicOn ? '声音设置（音乐开）' : '声音设置（音乐关）');
+          btn.title = btn.getAttribute('aria-label') || '';
+          // 音乐关着就一直招呼两下，开了就安静
+          btn.classList.toggle('is-calling', !musicOn);
+          if (sfxOut) sfxOut.textContent = String(sfxValue);
+          if (bgmOut) bgmOut.textContent = String(bgmValue);
+          if (sfxInput) sfxInput.value = String(sfxValue);
+          if (bgmInput) bgmInput.value = String(bgmValue);
         };
 
-        btn.addEventListener('click', () => {
-          if (audio.paused) play();
-          else pause();
+        const applySfx = (): void => {
+          setSfxVolume(sfxValue / 100);
+        };
+
+        const play = async (): Promise<void> => {
+          try {
+            await audio.play();
+          } catch {
+            // 还没拿到用户手势，等第一次点按再补
+          }
+        };
+
+        const applyBgm = (): void => {
+          audio.volume = bgmValue / 100;
+          if (bgmValue > 0) void play();
+          else audio.pause();
+        };
+
+        applySfx();
+        applyBgm();
+        render();
+
+        // 音量恢复后 play 常被拦，第一次点按补一次
+        const retry = (): void => {
+          if (bgmValue > 0 && audio.paused) void play();
+        };
+        window.addEventListener('pointerdown', retry, { once: true });
+        window.addEventListener('keydown', retry, { once: true });
+
+        sfxInput?.addEventListener('input', () => {
+          sfxValue = clamp(Number(sfxInput.value));
+          applySfx();
+          write(SFX_KEY, sfxValue);
+          render();
+          // 拖动时给个即时反馈
+          setSfxVolume(sfxValue / 100);
         });
 
-        // 上次开着的话，这次尽量接着放；被拦下就静音等着用户点
-        if (localStorage.getItem(KEY) === '1') play();
+        bgmInput?.addEventListener('input', () => {
+          bgmValue = clamp(Number(bgmInput.value));
+          applyBgm();
+          write(BGM_KEY, bgmValue);
+          render();
+        });
+
+        const setOpen = (open: boolean): void => {
+          btn.setAttribute('aria-expanded', String(open));
+          if (panel) panel.hidden = !open;
+          if (open) btn.classList.remove('is-calling');
+          else if (bgmValue === 0) btn.classList.add('is-calling');
+        };
+
+        btn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          setOpen(btn.getAttribute('aria-expanded') !== 'true');
+        });
+
+        document.addEventListener('click', (event) => {
+          if (panel && !panel.hidden && !panel.contains(event.target as Node)) setOpen(false);
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && panel && !panel.hidden) setOpen(false);
+        });
       }
     </script>
   </body>

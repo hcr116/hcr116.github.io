@@ -1,0 +1,67 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../consts';
+
+// 五个门类。以后有真内容了，往对应分区里加卡片就行。
+const categories = [
+  { id: 'game-demo', cn: '游戏 DEMO', en: 'GAME DEMO', spineEn: 'DEMO', spine: '#b3492f', note: '用 UE5 做的切片和玩法原型。' },
+  { id: 'combat', cn: '战策经验', en: 'COMBAT DESIGN', spineEn: 'COMBAT', spine: '#a8762c', note: '战斗系统拆解、数值、手感相关的笔记。' },
+  { id: 'ai', cn: 'AI 功能', en: 'AI FEATURES', spineEn: 'AI', spine: '#2f6f7d', note: '把模型塞进玩法里的实验。' },
+  { id: 'bass', cn: '贝斯弹奏', en: 'BASS', spineEn: 'BASS', spine: '#6a4a86', note: '业余弹的东西，纯爱好，不保证好听。' },
+  { id: 'vfx', cn: '特效作品', en: 'VFX', spineEn: 'VFX', spine: '#3f5a75', note: '特效和动效的尝试。' },
+];
+---
+
+<Base
+  title={`作品 · ${SITE.name}`}
+  description={`${SITE.cnName}的作品：游戏 demo、战斗策划经验、AI 功能、贝斯、特效`}
+  bodyClass="mode-fun mode-works"
+  mainClass="works-main"
+>
+  <section class="works-hero">
+    <p class="works-eyebrow">WORKS · 五个方向</p>
+    <h1 class="works-title">
+      做过的东西，<br />摆在架子上。
+    </h1>
+    <p class="works-lead">
+      五个门类，慢慢往里填。现在大部分还在整理，先把架子搭出来。
+    </p>
+  </section>
+
+  <section class="works-shelf" aria-label="作品分类">
+    <ul class="shelf">
+      {
+        categories.map((c, i) => (
+          <li class="shelf-book" style={`--spine:${c.spine}`}>
+            <a href={`#${c.id}`}>
+              <span class="book-no">{String(i + 1).padStart(2, '0')}</span>
+              <span class="book-cn">{c.cn}</span>
+              <span class="book-en">{c.spineEn ?? c.en}</span>
+              <span class="book-dot" aria-hidden="true" />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <span class="shelf-board" aria-hidden="true"></span>
+  </section>
+
+  <div class="works-list">
+    {
+      categories.map((c) => (
+        <section class="works-section" id={c.id}>
+          <header class="works-section-head">
+            <h2>{c.cn}</h2>
+            <em>{c.en}</em>
+          </header>
+          <p class="works-section-note">{c.note}</p>
+          <p class="works-empty">整理中，还没往这一格里放东西。</p>
+        </section>
+      ))
+    }
+  </div>
+
+  <p class="works-foot">
+    <a href="/">回首页</a>
+  </p>
+</Base>
