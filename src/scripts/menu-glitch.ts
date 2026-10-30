@@ -10,19 +10,19 @@
  * 等于没有。所以按「每条约 2.2px」反推条数，小节也才有像素行的感觉。
  */
 
-const CYCLE = 2400; // 多久来一次大的（之前 6 秒，等于看不见）
-const BURST = 440; // 大抖持续多久
+const CYCLE = 4200; // 多久来一次大的（之前 6 秒，等于看不见）
+const BURST = 420; // 大抖持续多久
 const STEP = 38; // 逐帧推进的间隔
 const BAND_TARGET = 2.2; // 每条大约多高（px）
-const POWER = 6.5; // 最大横向位移（px）——之前 4px 基本看不出来，9px 又太糊
-const IDLE_EVERY = 280; // 平时的小抖：让这一行一直是「活的」
-const IDLE_POWER = 1.8;
-const FRINGE = 2.4; // 色差镶边的默认偏移
+const POWER = 3.2; // 最大横向位移（px）——标题页的菜单只有 13px，6.5 太糊
+const IDLE_EVERY = 320; // 平时的小抖：让这一行一直是「活的」
+const IDLE_POWER = 0.7;
+const FRINGE = 1.3; // 色差镶边的默认偏移
 
 type Band = HTMLAnchorElement;
 
 function initMenuGlitch(): void {
-  const link = document.querySelector<HTMLAnchorElement>('.fun-menu a.is-signal');
+  const link = document.querySelector<HTMLAnchorElement>('a.is-signal');
   if (!link) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 

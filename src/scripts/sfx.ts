@@ -202,7 +202,7 @@ function prime(): void {
 }
 
 function classify(el: HTMLElement): { index: number; kind: SfxKind } {
-  const menu = el.closest('.fun-menu');
+  const menu = el.closest('.fun-menu, .title-menu');
   if (menu) {
     const items = Array.from(menu.querySelectorAll('a'));
     return { index: Math.max(0, items.indexOf(el)), kind: 'nav' };

@@ -1,0 +1,172 @@
+/* 简介页：简历式时间轴（方案 B 变种） */
+
+:root {
+  /* 跟作品页 / 站内 .wrap 同一条左边缘 */
+  --gutter: max(24px, calc(50% - 540px));
+}
+
+@font-face {
+  font-family: 'Zpix';
+  src: url('/fonts/zpix.woff2') format('woff2');
+  font-display: swap;
+}
+
+.pf-main {
+  display: flex;
+  min-height: calc(100svh - 64px);
+  flex-direction: column;
+}
+
+.pf-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px var(--gutter) 20px;
+  border-bottom: 1px solid var(--fun-line);
+}
+
+.pf-kicker {
+  color: var(--fun-accent);
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  letter-spacing: 5px;
+}
+
+.pf-name {
+  margin: 10px 0 0;
+  color: var(--fun-ink);
+  font-family: 'Zpix', monospace;
+  font-size: 34px;
+  font-weight: 400;
+  letter-spacing: 4px;
+}
+
+.pf-meta {
+  margin: 0;
+  color: var(--fun-faint);
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  line-height: 2;
+  letter-spacing: 2px;
+  text-align: right;
+}
+
+.pf-rows {
+  flex: 1;
+  padding: 16px var(--gutter) 0;
+}
+
+.pf-row {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 26px;
+  padding: 18px 0;
+  border-top: 1px solid var(--fun-line);
+}
+
+.pf-row:first-child {
+  border-top: 0;
+}
+
+.pf-year b {
+  display: block;
+  color: var(--fun-faint);
+  font-family: 'Zpix', monospace;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+.pf-row.is-now .pf-year b {
+  color: var(--fun-accent);
+}
+
+.pf-year span {
+  display: block;
+  margin-top: 6px;
+  color: #3f3d48;
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.pf-card h2 {
+  margin: 0 0 8px;
+  color: var(--fun-ink);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.pf-card p {
+  margin: 0;
+  max-width: 760px;
+  color: var(--fun-muted);
+  font-size: 13px;
+  line-height: 1.95;
+}
+
+.pf-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.pf-tags span {
+  padding: 2px 7px;
+  border: 1px solid var(--fun-line);
+  color: var(--fun-faint);
+  font-size: 11px;
+}
+
+.pf-foot-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 18px var(--gutter) 0;
+}
+
+.pf-foot-links a,
+.pf-foot-links span {
+  padding: 8px 14px;
+  border: 1px solid var(--fun-line);
+  color: var(--fun-muted);
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-decoration: none;
+}
+
+.pf-foot-links a:hover {
+  border-color: var(--fun-accent);
+  color: var(--fun-accent);
+}
+
+.pf-foot-links .primary {
+  border-color: rgba(255, 111, 94, 0.5);
+  background: rgba(255, 111, 94, 0.06);
+  color: var(--fun-accent);
+}
+
+@media (max-width: 900px) {
+  .pf-head,
+  .pf-rows,
+  .pf-foot-links {
+    padding-inline: 20px;
+  }
+
+  .pf-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pf-meta {
+    text-align: left;
+  }
+
+  .pf-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}

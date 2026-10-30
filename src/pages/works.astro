@@ -1,67 +1,184 @@
 ---
 import Base from '../layouts/Base.astro';
 import { SITE } from '../consts';
+import '../styles/works-ps.css';
 
-// 五个门类。以后有真内容了，往对应分区里加卡片就行。
-const categories = [
-  { id: 'game-demo', cn: '游戏 DEMO', en: 'GAME DEMO', spineEn: 'DEMO', spine: '#b3492f', note: '用 UE5 做的切片和玩法原型。' },
-  { id: 'combat', cn: '战策经验', en: 'COMBAT DESIGN', spineEn: 'COMBAT', spine: '#a8762c', note: '战斗系统拆解、数值、手感相关的笔记。' },
-  { id: 'ai', cn: 'AI 功能', en: 'AI FEATURES', spineEn: 'AI', spine: '#2f6f7d', note: '把模型塞进玩法里的实验。' },
-  { id: 'bass', cn: '贝斯弹奏', en: 'BASS', spineEn: 'BASS', spine: '#6a4a86', note: '业余弹的东西，纯爱好，不保证好听。' },
-  { id: 'vfx', cn: '特效作品', en: 'VFX', spineEn: 'VFX', spine: '#3f5a75', note: '特效和动效的尝试。' },
+// 五个方向。以后有真内容了，往对应分区里加卡片就行。
+const items = [
+  { id: 'game-demo', cn: '游戏 DEMO', en: 'GAME DEMO', tone: '#b3492f', note: '用 UE5 做的切片和玩法原型。', state: '整理中' },
+  { id: 'combat', cn: '战策经验', en: 'COMBAT DESIGN', tone: '#a8762c', note: '战斗系统拆解、数值、手感相关的笔记。', state: '已有内容' },
+  { id: 'ai', cn: 'AI 功能', en: 'AI FEATURES', tone: '#2f6f7d', note: '把模型塞进玩法里的实验。', state: '整理中' },
+  { id: 'bass', cn: '贝斯弹奏', en: 'BASS', tone: '#6a4a86', note: '业余弹的东西，纯爱好，不保证好听。', state: '整理中' },
+  { id: 'vfx', cn: '特效作品', en: 'VFX', tone: '#3f5a75', note: '特效和动效的尝试。', state: '整理中' },
 ];
+
+const ready = items.filter((i) => i.state === '已有内容').length;
 ---
 
 <Base
   title={`作品 · ${SITE.name}`}
   description={`${SITE.cnName}的作品：游戏 demo、战斗策划经验、AI 功能、贝斯、特效`}
-  bodyClass="mode-fun mode-works"
-  mainClass="works-main"
+  bodyClass="mode-fun"
+  mainClass="ws-main"
+  hideNav
 >
-  <section class="works-hero">
-    <p class="works-eyebrow">WORKS · 五个方向</p>
-    <h1 class="works-title">
-      做过的东西，<br />摆在架子上。
-    </h1>
-    <p class="works-lead">
-      五个门类，慢慢往里填。现在大部分还在整理，先把架子搭出来。
-    </p>
-  </section>
+  <div class="ws-bg" data-bg style={`--ws-tone:${items[0].tone}`}></div>
 
-  <section class="works-shelf" aria-label="作品分类">
-    <ul class="shelf">
-      {
-        categories.map((c, i) => (
-          <li class="shelf-book" style={`--spine:${c.spine}`}>
-            <a href={`#${c.id}`}>
-              <span class="book-no">{String(i + 1).padStart(2, '0')}</span>
-              <span class="book-cn">{c.cn}</span>
-              <span class="book-en">{c.spineEn ?? c.en}</span>
-              <span class="book-dot" aria-hidden="true" />
+  <div class="ws-shell">
+    <header class="ws-top">
+      <nav class="ws-tabs">
+        <span class="on">作品</span>
+        <a href="/articles/">文章</a>
+        <a href="/articles/play/">记录</a>
+      </nav>
+      <div class="ws-clock">
+        <span class="dot" aria-hidden="true"></span>
+        <time data-clock>00:00</time>
+      </div>
+    </header>
+
+    <div class="ws-rail" data-rail>
+      <div class="ws-track" data-track>
+        {
+          items.map((it, i) => (
+            <a
+              class:list={['ws-tile', i === 0 && 'is-on']}
+              href={`#${it.id}`}
+              data-tile
+              data-tone={it.tone}
+              data-cn={it.cn}
+              data-en={it.en}
+              data-note={it.note}
+              style={`--tone:${it.tone}`}
+            >
+              <span class="ws-art" aria-hidden="true" />
+              <span class="ws-num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="ws-tag-name">{it.cn}</span>
+              <span class="ws-inline">{it.cn}</span>
             </a>
-          </li>
-        ))
-      }
-    </ul>
-    <span class="shelf-board" aria-hidden="true"></span>
-  </section>
+          ))
+        }
+      </div>
+    </div>
 
-  <div class="works-list">
-    {
-      categories.map((c) => (
-        <section class="works-section" id={c.id}>
-          <header class="works-section-head">
-            <h2>{c.cn}</h2>
-            <em>{c.en}</em>
-          </header>
-          <p class="works-section-note">{c.note}</p>
-          <p class="works-empty">整理中，还没往这一格里放东西。</p>
-        </section>
-      ))
-    }
+    <div class="ws-hero" data-hero>
+      <h1 data-hero-title>{items[0].cn}</h1>
+      <div class="en" data-hero-en>{items[0].en}</div>
+      <p data-hero-note>{items[0].note}</p>
+      <div class="ws-actions">
+        <a class="ws-play" href={`#${items[0].id}`} data-hero-go>▶ 打开</a>
+        <button class="ws-more" type="button" aria-label="更多">•••</button>
+      </div>
+    </div>
+
+    <aside class="ws-card">
+      <div class="k">整理进度</div>
+      <div class="row"><b>{ready} / {items.length}</b><span>已整理方向</span></div>
+    </aside>
+
+    <div class="ws-bar">
+      <span>← → 切换 · ENTER 打开</span>
+      <span class="line" aria-hidden="true"></span>
+      <span>HCR · WORKS</span>
+    </div>
   </div>
-
-  <p class="works-foot">
-    <a href="/">回首页</a>
-  </p>
 </Base>
+
+<script>
+  const rail = document.querySelector('[data-rail]');
+  const track = document.querySelector('[data-track]');
+  const bg = document.querySelector('[data-bg]');
+  const hero = document.querySelector('[data-hero]');
+  const tiles = track ? [...track.querySelectorAll('[data-tile]')] : [];
+  const titleEl = document.querySelector('[data-hero-title]');
+  const enEl = document.querySelector('[data-hero-en]');
+  const noteEl = document.querySelector('[data-hero-note]');
+  const goEl = document.querySelector('[data-hero-go]');
+  const clock = document.querySelector('[data-clock]');
+
+  let current = 0;
+  let swapTimer = 0;
+
+  /**
+   * 只有键盘切换才平移轨道：鼠标悬停时若也平移，
+   * 方块会跑到光标底下，连环触发 mouseenter，看起来就是「一路滚到底」。
+   * 而且只在真的放不下时才平移，避免露出空白。
+   */
+  const slide = (tile, allow) => {
+    if (!track || !rail || !allow) return 0;
+    const maxShift = Math.min(0, rail.clientWidth - track.scrollWidth);
+    const target = Math.max(maxShift, Math.min(0, -tile.offsetLeft));
+    track.style.transform = `translateX(${target}px)`;
+    return target;
+  };
+
+  const swap = (apply) => {
+    if (!hero) {
+      apply();
+      return;
+    }
+    hero.classList.add('is-swap');
+    clearTimeout(swapTimer);
+    swapTimer = window.setTimeout(() => {
+      apply();
+      hero.classList.remove('is-swap');
+    }, 130);
+  };
+
+  const select = (index, { animate = true, slideRow = false } = {}) => {
+    if (!tiles.length) return;
+    const next = (index + tiles.length) % tiles.length;
+    if (next === current && animate) return;
+
+    const tile = tiles[next];
+    current = next;
+
+    tiles.forEach((t, i) => t.classList.toggle('is-on', i === current));
+
+    const shift = slide(tile, slideRow);
+
+    if (bg) bg.style.setProperty('--ws-tone', tile.dataset.tone ?? '#b3492f');
+
+    swap(() => {
+      if (titleEl) titleEl.textContent = tile.dataset.cn ?? '';
+      if (enEl) enEl.textContent = tile.dataset.en ?? '';
+      if (noteEl) noteEl.textContent = tile.dataset.note ?? '';
+      if (goEl) goEl.setAttribute('href', tile.getAttribute('href') ?? '#');
+    });
+  };
+
+  for (const [i, tile] of tiles.entries()) {
+    tile.addEventListener('mouseenter', () => select(i));
+    tile.addEventListener('focus', () => select(i));
+  }
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      select(current + 1, { slideRow: true });
+    }
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      select(current - 1, { slideRow: true });
+    }
+    if (event.key === 'Enter') {
+      tiles[current]?.click();
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (tiles[current]) select(current, { animate: false, slideRow: false });
+  });
+
+  const tick = () => {
+    if (!clock) return;
+    const now = new Date();
+    clock.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  };
+  tick();
+  window.setInterval(tick, 30_000);
+
+  requestAnimationFrame(() => {
+    if (tiles[0]) select(0, { animate: false, slideRow: false });
+  });
+</script>

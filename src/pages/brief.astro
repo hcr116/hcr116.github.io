@@ -1,169 +1,90 @@
 ---
-import { getCollection, render } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { SITE, TIMELINE_PUBLIC } from '../consts';
+import { SITE } from '../consts';
+import '../styles/profile.css';
 
-// 时间线并进简介：'至今' 永远排最上，其余按年份倒序
-const weight = (year: string): number => {
-  if (/至今|现在/.test(year)) return 9999;
-  const n = Number.parseInt(year.replace(/\D/g, ''), 10);
-  return Number.isNaN(n) ? -1 : n;
-};
-
-const timeline = (await getCollection('timeline', ({ data }) => !data.draft)).sort(
-  (a, b) => weight(b.data.year) - weight(a.data.year),
-);
-
-const timelineRows = await Promise.all(
-  timeline.map(async (entry) => ({
-    entry,
-    Content: (await render(entry)).Content,
-    hasBody: (entry.body ?? '').trim().length > 0,
-  })),
-);
-
-// 临时的占位文案，之后换成真正的简介内容
-const motes = [
-  { x: 14, y: 22, s: 2, o: 0.5 },
-  { x: 78, y: 16, s: 3, o: 0.35 },
-  { x: 32, y: 64, s: 2, o: 0.45 },
-  { x: 88, y: 58, s: 4, o: 0.22 },
-  { x: 22, y: 84, s: 3, o: 0.3 },
-  { x: 62, y: 34, s: 2, o: 0.55 },
-  { x: 46, y: 12, s: 2, o: 0.28 },
-  { x: 8, y: 46, s: 4, o: 0.18 },
-  { x: 92, y: 78, s: 2, o: 0.4 },
-  { x: 54, y: 88, s: 3, o: 0.24 },
-  { x: 70, y: 72, s: 2, o: 0.5 },
-  { x: 38, y: 44, s: 3, o: 0.2 },
+// 先按「经历」硬编码；等你把简历导进来，再换成解析简历的数据源
+const rows = [
+  {
+    year: '至今',
+    en: 'NOW',
+    title: '在动作游戏项目做怪物与 Boss',
+    desc: '打击模组拆解、韧性体系搭建、对峙节奏调优；把「这只怪该怎么被读懂」写成可执行的规则。',
+    tags: ['怪物', 'Boss', '韧性'],
+  },
+  {
+    year: '2025',
+    en: 'FEEL',
+    title: '把打击感拆成分档参数',
+    desc: '顿帧、震屏、卡肉、命中停——按冲击力分级给出参数表，并做成可直接对照的评审表。',
+    tags: ['打击感', '帧数'],
+  },
+  {
+    year: '2024',
+    en: 'ARCHIVE',
+    title: '12 款动作游戏逐招拆完',
+    desc: '累计 18 章、6.7 万字，覆盖怪物、Boss、角色与通用方法论。',
+    tags: ['拆解', '方法'],
+  },
+  {
+    year: '2021',
+    en: 'START',
+    title: '从玩家到策划的起点',
+    desc: '开始把玩过的动作游戏做成一页页拆解，先记清楚「这一刀为什么爽」。',
+    tags: ['起点', '练习'],
+  },
 ];
 ---
 
 <Base
   title={`简介 · ${SITE.name}`}
   description={`${SITE.cnName}的个人简介`}
-  bodyClass="mode-fun mode-dive"
-  mainClass="dive-main"
+  bodyClass="mode-fun"
+  mainClass="pf-main"
 >
-  <section class="dive" data-dive-track>
-    <div class="dive-stage" data-dive-stage>
-      <!-- 背景层：越靠近镜头的层 data-speed 越大，滚起来越快 -->
-      <div class="dive-scene" aria-hidden="true">
-        <div class="dive-layer dive-layer--glow" data-speed="0.05"></div>
-
-        <div class="dive-layer" data-speed="0.16">
-          <span class="dive-ring" style="--r: 21rem"></span>
-          <span class="dive-ring" style="--r: 33rem"></span>
-          <span class="dive-ring" style="--r: 45rem"></span>
-        </div>
-
-        <div class="dive-layer" data-speed="0.5">
-          {
-            motes.map((m) => (
-              <span
-                class="dive-mote"
-                style={`--x:${m.x}%;--y:${m.y}%;--s:${m.s}px;--o:${m.o}`}
-              />
-            ))
-          }
-        </div>
-
-        <div class="dive-layer dive-layer--grain" data-speed="0.92"></div>
-      </div>
-
-      <!-- 右上角读数：视频里那个「偏移量」，这里叫下潜深度 -->
-      <div class="dive-hud" aria-hidden="true">
-        <span class="dive-hud-label">下潜深度</span>
-        <span class="dive-hud-value">
-          <b data-depth>0</b>
-          <em>米</em>
-        </span>
-      </div>
-
-      <!-- 右侧深度尺 -->
-      <div class="dive-scale" aria-hidden="true">
-        <span class="dive-scale-rail"></span>
-        <span class="dive-scale-mark"></span>
-      </div>
-
-      <div class="dive-panels">
-        <article class="dive-panel" data-at="0.06">
-          <p class="dive-eyebrow">水面 · 0 米</p>
-          <h1 class="dive-title">简介</h1>
-          <p class="dive-text">
-            往下滚，越深越接近我实际在做的事。<br />
-            这一层的文字先随便写着，等真正的简介补进来。
-          </p>
-          <p class="dive-hint">
-            <span class="dive-hint-arrow" aria-hidden="true">↓</span>
-            向下滚动开始下潜
-          </p>
-        </article>
-
-        <article class="dive-panel" data-at="0.44">
-          <p class="dive-eyebrow">≈ 210 米</p>
-          <h2 class="dive-title">动作游戏战斗策划</h2>
-          <p class="dive-text">
-            把「手感」拆成可以量化的东西：前摇、后摇、位移曲线、判定帧、命中停顿。<br />
-            一个 0.1 秒的差别，玩家身体往往先于语言感觉到。
-          </p>
-        </article>
-
-        <article class="dive-panel" data-at="0.84">
-          <p class="dive-eyebrow">≈ 400 米</p>
-          <h2 class="dive-title">还在学</h2>
-          <p class="dive-text">
-            UE5、剪辑、写点东西、AI 视频。一边上班一边考证，慢，但一直没停。
-          </p>
-          <p class="dive-links">
-            <a href="/home/">看作品 <span aria-hidden="true">→</span></a>
-            <a href="/">回首页</a>
-          </p>
-        </article>
-      </div>
+  <header class="pf-head">
+    <div>
+      <p class="pf-kicker">PROFILE</p>
+      <h1 class="pf-name">{SITE.cnName}</h1>
     </div>
-  </section>
+    <p class="pf-meta">
+      动作游戏 · 战斗策划<br />
+      怪物 / Boss / 打击反馈<br />
+      在职 · 可聊
+    </p>
+  </header>
 
-  <section class="dive-end">
-    {TIMELINE_PUBLIC && (
-      <>
-        <p class="dive-end-note">到底了。下面这段是按年份排的经历。</p>
+  <div class="pf-rows">
+    {
+      rows.map((r, i) => (
+        <article class:list={['pf-row', i === 0 && 'is-now']}>
+          <div class="pf-year">
+            <b>{r.year}</b>
+            <span>{r.en}</span>
+          </div>
+          <div class="pf-card">
+            <h2>{r.title}</h2>
+            <p>{r.desc}</p>
+            <div class="pf-tags">
+              {r.tags.map((t) => (
+                <span>{t}</span>
+              ))}
+            </div>
+          </div>
+        </article>
+      ))
+    }
+  </div>
 
-        <ol class="brief-tl">
-          {timelineRows.map(({ entry, Content, hasBody }) => (
-            <li class="brief-tl-item">
-              <span class="brief-tl-year" data-now={/至今|现在/.test(entry.data.year) ? '' : undefined}>
-                {entry.data.year}
-              </span>
-              <div class="brief-tl-body">
-                {entry.data.title && <h3>{entry.data.title}</h3>}
-                {entry.data.image && (
-                  <img
-                    class="brief-tl-media"
-                    src={entry.data.image}
-                    alt={entry.data.imageAlt ?? ''}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                )}
-                {hasBody && (
-                  <div class="brief-tl-prose">
-                    <Content />
-                  </div>
-                )}
-              </div>
-            </li>
-          ))}
-        </ol>
-      </>
-    )}
+  <div class="pf-foot-links">
+    <a class="primary" href="/articles/">看拆解 →</a>
+    <a href="https://space.bilibili.com/4592990" target="_blank" rel="noopener">Bilibili</a>
+    <a href="https://github.com/hcr116" target="_blank" rel="noopener">GitHub</a>
+    <span>简历 PDF · 待补</span>
+  </div>
 
-    <div class="dive-end-links">
-      <a href="/">回首页</a>
-    </div>
-  </section>
-
-  <script>
-    import '../scripts/dive-scroll';
-  </script>
+  <div class="au-status" style="margin-top:28px">
+    <span>PROFILE · 01 / 01</span>
+    <span>等简历导入后重做这一页</span>
+  </div>
 </Base>

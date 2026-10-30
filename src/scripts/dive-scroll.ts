@@ -40,12 +40,34 @@ function initDive(): void {
   const dimA = section.querySelector<HTMLElement>('.dive-dim-a');
   const dimB = section.querySelector<HTMLElement>('.dive-dim-b');
   const dimC = section.querySelector<HTMLElement>('.dive-dim-c');
+  const curseOut = section.querySelector<HTMLElement>('[data-curse]');
+  const curseVeil = section.querySelector<HTMLElement>('[data-curse-veil]');
   const layers = Array.from(section.querySelectorAll<HTMLElement>('[data-speed]'));
   const panels = Array.from(section.querySelectorAll<HTMLElement>('[data-at]'));
   const tickEls = Array.from(section.querySelectorAll<HTMLElement>('[data-tick]'));
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   const maxDepth = Number(section.dataset.maxDepth ?? '') || DEFAULT_MAX_DEPTH;
+
+  /**
+   * 每段文字在什么时候出现、什么时候退场。
+   * 深渊那条路总深两万米，用固定进度窗口会飘出一两千米，所以它按「米」算（±400 米）。
+   * /brief/ 没声明 data-max-depth，还是用原来的进度窗口 0.22，
+   * 否则 400/480 会算出 0.83 的窗口，三段文字会全部叠在一起。
+   */
+  const declaredDepth = Number(section.dataset.maxDepth ?? '');
+  const panelWindow = declaredDepth > 0 ? 400 / declaredDepth : 0.22;
+
+  /**
+   * 位置（0~1）→ 深度（米）。
+   * /brief/ 那边是线性的；深渊那条路每层定长，游戏页面会把一个换算函数挂到
+   * window.__diveDepth 上。这里「有就用，没有就线性」——本文件不反向依赖游戏代码。
+   */
+  const depthOf = (s: number): number => {
+    const hook = (window as unknown as { __diveDepth?: { toDepth?: (x: number) => number } }).__diveDepth;
+    if (hook?.toDepth) return hook.toDepth(s);
+    return s * maxDepth;
+  };
   const routeLength = route?.getTotalLength() ?? 0;
   // 红点要按 viewBox 的比例换算成百分比，不能假定 viewBox 是 100×100
   const routeBox = route?.ownerSVGElement?.viewBox.baseVal;
@@ -54,6 +76,10 @@ function initDive(): void {
 
   let frame = 0;
   let isDeep = false;
+  /** 到过的最深处（0..1），用来判断「往回爬了多远」 */
+  let maxSank = 0;
+  /** 这个时刻之前不记峰值：落脚点吸附会往回挪一点，那不算上浮 */
+  let peakSuppressedUntil = 0;
 
   /** 跨层：换名字、名字浮上来、深度数字跟着跳一下 */
   const crossZone = (name: string): void => {
@@ -168,8 +194,11 @@ function initDive(): void {
     // 红点位置先算：深度读数直接读它的高度，刻度、读数、点三者才对得上。
     // （以前读数走的是缓动后的滚动进度，和折线的高度不是一回事，刻度会「提前」亮。）
     const point = route && routeLength > 0 ? route.getPointAtLength(progress * routeLength) : null;
-    const sank = point ? clamp01(point.y / routeH) : 0;
-    const depth = Math.round(sank * maxDepth);
+    // 有折线路线（深渊）就按折线高矮走，没有（/brief/）就直接用滚动进度，
+    // 否则 sank 永远是 0，深度读数、变暗层、诅咒全都动不了。
+    const sank = point ? clamp01(point.y / routeH) : progress;
+    // 深度不是线性的：每层按自己的屏数分段（见 abyss/metrics.ts）
+    const depth = Math.round(depthOf(sank));
     if (depthOut) depthOut.textContent = depth.toLocaleString('en-US');
 
     // 越深越暗：外圈压暗 → 视野收紧 → 整屏沉下去，三段错开
@@ -177,6 +206,37 @@ function initDive(): void {
     if (dimB) dimB.style.opacity = (clamp01((sank - 0.42) / 0.48) * 0.9).toFixed(3);
     if (dimC) dimC.style.opacity = (clamp01((sank - 0.66) / 0.34) * 0.5).toFixed(3);
     if (stage) stage.style.setProperty('--dark', sank.toFixed(3));
+
+    // 把进度抛出去：落脚点靠这个判断「到第一层了没有」
+    window.dispatchEvent(new CustomEvent('dive:tick', { detail: { sank, progress } }));
+
+    // ---------- 上升诅咒 ----------
+    // 只记「到过的最深处」，往回爬多少就算多少；再往下走，诅咒会自己退掉。
+    if (performance.now() < peakSuppressedUntil) {
+      maxSank = sank; // 吸附/跳转的这几百毫秒里不记峰值
+    } else if (sank > maxSank) {
+      maxSank = sank;
+    }
+    const climb = Math.max(0, maxSank - sank);
+    const curse = clamp01(climb / 0.22); // 爬回全行程的 22% 就拉满
+
+    if (curseVeil) curseVeil.style.opacity = (curse * 0.85).toFixed(3);
+
+    if (curseOut) {
+      const meters = Math.round(depthOf(maxSank) - depthOf(sank));
+      if (meters >= 20) {
+        curseOut.hidden = false;
+        const text = meters.toLocaleString('en-US');
+        curseOut.textContent = curse > 0.72 ? `↑ 已上浮 ${text} 米 · 它在往上找你` : `↑ 已上浮 ${text} 米`;
+      } else {
+        curseOut.hidden = true;
+      }
+    }
+
+    const cursed = curse > 0.6;
+    if (section.classList.contains('is-cursed') !== cursed) {
+      section.classList.toggle('is-cursed', cursed);
+    }
 
     // 刻度：下潜到那一层才亮一次，亮过就不再重复
     for (const tick of tickEls) {
@@ -220,7 +280,10 @@ function initDive(): void {
       if (routeCursor) routeCursor.style.top = `${topPct.toFixed(2)}%`;
 
       // 亮线露到红点为止。多给 3 个单位，让线从点的身下穿过，接缝被点盖住。
-      routeReveal?.setAttribute('height', String(point.y + 3));
+      // 往回爬的时候，上面那截会被「吃掉」——路在身后消失。
+      const fray = climb * routeH * 0.8;
+      routeReveal?.setAttribute('y', (-6 + fray).toFixed(1));
+      routeReveal?.setAttribute('height', Math.max(0, point.y + 3 - fray).toFixed(1));
 
       // 过了四分之三就点亮，表示已经进深水区
       const hot = depth >= maxDepth * 0.75;
@@ -239,7 +302,8 @@ function initDive(): void {
       const distance = Math.abs(progress - at);
       // 越深，字也跟着暗一点，但最后那段话还得看得清
       const dim = 1 - sank * 0.13;
-      const opacity = clamp01(1 - distance / 0.22) * dim;
+      // 一段记录过完就该退场（窗口见上面的 panelWindow）
+      const opacity = clamp01(1 - distance / panelWindow) * dim;
 
       panel.style.opacity = opacity.toFixed(3);
       panel.style.transform = `translate3d(0, ${((progress - at) * -10).toFixed(2)}vh, 0)`;
@@ -277,6 +341,20 @@ function initDive(): void {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden || !inView()) stopRadar();
     else startRadar();
+  });
+
+  // 停靠在落脚点时把雷达也停掉——牌桌上不需要它，省点电
+  // 注意：落脚点那边是 window.dispatchEvent，所以这里必须监听 window，
+  // 监听 document 收不到（window 派发的事件不会往 document 传）。
+  window.addEventListener('dive:station-open', stopRadar);
+  window.addEventListener('dive:station-close', () => {
+    if (inView()) startRadar();
+  });
+
+  // 落脚点吸附会往回挪一点，那一小段不算「上浮」：接下来半秒不记峰值
+  window.addEventListener('dive:reset-peak', () => {
+    peakSuppressedUntil = performance.now() + 600;
+    schedule();
   });
 
   reduce.addEventListener('change', () => {

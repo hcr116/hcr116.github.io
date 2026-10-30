@@ -30,6 +30,11 @@ jobs:
       - name: Build site
         run: npm run build
 
+      # 发之前查一遍：站内链接 + 「游戏有没有渗回站点」。
+      # 放在 build 后面，因为链接检查要读 dist。没过就不上传。
+      - name: Check
+        run: npm run check
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3

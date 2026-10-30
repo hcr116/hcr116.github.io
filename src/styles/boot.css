@@ -1,0 +1,1127 @@
+/* 首页：启动序列与标题画面是同一张画面的两个状态
+ * 参照 NieR:Automata 的开机流程复刻：
+ *   黑场 → LOADING 单独淡入 → 自检瀑布式铺满 → 停留 → 整块淡出
+ *   → 「系统读取中」黑带 → 单行乱码（色散）→ 标题闪入 → 定格（持续微故障）
+ * 文案全部是自己的：HuangChenRui / PORTFOLIO / 战斗策划 / 阿比斯
+ */
+
+@font-face {
+  font-family: 'Zpix';
+  src: url('/fonts/zpix.woff2') format('woff2');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Bodoni Moda';
+  src: url('/fonts/bodonimoda.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+/* 首页不要顶栏，整屏交给画面 */
+body.title-page .site-header {
+  display: none;
+}
+
+.title-main {
+  position: relative;
+  background: #05060c;
+  min-height: 100svh;
+}
+
+.tp {
+  position: relative;
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  overflow: hidden;
+  color: #e9eaec;
+  font-family: var(--sans);
+  --serif: 'Bodoni Moda', 'Sitka Display', Georgia, 'Times New Roman', serif;
+  --sans: ui-sans-serif, 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', system-ui, sans-serif;
+  --vol: 0.5;
+  /* 主横线：视频里落在 50.3%，底座与标题基线共用这一条 */
+  --axis: 50.3%;
+  --ink: #f3f5f7;
+  --line: rgba(255, 255, 255, 0.5);
+}
+
+html.is-booting {
+  overflow: hidden;
+}
+
+/* ================= 场景 ================= */
+
+.tp-scene,
+.tp-mark,
+.tp-crt,
+.tp-scan,
+.tp-vignette,
+.tp-blackout {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* 场景只在标题帧出现，前面是纯黑 */
+.tp-scene {
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+
+.tp[data-phase='4'] .tp-scene {
+  opacity: 1;
+}
+
+/* 天空：压到接近纯黑，只在地平线附近留一丝冷色 */
+.tp-sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #05060a 0%, #06070c 58%, #080a11 66%, #050609 100%);
+}
+
+/* 空气感只加在右下角：视频的光是有方向的，左半屏其实很黑 */
+.tp-scene::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(44% 26% at 76% 82%, rgba(150, 172, 208, 0.025), transparent 74%);
+}
+
+/* 自检阶段的水印：视频那里是 YoRHa 徽记 + 标语，这里是自己的字 */
+.tp-mark {
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  opacity: 0.055;
+  transition: opacity 0.9s ease;
+}
+
+/* 黑带、乱码帧、标题帧都不要水印 */
+.tp[data-phase='2'] .tp-mark,
+.tp[data-phase='3'] .tp-mark,
+.tp[data-phase='4'] .tp-mark {
+  opacity: 0;
+}
+
+.tp-mark b {
+  font-family: var(--serif);
+  font-size: clamp(40px, 6.4vw, 88px);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: #fff;
+}
+
+.tp-mark em {
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.62em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+/* 地平线：主横线，同时是音量拖拽条 */
+.tp-horizon {
+  position: absolute;
+  top: var(--axis);
+  right: 0;
+  left: 0;
+  height: 10px;
+  margin-top: -5px;
+  cursor: ew-resize;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.tp-horizon::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  top: 5px;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, calc(0.24 + var(--vol) * 0.3)) 5%,
+    rgba(255, 255, 255, calc(0.3 + var(--vol) * 0.44)) 22%,
+    rgba(255, 255, 255, calc(0.32 + var(--vol) * 0.46)) 62%,
+    rgba(255, 255, 255, calc(0.26 + var(--vol) * 0.34)) 92%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  transition: background 0.2s linear;
+}
+
+/* 横线两端的小方块（视频里两端各有一点加粗） */
+.tp-horizon::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  top: 3px;
+  right: 0;
+  left: 0;
+  height: 5px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.8) 0 3px, transparent 3px),
+    linear-gradient(90deg, transparent calc(100% - 3px), rgba(255, 255, 255, 0.8) calc(100% - 3px));
+}
+
+/* 地平线附近的一层光雾：视频里那圈把横线托亮的东西 */
+.tp-haze {
+  position: absolute;
+  top: calc(var(--axis) - 40px);
+  right: 0;
+  left: 0;
+  height: 80px;
+  background: radial-gradient(
+    18% 100% at 74% 100%,
+    rgba(196, 216, 240, calc(0.01 + var(--vol) * 0.015)),
+    transparent 72%
+  );
+  opacity: calc(0.4 + var(--vol) * 0.6);
+  transition: opacity 0.2s linear;
+}
+
+/* 水面：下半屏，细波纹 + 自上而下的雾化。水气只集中在右半边 */
+.tp-water {
+  position: absolute;
+  top: var(--axis);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(190, 210, 235, 0.02) 0 1px, transparent 1px 6px),
+    radial-gradient(58% 70% at 76% 26%, rgba(112, 142, 192, 0.07), transparent 72%),
+    linear-gradient(180deg, rgba(78, 104, 150, 0.02), transparent 34%);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.18) 28%, transparent 66%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.18) 28%, transparent 66%);
+  animation: tpRipple 11s linear infinite;
+  opacity: calc(0.55 + var(--vol) * 0.45);
+  transition: opacity 0.2s linear;
+}
+
+@keyframes tpRipple {
+  from {
+    background-position: 0 0, 0 0;
+  }
+  to {
+    background-position: 0 6px, 0 0;
+  }
+}
+
+/* 剑插在水里的那团雾：画面右下最亮的一块。
+   直接铺满整屏用百分比定位，比挪一个盒子好控——左半屏必须留黑。 */
+.tp-mist {
+  position: absolute;
+  inset: 0;
+  background:
+    /* 刀插进去那一点：最亮、最小的一颗 */
+    radial-gradient(5% 4% at 81% 81%, rgba(255, 255, 255, 0.85), transparent 70%),
+    /* 主雾团：一大团椭圆雾，落在刀脚下（视频里它占掉右下 1/3 画面） */
+    radial-gradient(30% 18% at 82% 83%, rgba(250, 250, 253, 0.6), transparent 76%),
+    radial-gradient(40% 20% at 80% 84%, rgba(178, 196, 226, 0.3), transparent 82%),
+    /* 往左拖一条很淡的尾巴 */
+    radial-gradient(60% 10% at 74% 88%, rgba(130, 152, 192, 0.1), transparent 86%);
+  filter: blur(26px);
+  opacity: calc(0.55 + var(--vol) * 0.45);
+  transition: opacity 0.2s linear;
+}
+
+/* 前景：插在水里的刀，带倒影 */
+.tp-sword {
+  position: absolute;
+  right: 15%;
+  bottom: 15.5%;
+  width: 74px;
+  height: 240px;
+  pointer-events: none;
+  /* 视频里刀是往左歪的：刀尖在护手左边 */
+  transform: rotate(7deg);
+  transform-origin: 48% 100%;
+  filter: blur(0.3px) drop-shadow(0 0 14px rgba(205, 224, 246, 0.16));
+}
+
+.tp-sword svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.tp-sword .sword-mirror {
+  position: absolute;
+  top: 99%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: scaleY(-1);
+  opacity: 0.34;
+  filter: blur(2.6px);
+  mask-image: linear-gradient(0deg, transparent 4%, rgba(0, 0, 0, 0.55) 42%, transparent 78%);
+  -webkit-mask-image: linear-gradient(0deg, transparent 4%, rgba(0, 0, 0, 0.55) 42%, transparent 78%);
+}
+
+/* ================= 屏幕质感 ================= */
+
+/* 网格和扫描线压在字上面：视频里点阵是盖住标题的。
+   但视频的字面很干净，所以这里的网格要压到几乎看不见，只是"有一层" */
+.tp-crt {
+  z-index: 16;
+  background-image:
+    radial-gradient(rgba(190, 200, 210, 0.065) 0.75px, transparent 0.75px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.3) 0 1px, transparent 1px 3px);
+  background-size:
+    3px 3px,
+    100% 3px;
+}
+
+/* 电噪：每 80ms 跳一次位置，画面永远在轻微沙沙 */
+.tp-grain {
+  z-index: 15;
+  opacity: 0.05;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.5) 0.5px, transparent 0.5px);
+  background-size: 2px 2px;
+  animation: tpGrain 0.32s steps(4, end) infinite;
+}
+
+@keyframes tpGrain {
+  0% {
+    background-position: 0 0;
+  }
+  25% {
+    background-position: -1px 1px;
+  }
+  50% {
+    background-position: 1px -1px;
+  }
+  75% {
+    background-position: -1px -1px;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+/* 整屏亮度微闪：±1.5%，看不出来但在动 */
+.tp-flicker {
+  z-index: 19;
+  background: #000;
+  animation: tpFlicker 2.4s steps(1, end) infinite;
+}
+
+@keyframes tpFlicker {
+  0%, 18%, 37%, 61%, 84%, 100% {
+    opacity: 0;
+  }
+  19%, 21% {
+    opacity: 0.03;
+  }
+  62%, 63% {
+    opacity: 0.018;
+  }
+}
+
+
+.tp-scan {
+  z-index: 17;
+  height: 200px;
+  animation: tpScan 7.5s linear infinite;
+  background: linear-gradient(180deg, transparent, rgba(200, 220, 235, 0.055) 46%, transparent);
+}
+
+@keyframes tpScan {
+  from {
+    transform: translateY(-200px);
+  }
+  to {
+    transform: translateY(100vh);
+  }
+}
+
+.tp-vignette {
+  z-index: 18;
+  /* 光在右下，暗角就偏心到右下，左上压得更狠一点 */
+  background: radial-gradient(128% 108% at 60% 50%, transparent 46%, rgba(0, 0, 0, 0.66) 100%);
+}
+
+.tp-blackout {
+  z-index: 20;
+  background: #000;
+  opacity: 0;
+  transition: opacity 0.3s linear;
+}
+
+.tp.is-blackout .tp-blackout {
+  opacity: 1;
+}
+
+/* ================= 自检层 ================= */
+
+/* LOADING_ 系统启动中.. */
+.tp-loading {
+  position: absolute;
+  top: 6.9%;
+  left: 4.6%;
+  z-index: 12;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+.tp-loading .l1 {
+  font-size: 15px;
+  font-weight: 300;
+  letter-spacing: 0.42em;
+  color: rgba(255, 255, 255, 0.94);
+  text-shadow:
+    0 0 10px rgba(190, 214, 240, 0.28),
+    0 0 26px rgba(150, 190, 235, 0.14);
+}
+
+.tp-loading .l2 {
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.tp[data-phase='1'] .tp-loading,
+.tp[data-phase='2'] .tp-loading {
+  opacity: 1;
+}
+
+/* 自检行：单栏，一句一行，像机器在自言自语 */
+.tp-log {
+  position: absolute;
+  top: 17.4%;
+  left: 5.9%;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  max-width: 46%;
+  transition: opacity 0.85s ease;
+}
+
+.tp-log .bl {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.09em;
+  line-height: 14px;
+  color: rgba(246, 248, 250, 0.94);
+  text-shadow:
+    0 0 8px rgba(186, 210, 236, 0.3),
+    0 0 22px rgba(140, 180, 225, 0.14);
+  opacity: 0;
+  transform: translateY(3px);
+  filter: blur(2px);
+  transition:
+    opacity 0.36s ease,
+    transform 0.36s ease,
+    filter 0.36s ease;
+}
+
+.tp-log .bl.on {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* 打完停留一阵，整块淡出 */
+.tp-log.is-out,
+.tp-loading.is-out {
+  opacity: 0;
+}
+
+/* ================= 系统读取中（黑带） ================= */
+
+.tp-read {
+  position: absolute;
+  top: 41%;
+  right: 0;
+  left: 0;
+  z-index: 12;
+  height: 18%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(210, 220, 235, 0.045);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  transform: scaleY(0.4);
+  transition:
+    opacity 0.34s ease,
+    transform 0.42s cubic-bezier(0.2, 0.85, 0.2, 1);
+}
+
+.tp[data-phase='2'] .tp-read {
+  opacity: 1;
+  transform: none;
+}
+
+/* 左右两侧被裁掉的同心圆线 */
+.tp-read i {
+  position: absolute;
+  top: 50%;
+  width: 230px;
+  height: 230px;
+  margin-top: -115px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 50%;
+}
+
+.tp-read i::before,
+.tp-read i::after {
+  content: '';
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 50%;
+}
+
+.tp-read i::before {
+  inset: 26px;
+}
+
+.tp-read i::after {
+  inset: 58px;
+}
+
+.tp-read i.l {
+  left: -150px;
+}
+
+.tp-read i.r {
+  right: -150px;
+}
+
+.tp-read span {
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 0.44em;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 0 12px rgba(190, 214, 240, 0.34);
+}
+
+/* ================= 乱码行 ================= */
+
+.tp-fault {
+  position: absolute;
+  top: 47%;
+  right: 0;
+  left: 0;
+  z-index: 12;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s linear;
+}
+
+.tp[data-phase='3'] .tp-fault {
+  opacity: 1;
+}
+
+.tp-fault .ft {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.86);
+  text-shadow:
+    -1.4px 0 rgba(255, 60, 70, 0.6),
+    1.4px 0 rgba(60, 190, 255, 0.6),
+    0 0 16px rgba(200, 220, 240, 0.3);
+}
+
+/* 抖动：整行偶尔横传 1~2px */
+.tp[data-phase='3'] .tp-fault .ft {
+  animation: tpFaultShift 0.24s steps(2) infinite;
+}
+
+@keyframes tpFaultShift {
+  0% {
+    transform: translateX(-1px);
+  }
+  50% {
+    transform: translateX(1.5px);
+  }
+  100% {
+    transform: translateX(-0.5px);
+  }
+}
+
+/* ================= 标题帧 ================= */
+
+/* 标题压在轴线上：字的基线就是那条横线 */
+.tp-word {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - var(--axis));
+  z-index: 10;
+  margin: 0 0 -0.2em;
+  transform: translate(-50%, -0.022em);
+  font-family: var(--serif);
+  font-size: clamp(36px, 7.72vw, 88px);
+  font-weight: 600;
+  letter-spacing: 0.012em;
+  line-height: 1;
+  color: var(--ink);
+  white-space: nowrap;
+  opacity: 0;
+  transition:
+    font-size 0.8s cubic-bezier(0.16, 0.8, 0.2, 1),
+    opacity 0.5s ease;
+}
+
+/* 标题帧以外一律不露头 */
+.tp[data-phase='4'] .tp-word {
+  opacity: 1;
+}
+
+.tp-word .w-a,
+.tp-word .w-b {
+  display: block;
+}
+
+/* 第二份：白色、错开一点，用随机块状遮罩切出来，像是字被替换成了像素块 */
+.tp-word .w-b {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #fff;
+  transform: translate(2px, -2px);
+  opacity: 0;
+  mask-image: var(--corrupt-mask, none);
+  -webkit-mask-image: var(--corrupt-mask, none);
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+}
+
+.tp.is-glitch .tp-word .w-b {
+  opacity: 0.95;
+}
+
+/* 覆盖在字上的白方块 */
+.tp-word .w-blocks {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.tp-word .w-blocks i {
+  position: absolute;
+  display: none;
+  background: #fff;
+}
+
+.tp-word .w-blocks i.on {
+  display: block;
+}
+
+/* 反白块：右段整块刷白，字母在块里变成挖空的深色。
+   用 clip-path 只切右半边，里面的黑字副本正好压在白块上，
+   就得到「白底 + 挖空字母」——视频里 logo 右端最显眼的那一块。 */
+.tp-word .w-slab {
+  position: absolute;
+  inset: 0;
+  /* 上沿卡在大写字母顶端，下沿压过基线一点——不能留缝，否则横线会从白块下面穿出来 */
+  clip-path: inset(14% -6% 21% var(--slab, 86%));
+  opacity: 0;
+  transition: opacity 0.16s linear;
+  pointer-events: none;
+}
+
+.tp.is-glitch .tp-word .w-slab {
+  opacity: 1;
+}
+
+.tp-word .w-slab-bg {
+  position: absolute;
+  inset: 0;
+  background: #f1f3f6;
+}
+
+.tp-word .w-slab-txt {
+  position: absolute;
+  inset: 0;
+  display: block;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  white-space: nowrap;
+  color: #0a0e1a;
+}
+
+/* 标题后面再垫一层散光，视频里 logo 是"糊"在夜空上的 */
+.tp-word::before {
+  content: '';
+  position: absolute;
+  top: -12%;
+  right: -4%;
+  bottom: -22%;
+  left: -4%;
+  z-index: -1;
+  background: radial-gradient(58% 62% at 50% 62%, rgba(206, 222, 244, 0.11), transparent 74%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+/* 标题字的光晕：视频里这层 bloom 很重 */
+.tp-word .w-a {
+  text-shadow:
+    0 0 22px rgba(220, 234, 250, 0.26),
+    0 0 64px rgba(168, 198, 238, 0.2),
+    0 0 140px rgba(130, 168, 220, 0.12);
+}
+
+/* 进入标题帧前的一下闪：黑一两帧再亮起来 */
+.tp.is-flash .tp-word {
+  animation: tpFlash 0.46s steps(1) 1;
+}
+
+@keyframes tpFlash {
+  0% {
+    opacity: 0;
+  }
+  22% {
+    opacity: 1;
+  }
+  34% {
+    opacity: 0;
+  }
+  52% {
+    opacity: 1;
+  }
+  64% {
+    opacity: 0.15;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* 副标题不再夹在标题和 PRESS 之间，收进落款行 */
+
+/* ================= PRESS / 菜单 ================= */
+
+.tp-press,
+.tp-menu {
+  position: absolute;
+  top: 70%;
+  right: 0;
+  left: 0;
+  z-index: 11;
+  margin: 0;
+}
+
+.tp-press {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease;
+}
+
+.tp.is-grown[data-state='boot'] .tp-press {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 两侧各一条细横线，外端一个小方块 */
+.tp-press .rule {
+  position: relative;
+  width: min(23vw, 232px);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.tp-press .rule::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.tp-press .rule.l::after {
+  left: 0;
+}
+
+.tp-press .rule.r::after {
+  right: 0;
+}
+
+.tp-press .txt-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.tp-press .txt,
+.tp-press .smear {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.16em;
+  white-space: pre;
+  color: rgba(244, 246, 248, 0.92);
+}
+
+.tp-press .txt {
+  position: relative;
+  text-shadow:
+    0 0 10px rgba(200, 220, 242, 0.4),
+    0 0 26px rgba(150, 190, 235, 0.2);
+}
+
+/* 打字期间的残影：没打出来的部分拉成一条虚影 */
+.tp-press .smear {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: transparent;
+  text-shadow: 0 0 7px rgba(210, 228, 248, 0.34);
+  filter: blur(1.4px);
+  opacity: 0.6;
+  clip-path: inset(-40% -20% -40% 0);
+}
+
+.tp-press.done .smear {
+  opacity: 0.18;
+}
+
+/* 菜单：点过之后出现在同一行 */
+.tp-menu {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 3.4vw, 44px);
+  font-family: 'Zpix', monospace;
+}
+
+.tp[data-state='home'] .tp-press {
+  display: none;
+}
+
+.tp[data-state='home'] .tp-menu {
+  display: flex;
+  animation: tpMenuIn 0.6s ease both;
+}
+
+@keyframes tpMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tp-menu a {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 2px;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: rgba(240, 243, 246, 0.72);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.tp-menu a .n {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.34);
+  transition: color 0.18s ease;
+}
+
+.tp-menu a::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.5);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.24s ease;
+}
+
+.tp-menu a:hover,
+.tp-menu a:focus-visible {
+  color: #fff;
+}
+
+.tp-menu a:hover .n {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tp-menu a:hover::after {
+  transform: scaleX(1);
+}
+
+/* ================= 落款 + 页脚 ================= */
+
+.tp-credit {
+  position: absolute;
+  top: 93%;
+  right: 0;
+  left: 0;
+  z-index: 11;
+  text-align: center;
+  font-size: 11.5px;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.52);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 1s ease;
+}
+
+.tp[data-phase='4'] .tp-credit {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tp-foot {
+  position: absolute;
+  top: 96.6%;
+  right: 0;
+  left: 0;
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 3.4%;
+  font-size: 10.5px;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.34);
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.tp[data-state='home'] .tp-foot {
+  opacity: 1;
+}
+
+.tp-vol {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tp-vol-bars {
+  display: inline-flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 9px;
+}
+
+.tp-vol-bars i {
+  display: block;
+  width: 2px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: background 0.15s linear, height 0.15s linear;
+}
+
+.tp-vol-bars i.on {
+  background: rgba(255, 255, 255, 0.72);
+  height: 9px;
+}
+
+.tp-vol-num {
+  min-width: 2ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.tp-social {
+  display: inline-flex;
+  gap: 14px;
+}
+
+.tp-social a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.tp-social a:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ================= 阶段切换 ================= */
+
+/* 自检结束、黑带出现时，自检层的痕迹全部收掉 */
+.tp[data-phase='2'] .tp-log,
+.tp[data-phase='3'] .tp-log,
+.tp[data-phase='4'] .tp-log {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.tp[data-phase='2'] .tp-loading,
+.tp[data-phase='3'] .tp-loading,
+.tp[data-phase='4'] .tp-loading {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.tp[data-phase='3'] .tp-read,
+.tp[data-phase='4'] .tp-read {
+  opacity: 0;
+  transform: scaleY(0.4);
+  visibility: hidden;
+}
+
+.tp[data-phase='1'] .tp-read,
+.tp[data-phase='2'] .tp-fault {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.tp[data-state='home'] .tp-fault {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ================= 响应式 ================= */
+
+@media (max-width: 900px) {
+  .tp-word {
+    font-size: clamp(30px, 11vw, 60px);
+  }
+
+  .tp-log {
+    max-width: 74%;
+  }
+
+  .tp-sword {
+    right: 8%;
+    bottom: 14%;
+    width: 62px;
+  }
+}
+
+@media (max-width: 720px) {
+  .tp-loading {
+    top: 6%;
+    left: 6%;
+  }
+
+  .tp-loading .l1 {
+    font-size: 12px;
+    letter-spacing: 0.3em;
+  }
+
+  .tp-loading .l2 {
+    font-size: 10px;
+  }
+
+  .tp-log {
+    top: 15%;
+    left: 6%;
+    gap: 7px;
+    max-width: 86%;
+  }
+
+  .tp-log .bl {
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+  }
+
+  .tp-press .rule {
+    width: 14vw;
+  }
+
+  .tp-press .txt,
+  .tp-press .smear {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+  }
+
+  .tp-menu {
+    gap: 14px;
+  }
+
+  .tp-menu a {
+    font-size: 11px;
+  }
+
+  .tp-menu a .n {
+    font-size: 8px;
+  }
+
+  .tp-credit {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+
+  .tp-foot {
+    font-size: 9.5px;
+  }
+
+  .tp-sword {
+    right: 4%;
+    bottom: 16%;
+    width: 48px;
+    height: 38vh;
+  }
+}
+
+/* ================= 减弱动效 ================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-water,
+  .tp-scan,
+  .tp[data-phase='3'] .tp-fault .ft {
+    animation: none;
+  }
+
+  .tp-log .bl {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  .tp-word,
+  .tp-is-flash .tp-word {
+    transition: none;
+    animation: none;
+  }
+
+  .tp-read,
+  .tp-press,
+  .tp-credit,
+  .tp-foot {
+    transition: none;
+  }
+}
+
+/* ===== 剑与光池：整组关掉（保留 DOM，方便以后想开一刀就能回来） ===== */
+.tp-sword,
+.tp-scene > .tp-glow,
+.tp-pool {
+  display: none !important;
+}

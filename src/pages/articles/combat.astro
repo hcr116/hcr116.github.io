@@ -1,8 +1,17 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { SITE } from '../../consts';
-// 正文在 src/articles/combat.md，改那个文件就行
-import Body from '../../articles/combat.md';
+import '../../styles/article-ui.css';
+// 三块正文分开存；左侧两级导航：主层级页签 + 子层级目录
+import Monster from '../../articles/combat/monster.md';
+import Character from '../../articles/combat/character.md';
+import Method from '../../articles/combat/method.md';
+
+const tabs = [
+  { id: 'monster', label: '怪物', num: '01' },
+  { id: 'character', label: '角色', num: '02' },
+  { id: 'method', label: '方法', num: '03' },
+];
 ---
 
 <Base
@@ -11,20 +20,364 @@ import Body from '../../articles/combat.md';
   bodyClass="mode-fun"
   mainClass="article-main"
 >
-  <article class="article">
-    <header class="article-head">
-      <p class="works-eyebrow">文章 · 01</p>
-      <h1 class="article-title">战斗策划经验</h1>
-      <p class="article-en">COMBAT DESIGN</p>
-    </header>
+  <div class="article-shell" data-article-shell>
+    <nav class="article-tabs-nav" role="tablist" aria-label="经验分类">
+      {tabs.map((t, i) => (
+        <button
+          class="article-tab"
+          type="button"
+          role="tab"
+          id={`tab-${t.id}`}
+          aria-controls={`panel-${t.id}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? 0 : -1}
+          data-tab={t.id}
+        >
+          <span class="article-tab-num">{t.num}</span>
+          <span class="article-tab-label">{t.label}</span>
+        </button>
+      ))}
+    </nav>
 
-    <div class="article-body">
-      <Body />
-    </div>
+    <aside class="article-rail" aria-label="目录">
+      <div class="rail-head">
+        <span class="rail-title">目录</span>
+        <button
+          class="rail-toggle"
+          type="button"
+          data-rail-toggle
+          aria-expanded="true"
+          aria-controls="rail-body"
+          aria-label="收起目录">‹</button>
+      </div>
+      <div class="rail-body" id="rail-body">
+        <input
+          class="rail-search"
+          type="search"
+          data-rail-search
+          placeholder="搜索标题"
+          aria-label="搜索目录"
+        />
+        <nav class="rail-scroll" data-rail-outline aria-label="本文目录"></nav>
+      </div>
+    </aside>
 
-    <p class="works-foot">
-      <a href="/articles/">回文章</a>
-      <a href="/">回首页</a>
-    </p>
-  </article>
+    <article class="article article--tabs">
+      <header class="article-head">
+        <p class="works-eyebrow">文章 · 01</p>
+        <h1 class="article-title">战斗策划经验</h1>
+        <p class="article-en">COMBAT DESIGN</p>
+      </header>
+
+      <p class="article-source">
+        原文见<a
+          href="https://docs.qq.com/aio/DR29xc0xkQXFhRE51"
+          target="_blank"
+          rel="noopener noreferrer">在线文档</a
+        >，此处仅展示部分。
+      </p>
+
+      <div class="article-tabs-panels">
+        <section
+          class="article-body article-tab-panel"
+          id="panel-monster"
+          role="tabpanel"
+          aria-labelledby="tab-monster"
+          data-panel="monster"
+        >
+          <Monster />
+        </section>
+        <section
+          class="article-body article-tab-panel"
+          id="panel-character"
+          role="tabpanel"
+          aria-labelledby="tab-character"
+          data-panel="character"
+          hidden
+        >
+          <Character />
+        </section>
+        <section
+          class="article-body article-tab-panel"
+          id="panel-method"
+          role="tabpanel"
+          aria-labelledby="tab-method"
+          data-panel="method"
+          hidden
+        >
+          <Method />
+        </section>
+      </div>
+
+      <p class="works-foot">
+        <a href="/articles/">回文章</a>
+        <a href="/">回首页</a>
+      </p>
+    </article>
+  </div>
+
+  <footer class="au-status" data-status>
+    <span><b data-chapter>01</b> / <b data-chapters>09</b> 章</span>
+    <span class="au-progress"><i data-progress></i></span>
+    <span>ESC 返回 · J K 翻页</span>
+  </footer>
 </Base>
+
+<script>
+  // ---------------------------------------------------------------
+  // 左一：主层级页签（怪物 / 角色 / 方法）
+  // 左二：子层级目录（当前页签的标题树）— 可折叠、可搜索
+  // 只读，不提供新增
+  // ---------------------------------------------------------------
+  const shell = document.querySelector('[data-article-shell]');
+
+  if (shell) {
+    const tabs = [...shell.querySelectorAll('[role="tab"]')];
+    const panels = [...shell.querySelectorAll('[role="tabpanel"]')];
+    const outline = shell.querySelector('[data-rail-outline]');
+    const search = shell.querySelector('[data-rail-search]');
+    const toggle = shell.querySelector('[data-rail-toggle]');
+
+    const slugify = (s, i) => s.replace(/\s+/g, '-').slice(0, 40) || `h-${i}`;
+    const panelOf = (id) => shell.querySelector(`.article-tab-panel[data-panel="${id}"]`);
+    const activeTab = () =>
+      tabs.find((t) => t.getAttribute('aria-selected') === 'true')?.dataset.tab ?? tabs[0].dataset.tab;
+
+    /* ---------------- 页签 ---------------- */
+
+    const activateTab = (id, { syncHash = true, scroll = true } = {}) => {
+      for (const tab of tabs) {
+        const on = tab.dataset.tab === id;
+        tab.setAttribute('aria-selected', on ? 'true' : 'false');
+        tab.tabIndex = on ? 0 : -1;
+      }
+      for (const panel of panels) panel.hidden = panel.dataset.panel !== id;
+      if (syncHash) history.replaceState(null, '', `#${id}`);
+      buildOutline();
+      if (scroll) {
+        const head = shell.querySelector('.article-head');
+        const top = head.getBoundingClientRect().top + window.scrollY - 84;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      }
+    };
+
+    const tabIdFromHash = () => {
+      // 列表页用 ?tab=xxx 指过来，优先读查询参数
+      const q = new URLSearchParams(location.search).get('tab');
+      if (q && tabs.some((t) => t.dataset.tab === q)) return q;
+      const id = location.hash.replace('#', '');
+      return tabs.some((t) => t.dataset.tab === id) ? id : tabs[0].dataset.tab;
+    };
+
+    /* ---------------- 目录树 ---------------- */
+
+    function buildOutline() {
+      const panel = panelOf(activeTab());
+      if (!panel || !outline) return;
+
+      const heads = [...panel.querySelectorAll('h2, h3, h4, h5, h6')];
+      outline.innerHTML = '';
+      if (!heads.length) {
+        outline.innerHTML = '<p class="rail-empty">这一格还没有内容。</p>';
+        return;
+      }
+
+      let cursor = outline;
+      const stack = [];
+
+      heads.forEach((h, i) => {
+        if (!h.id) h.id = slugify(h.textContent, i);
+        const level = Number(h.tagName.slice(1));
+
+        while (stack.length && stack[stack.length - 1].level >= level) {
+          stack.pop();
+          cursor = stack.length ? stack[stack.length - 1].children : outline;
+        }
+
+        const branch = document.createElement('details');
+        branch.className = `rail-branch rail-level-${level}`;
+        branch.open = level <= 3;
+
+        const summary = document.createElement('summary');
+        summary.className = 'rail-node';
+        summary.dataset.target = h.id;
+        summary.textContent = h.textContent.trim();
+        branch.appendChild(summary);
+
+        const children = document.createElement('div');
+        children.className = 'rail-children';
+        branch.appendChild(children);
+
+        cursor.appendChild(branch);
+        stack.push({ level, children });
+        cursor = children;
+      });
+
+      for (const branch of outline.querySelectorAll('.rail-branch')) {
+        if (!branch.querySelector('.rail-children')?.children.length) branch.classList.add('is-leaf');
+      }
+    }
+
+    /* ---------------- 交互 ---------------- */
+
+    const scrollToHeading = (id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const top = el.getBoundingClientRect().top + window.scrollY - 84;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    };
+
+    shell.addEventListener('click', (event) => {
+      const tab = event.target.closest('[role="tab"]');
+      if (tab) {
+        activateTab(tab.dataset.tab);
+        return;
+      }
+
+      const node = event.target.closest('.rail-node');
+      if (node) {
+        // 有子节点时点文字只跳转，三角形留给 details 自己展开
+        event.preventDefault();
+        scrollToHeading(node.dataset.target);
+        return;
+      }
+
+      const btn = event.target.closest('[data-rail-toggle]');
+      if (btn) {
+        const closed = shell.dataset.outline === 'closed';
+        shell.dataset.outline = closed ? 'open' : 'closed';
+        btn.setAttribute('aria-expanded', closed ? 'true' : 'false');
+        btn.textContent = closed ? '‹' : '›';
+        try {
+          localStorage.setItem('combat-outline', closed ? 'open' : 'closed');
+        } catch {}
+      }
+    });
+
+    shell.addEventListener('keydown', (event) => {
+      if (!event.target.closest('[role="tab"]')) return;
+      const keys = ['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'];
+      if (!keys.includes(event.key)) return;
+      event.preventDefault();
+      const current = tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true');
+      const step = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(current + step + tabs.length) % tabs.length];
+      next.focus();
+      activateTab(next.dataset.tab, { scroll: false });
+    });
+
+    /* ---------------- 搜索 ---------------- */
+
+    search?.addEventListener('input', () => {
+      const q = search.value.trim().toLowerCase();
+      const branches = [...outline.querySelectorAll('.rail-branch')].reverse();
+
+      for (const branch of branches) {
+        const self = branch.querySelector(':scope > .rail-node');
+        const childHit = [...branch.querySelectorAll('.rail-node')].some(
+          (n) => n !== self && n.textContent.toLowerCase().includes(q)
+        );
+        const hit = (self?.textContent ?? '').toLowerCase().includes(q) || childHit;
+        branch.hidden = !hit;
+        if (q && hit) branch.open = true;
+      }
+
+      if (!q) {
+        for (const branch of outline.querySelectorAll('.rail-branch')) {
+          branch.open = branch.classList.contains('rail-level-2') || branch.classList.contains('rail-level-3');
+        }
+      }
+    });
+
+    /* ---------------- 滚动高亮 ---------------- */
+
+    let ticking = false;
+    const spy = () => {
+      ticking = false;
+      const panel = panelOf(activeTab());
+      if (!panel) return;
+
+      let currentId = null;
+      for (const h of panel.querySelectorAll('h2, h3, h4, h5, h6')) {
+        if (h.getBoundingClientRect().top - 100 <= 0) currentId = h.id;
+        else break;
+      }
+      if (!currentId) currentId = panel.querySelector('h2, h3, h4, h5, h6')?.id ?? null;
+
+      for (const node of outline.querySelectorAll('.rail-node')) {
+        node.dataset.current = node.dataset.target === currentId ? 'true' : 'false';
+      }
+
+      const activeNode = outline.querySelector(`.rail-node[data-target="${currentId}"]`);
+      if (activeNode) {
+        let parent = activeNode.closest('.rail-branch');
+        while (parent) {
+          parent.open = true;
+          parent = parent.parentElement?.closest('.rail-branch');
+        }
+      }
+
+      updateStatus(currentId);
+    };
+
+    /* ---------------- 底部状态条 ---------------- */
+
+    const statusBox = document.querySelector('[data-status]');
+    const chapterEl = statusBox?.querySelector('[data-chapter]');
+    const chaptersEl = statusBox?.querySelector('[data-chapters]');
+    const progressEl = statusBox?.querySelector('[data-progress]');
+
+    function updateStatus(currentId) {
+      const panel = panelOf(activeTab());
+      if (!panel || !statusBox) return;
+
+      const chapters = [...panel.querySelectorAll('h2')];
+      if (chaptersEl) chaptersEl.textContent = String(chapters.length).padStart(2, '0');
+
+      if (chapterEl) {
+        const idx = chapters.findIndex((h) => h.id === currentId);
+        const pos = idx >= 0 ? idx + 1 : chapters.length ? 1 : 0;
+        chapterEl.textContent = String(pos).padStart(2, '0');
+      }
+
+      if (progressEl) {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+        progressEl.style.width = `${(p * 100).toFixed(1)}%`;
+      }
+    }
+
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(spy);
+      },
+      { passive: true }
+    );
+
+    /* ---------------- 初始化 ---------------- */
+
+    try {
+      if (localStorage.getItem('combat-outline') === 'closed') {
+        shell.dataset.outline = 'closed';
+        if (toggle) {
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.textContent = '›';
+        }
+      }
+    } catch {}
+
+    const startId = tabIdFromHash();
+    for (const tab of tabs) {
+      const on = tab.dataset.tab === startId;
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+      tab.tabIndex = on ? 0 : -1;
+    }
+    for (const panel of panels) panel.hidden = panel.dataset.panel !== startId;
+
+    buildOutline();
+    spy();
+  }
+</script>

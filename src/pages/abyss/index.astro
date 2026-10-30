@@ -1,6 +1,8 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { SITE, ABYSS_META } from '../../consts';
+import { SITE, ABYSS_META, ABYSS_GAME } from '../../consts';
+// 阿比斯专用的样式只在这两个页面加载，站点那边一条都没有
+import '../../styles/abyss.css';
 ---
 
 <Base
@@ -12,15 +14,24 @@ import { SITE, ABYSS_META } from '../../consts';
   <section class="abyss-gate">
     <p class="abyss-eyebrow">ABYSS · 阿比斯</p>
 
-    <p class="abyss-count">
-      你是第 <b data-abyss-count>—</b> 个下潜的勇士
-    </p>
+    {ABYSS_GAME ? (
+      <>
+        <p class="abyss-count">
+          你是第 <b data-abyss-count>—</b> 个下潜的勇士
+        </p>
 
-    <p class="abyss-ready">
-      准备好<a class="abyss-enter" href="/abyss/dive/" data-dive="on" data-abyss-enter="on">下潜</a>探索深渊了么
-    </p>
+        <p class="abyss-ready">
+          准备好<a class="abyss-enter" href="/abyss/dive/" data-dive="on" data-abyss-enter="on">下潜</a>探索深渊了么
+        </p>
 
-    <p class="abyss-note">下面很深，慢慢来。</p>
+        <p class="abyss-note">下面很深，慢慢来。</p>
+      </>
+    ) : (
+      <>
+        <p class="abyss-ready">信号中断</p>
+        <p class="abyss-note">这一段暂时收不到。别的地方还在。</p>
+      </>
+    )}
 
     <p class="abyss-meta">
       {ABYSS_META.version} · 第 {ABYSS_META.iteration} 次迭代 · {ABYSS_META.updated}

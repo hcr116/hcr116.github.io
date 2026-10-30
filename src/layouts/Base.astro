@@ -37,7 +37,16 @@ const here = path.endsWith('/') ? path : `${path}/`;
 // 前缀匹配，所以 /articles/ 下的子页也自动算沉浸页
 const isImmersive = IMMERSIVE.some((p) => here === p || here.startsWith(p));
 
-const toggleHref = isFunRoute ? '/home/' : '/';
+// 左上角「返回」要回上一级，而不是一路跳回首页：
+// /articles/combat/ → /articles/，/works/xxx/ → /works/
+const parentHref =
+  here.startsWith('/articles/') && here !== '/articles/'
+    ? '/articles/'
+    : here.startsWith('/works/') && here !== '/works/'
+      ? '/works/'
+      : '/';
+
+const toggleHref = isFunRoute ? '/home/' : parentHref;
 const toggleLabel = isFunRoute ? '简易' : isImmersive ? '返回' : '有趣';
 const toggleAria = isFunRoute
   ? '切换到简易版主页'

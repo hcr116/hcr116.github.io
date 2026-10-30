@@ -1,145 +1,148 @@
 ---
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import { SITE } from '../../consts';
+import '../../styles/article-ui.css';
 
-// 三个门类。后两个锁着，主页下方可以输密钥解锁。
-const books = [
-  {
-    id: 'combat',
-    cn: '战斗策划经验',
-    en: 'COMBAT DESIGN',
-    spineEn: 'COMBAT',
-    spine: '#b3492f',
-    href: '/articles/combat/',
-    locked: false,
-  },
-  {
-    id: 'play',
-    cn: '各游戏体验记录',
-    en: 'PLAY LOGS',
-    spineEn: 'PLAYS',
-    spine: '#2f6f7d',
-    href: '/articles/play/',
-    locked: true,
-  },
-  {
-    id: 'assets',
-    cn: '游戏素材库收集',
-    en: 'ASSET LIBRARY',
-    spineEn: 'ASSETS',
-    spine: '#6a4a86',
-    href: '/articles/assets/',
-    locked: true,
-  },
+// 从三块正文里抽出章节标题和那行斜体元信息，列表就不用再手写一遍
+type Card = { no: string; title: string; meta: string; text: string; group: string; href: string };
+
+const SRC = [
+  { key: 'monster', label: '怪物', file: 'monster.md' },
+  { key: 'character', label: '角色', file: 'character.md' },
+  { key: 'method', label: '方法', file: 'method.md' },
 ];
+
+const cards: Card[] = [];
+
+for (const src of SRC) {
+  // 构建时 frontmatter 在 dist 里跑，用 cwd 定位源文件才靠谱
+  const path = join(process.cwd(), 'src/articles/combat', src.file);
+  const md = readFileSync(path, 'utf8');
+  const lines = md.split(/\r?\n/);
+
+  let current: { title: string; meta: string; paras: string[] } | null = null;
+
+  const flush = () => {
+    if (!current) return;
+    const title = current.title.replace(/^\d+\s*/, '');
+    // 挑一段像正文的当摘要：别用「文档目的：」这种小标签，也别用年份
+    const text =
+      current.paras.find(
+        (t) => t.length >= 14 && !t.endsWith('：') && !/^\d{4}\s*年/.test(t)
+      ) ?? current.paras[0] ?? '';
+    cards.push({
+      no: '',
+      title,
+      meta: current.meta,
+      text: text.replace(/<[^>]+>/g, '').slice(0, 46),
+      group: src.label,
+      href: `/articles/combat/?tab=${src.key}`,
+    });
+    current = null;
+  };
+
+  for (const line of lines) {
+    if (line.startsWith('## ')) {
+      flush();
+      current = { title: line.slice(3).trim(), meta: '', paras: [] };
+      continue;
+    }
+    if (!current) continue;
+    const t = line.trim();
+    if (!current.meta && /^\*[^*].*\*$/.test(t)) {
+      current.meta = t.replace(/^\*|\*$/g, '').trim();
+      continue;
+    }
+    if (
+      t &&
+      !t.startsWith('#') &&
+      !t.startsWith('|') &&
+      !t.startsWith('![') &&
+      !t.startsWith('<') &&
+      current.paras.length < 4
+    ) {
+      current.paras.push(t);
+    }
+  }
+  flush();
+}
+
+// 编号按顺序连续排，不分块重来
+cards.forEach((c, i) => {
+  c.no = String(i + 1).padStart(2, '0');
+});
+
+const count = (g: string) => cards.filter((c) => c.group === g).length;
+const total = cards.length;
 ---
 
 <Base
   title={`文章 · ${SITE.name}`}
   description={`${SITE.cnName}的文章：战斗策划经验、游戏体验记录、素材库`}
   bodyClass="mode-fun"
-  mainClass="works-main"
+  mainClass="au-main"
 >
-  <section class="works-hero">
-    <p class="works-eyebrow">ARTICLES · 三个门类</p>
-    <h1 class="works-title">
-      把想法写下来，<br />才不会丢。
-    </h1>
-    <p class="works-lead">
-      战斗策划的拆解、玩过的游戏、攒下的素材。后两格先锁着。
-    </p>
-  </section>
-
-  <section class="works-shelf" aria-label="文章分类">
-    <ul class="shelf">
-      {
-        books.map((book, i) => (
-          <li class:list={['shelf-book', book.locked && 'is-locked']} style={`--spine:${book.spine}`}>
-            <a href={book.href} data-book={book.id} data-locked={book.locked ? 'on' : undefined}>
-              <span class="book-no">{String(i + 1).padStart(2, '0')}</span>
-              <span class="book-cn">{book.cn}</span>
-              <span class="book-en">{book.spineEn ?? book.en}</span>
-              {book.locked ? (
-                <svg class="book-lock" viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="5" y="10.5" width="14" height="10" rx="2" />
-                  <path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3" />
-                </svg>
-              ) : (
-                <span class="book-dot" aria-hidden="true" />
-              )}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-    <span class="shelf-board" aria-hidden="true"></span>
-  </section>
-
-  {/* 被点开的那本书：书飞起来 → 封面翻开 → 书页里输密钥 */}
-  <div
-    class="book-gate"
-    id="book-gate"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="gate-title"
-    hidden
-  >
-    <div class="book-gate-scrim" data-gate-close></div>
-
-    <div class="book-gate-stage">
-      <div class="book-gate-book">
-        <div class="book-gate-page">
-          <p class="gate-eyebrow">
-            <span data-gate-no>01</span>
-            <span class="gate-dot">·</span>
-            <span data-gate-en>COMBAT</span>
-          </p>
-          <h2 class="gate-title" id="gate-title" data-gate-title>战斗策划经验</h2>
-
-          <div class="gate-body" data-gate-locked>
-            <p class="gate-copy">这一格锁着。翻得开就进去。</p>
-            <form class="gate-form" id="key-form" novalidate>
-              <label class="gate-label" for="key-input">密钥</label>
-              <div class="gate-row">
-                <input
-                  class="gate-input"
-                  id="key-input"
-                  type="password"
-                  name="key"
-                  autocomplete="off"
-                  spellcheck="false"
-                  placeholder="密钥"
-                />
-                <button class="gate-submit" type="submit">翻开</button>
-              </div>
-              <p class="gate-msg" id="key-msg" role="status" aria-live="polite"></p>
-            </form>
-          </div>
-
-          <div class="gate-body gate-body--open" data-gate-open hidden>
-            <p class="gate-copy">翻开了。往下走。</p>
-          </div>
-
-          <button class="gate-close" type="button" data-gate-close>合上</button>
-        </div>
-
-        <div class="book-gate-cover" data-gate-cover aria-hidden="true">
-          <div class="cover-face cover-face--front">
-            <span class="cover-no" data-gate-no>01</span>
-            <span class="cover-cn" data-gate-title>战斗策划经验</span>
-            <span class="cover-en" data-gate-en>COMBAT</span>
-          </div>
-          <div class="cover-face cover-face--back"></div>
-        </div>
-      </div>
+  <header class="au-head">
+    <div>
+      <p class="au-eyebrow">ARTICLES</p>
+      <h1 class="au-title">文章</h1>
     </div>
+    <p class="au-meta">{total} 章 · 66,773 字 · 156 张图</p>
+  </header>
+
+  <nav class="au-filters" aria-label="分类">
+    <button class="au-f is-on" type="button" data-filter="all">全部 {total}</button>
+    <button class="au-f" type="button" data-filter="怪物">怪物 {count('怪物')}</button>
+    <button class="au-f" type="button" data-filter="角色">角色 {count('角色')}</button>
+    <button class="au-f" type="button" data-filter="方法">方法 {count('方法')}</button>
+  </nav>
+
+  <div class="au-grid" data-grid>
+    {
+      cards.map((c, i) => (
+        <a class="au-card" href={c.href} data-group={c.group} data-dive="on">
+          <span class="au-no">{c.no}</span>
+          <h2 class="au-card-t">{c.title}</h2>
+          <p class="au-card-x">{c.text}</p>
+          <span class="au-card-m">
+            <span>{c.meta}</span>
+            <span class={c.meta.includes('已导入') ? 'au-state is-on' : 'au-state'}>{c.meta ? '' : ''}</span>
+          </span>
+        </a>
+      ))
+    }
   </div>
 
-  <p class="works-foot">
-    <a href="/">回首页</a>
-  </p>
+  <div class="au-doors">
+    <a class="au-door" href="/articles/play/">02 各游戏体验记录 <em>PLAY LOGS</em></a>
+    <a class="au-door" href="/articles/assets/">03 游戏素材库收集 <em>ASSETS</em></a>
+  </div>
+
+  <footer class="au-status">
+    <span data-count>{total} / {total} 章</span>
+    <span>ENTER 打开 · ESC 返回</span>
+  </footer>
 </Base>
 
 <script>
-  import '../../scripts/articles-unlock';
+  const grid = document.querySelector('[data-grid]');
+  const buttons = [...document.querySelectorAll('[data-filter]')];
+  const counter = document.querySelector('[data-count]');
+  const cards = grid ? [...grid.querySelectorAll('.au-card')] : [];
+
+  for (const btn of buttons) {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.filter;
+      for (const b of buttons) b.classList.toggle('is-on', b === btn);
+      let shown = 0;
+      for (const card of cards) {
+        const hit = key === 'all' || card.dataset.group === key;
+        card.hidden = !hit;
+        if (hit) shown++;
+      }
+      if (counter) counter.textContent = `${shown} / ${cards.length} 章`;
+    });
+  }
 </script>

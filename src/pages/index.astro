@@ -1,93 +1,161 @@
 ---
 import { getEntry } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { SITE } from '../consts';
+import { SITE, ABYSS_GAME } from '../consts';
 import '../styles/menu-glitch.css';
+import '../styles/boot.css';
 
-// 副标题和简介可以在后台「首页 · 文案」里改
+// 副标题可以在后台「首页 · 文案」里改
 const home = await getEntry('home', 'home');
 const role = home?.data.subtitle || '动作游戏战斗策划';
 
-// signal: true 的那一项走「老电视信号差」那套效果，见 global.css 里 a.is-signal
-const menu: { label: string; en: string; href: string; signal?: boolean }[] = [
-  { label: '简介', en: 'BRIEF', href: '/brief/' },
-  { label: '作品', en: 'WORKS', href: '/works/' },
-  { label: '文章', en: 'ARTICLES', href: '/articles/' },
-  { label: '联系', en: 'CONTACT', href: '/about/' },
-  // 阿比斯不是「这个站里的另一页」，是从别处接进来的一路信号，所以只有它抖
-  { label: '阿比斯', en: 'ABYSS', href: '/abyss/', signal: true },
+// 标题画面上的名字（视频那里是 NieR:Automata，这里是自己的）
+const LOGO = 'HuangChenRui';
+
+// 阿比斯是外接的一路信号，ABYSS_GAME 关掉时整项消失
+const menuAll = [
+  { label: '简介', href: '/brief/' },
+  { label: '作品', href: '/works/' },
+  { label: '文章', href: '/articles/' },
+  { label: '联系', href: '/about/' },
+  { label: '阿比斯', href: '/abyss/', signal: true },
 ];
+
+const menu = menuAll.filter((item) => ABYSS_GAME || !item.signal);
 
 const social = [
   ...SITE.links.map((l) => ({ label: l.label.split(' · ')[0], href: l.href })),
   { label: '公众号', href: '/about/' },
 ];
 
-// 右侧图形的线条图标（纯 path，省得引图片），下标和 menu 一一对应
-const figureIcons = [
-  // BRIEF：一张文档
-  ['M17 9h20l10 10v36H17z', 'M37 9v10h10', 'M24 27h20', 'M24 35h20', 'M24 43h13'],
-  // WORKS：四宫格
-  ['M14 14h15v15H14z', 'M35 14h15v15H35z', 'M14 35h15v15H14z', 'M35 35h15v15H35z'],
-  // ARTICLES：摊开的书
-  ['M32 19c-5.5-4.5-13-5.5-19-5.5v31c6 0 13.5 1 19 5.5', 'M32 19c5.5-4.5 13-5.5 19-5.5v31c-6 0-13.5 1-19 5.5', 'M32 19v31'],
-  // CONTACT：信封
-  ['M12 18h40v28H12z', 'M12 18l20 16 20-16'],
-  // ABYSS：向下的箭头
-  ['M32 12v34', 'M20 34l12 12 12-12'],
+// 自检行：一句一行，像机器在自言自语
+const bootLines = [
+  '系统检查开始',
+  '文章索引：18 章 · 通过',
+  '拆解字数：6.7 万 · 已读入',
+  '作品档案：5 项 · 已挂载',
+  '体验记录：12 款 · 读取完成',
+  '素材库：156 张 · 已索引',
+  'Boss 模组：24 个 · 已解析',
+  '帧数档位：9 档 · 已载入',
+  '打击分解：顿帧 / 震屏 · 就绪',
+  '韧性规则：1 套 · 已上线',
+  '可玩验证：阿比斯 v0.6 · 通过',
+  '渲染管线：准备中',
+  'MP 残量检查：100%',
+  '战斗准备完成',
 ];
 
-// 图形第一项是「默认态」：鼠标没停在菜单上时显示它，停在某一项才换成那一项的图
-const figures = [
-  {
-    en: 'HCR',
-    cn: 'HOROB',
-    icon: ['M32 7l4.8 20.2L57 32l-20.2 4.8L32 57l-4.8-20.2L7 32l20.2-4.8z'],
-  },
-  ...menu.map((item, i) => ({ en: item.en, cn: item.label, icon: figureIcons[i] })),
-];
+// 乱码行用的原始串（自己的字）
+const FAULT_TEXT = 'PORTFOLIO · HUANG CHENRUI · 战斗策划';
+
+const year = new Date().getFullYear();
 ---
 
-<Base
-  title={SITE.title}
-  description={SITE.intro}
-  bodyClass="mode-fun"
-  mainClass="fun-main"
-  hideNav
->
-  <section class="fun-stage">
-    <div class="fun-glow" aria-hidden="true"></div>
+<Base title={SITE.title} description={SITE.intro} bodyClass="mode-fun title-page" mainClass="title-main" hideNav>
+  <script is:inline>
+    (function () {
+      var KEY = 'hcr:boot:v1';
+      // 先每次进首页都播，方便看效果；定稿后改 false 就变成「看过一次不再播」。
+      var ALWAYS = true;
+      var skip = location.search.indexOf('boot=0') > -1;
+      var seen = false;
+      try {
+        seen = localStorage.getItem(KEY) === '1';
+      } catch (e) {}
+      document.documentElement.setAttribute('data-boot', skip || (!ALWAYS && seen) ? 'skip' : 'play');
+    })();
+  </script>
 
-    <div class="fun-lead">
-      <p class="fun-eyebrow">HI I'M</p>
-      <h1 class="fun-name">{SITE.cnName}</h1>
+  <div class="tp" data-tp data-state="boot" data-phase="1">
+    <!-- 自检阶段的水印：标题出现时退场 -->
+    <div class="tp-mark" aria-hidden="true">
+      <b>HuangChenRui</b>
+      <em>for the record</em>
+    </div>
 
-      <p class="fun-role">
-        <span class="fun-mark" aria-hidden="true"></span>
-        <span>{role}</span>
-      </p>
+    <!-- 场景：星空 / 水面 / 雾 / 插在水里的刀 -->
+    <div class="tp-scene">
+      <canvas class="tp-sky" data-sky aria-hidden="true"></canvas>
+      <div class="tp-haze" aria-hidden="true"></div>
+      <div class="tp-water" aria-hidden="true"></div>
 
-      <nav class="fun-menu" aria-label="主导航" data-fun-nav>
-        {
-          menu.map((item, i) => (
-            <a
-              href={item.href}
-              class:list={[item.signal && 'is-signal']}
-              /* 站内链接走「下潜」转场；mailto 之类的保持原样 */
-              data-dive={item.href.startsWith('/') ? 'on' : undefined}
-              /* 悬停时切换右侧图形：0 是默认态，所以菜单从 1 开始 */
-              data-figure-target={i + 1}
-            >
-              <span class="fun-menu-idx">{String(i + 1).padStart(2, '0')}</span>
-              {/* data-text 给撕裂用的两片重影当内容 */}
-              <span class="fun-menu-cn" data-text={item.label}>{item.label}</span>
-              <em>{item.en}</em>
-            </a>
-          ))
-        }
-      </nav>
+      <div class="tp-horizon" data-horizon tabindex="0" role="slider" aria-label="音量" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>
+    </div>
 
-      <div class="fun-social">
+    <!-- 屏幕质感 -->
+    <div class="tp-grain" aria-hidden="true"></div>
+    <div class="tp-crt" aria-hidden="true"></div>
+    <div class="tp-scan" aria-hidden="true"></div>
+    <div class="tp-vignette" aria-hidden="true"></div>
+    <div class="tp-flicker" aria-hidden="true"></div>
+    <div class="tp-blackout" aria-hidden="true"></div>
+
+    <!-- 自检层 -->
+    <div class="tp-loading"><span class="l1">LOADING</span><span class="l2">_ 系统启动中..</span></div>
+    <div class="tp-log" data-log>
+      {bootLines.map((line) => <div class="bl">{line}</div>)}
+    </div>
+
+    <!-- 系统读取中：上下黑压压，中间一条横带，左右各一组同心圆线 -->
+    <div class="tp-read" aria-hidden="true">
+      <i class="l"></i>
+      <i class="r"></i>
+      <span>系统读取中</span>
+    </div>
+
+    <!-- 乱码帧：只有一行小字，带色散 -->
+    <div class="tp-fault" aria-hidden="true">
+      <span class="ft" data-fault></span>
+    </div>
+
+    <!-- 标题：字压在轴线上 -->
+    <h1 class="tp-word">
+      <span class="w-a">{LOGO}</span>
+      <span class="w-b" aria-hidden="true">{LOGO}</span>
+      <!-- 反白块：右段整块刷白，字母在块里被挖空（视频里最抓眼的那一下） -->
+      <span class="w-slab" aria-hidden="true">
+        <span class="w-slab-bg"></span>
+        <span class="w-slab-txt">{LOGO}</span>
+      </span>
+      <span class="w-blocks" aria-hidden="true">
+        {Array.from({ length: 6 }, () => <i />)}
+      </span>
+    </h1>
+
+    <!-- PRESS：两侧各一条细线，文案是自己的 -->
+    <p class="tp-action tp-press" data-press>
+      <span class="rule l" aria-hidden="true"></span>
+      <span class="txt-wrap">
+        <span class="smear" aria-hidden="true"></span>
+        <span class="txt" data-type="PRESS ANY BUTTON"></span>
+      </span>
+      <span class="rule r" aria-hidden="true"></span>
+    </p>
+
+    <!-- 点过之后：同一行换成菜单 -->
+    <nav class="tp-menu" aria-label="主导航">
+      {
+        menu.map((item, i) => (
+          <a href={item.href} class:list={[item.signal && 'is-signal']} data-dive="on">
+            <span class="n">{String(i + 1).padStart(2, '0')}</span>
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <!-- 落款（视频那个位置） -->
+    <div class="tp-credit">© {year} 黄晨睿 · {role} · B 站 horob</div>
+
+    <!-- 页脚：音量 + 社交，收得很淡 -->
+    <footer class="tp-foot">
+      <span class="tp-vol">
+        <span>音量</span>
+        <span class="tp-vol-bars" data-vol-bars>{Array.from({ length: 10 }, () => <i />)}</span>
+        <span class="tp-vol-num" data-vol-num>50</span>
+      </span>
+      <span class="tp-social">
         {
           social.map((item) => (
             <a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel="noopener">
@@ -95,117 +163,388 @@ const figures = [
             </a>
           ))
         }
-      </div>
-    </div>
-
-    <div class="fun-art" aria-hidden="true">
-      <svg class="emblem" viewBox="0 0 400 400" role="presentation">
-        <defs>
-          <!-- 盘边那圈光：靠不透明度忽明忽暗来「亮一下」 -->
-          <radialGradient id="emblem-halo" cx="50%" cy="50%" r="50%">
-            <stop offset="58%" stop-color="currentColor" stop-opacity="0" />
-            <stop offset="84%" stop-color="currentColor" stop-opacity="0.3" />
-            <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
-          </radialGradient>
-
-          {/* 外圈描边用竖向渐变：上亮下灭，像光从水面往下散掉，不再是一圈硬线 */}
-          <linearGradient
-            id="emblem-ring-fade"
-            x1="200"
-            y1="18"
-            x2="200"
-            y2="382"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0" stop-color="#2b2b34" stop-opacity="0" />
-            <stop offset="0.2" stop-color="#2b2b34" stop-opacity="0.9" />
-            <stop offset="0.52" stop-color="#2b2b34" stop-opacity="0.55" />
-            <stop offset="0.78" stop-color="#2b2b34" stop-opacity="0.18" />
-            <stop offset="1" stop-color="#2b2b34" stop-opacity="0" />
-          </linearGradient>
-        </defs>
-
-        <circle cx="200" cy="200" r="178" fill="none" stroke="url(#emblem-ring-fade)" stroke-width="1" />
-        <circle
-          cx="200"
-          cy="200"
-          r="152"
-          fill="none"
-          stroke="url(#emblem-ring-fade)"
-          stroke-width="1.5"
-          stroke-dasharray="2 10"
-        />
-
-        <!-- 这一组整体跟着心跳缩放（盘、内圈、光一起动） -->
-        <g class="emblem-core">
-          <circle class="emblem-halo" cx="200" cy="200" r="126" fill="url(#emblem-halo)" />
-
-          <g class="emblem-spin">
-            <circle
-              cx="200"
-              cy="200"
-              r="128"
-              fill="none"
-              stroke="currentColor"
-              stroke-opacity="0.6"
-              stroke-width="1.5"
-              stroke-dasharray="34 16"
-            />
-            <circle cx="200" cy="72" r="5.5" fill="currentColor" />
-          </g>
-
-          <g class="emblem-spin-reverse">
-            <circle
-              cx="200"
-              cy="200"
-              r="100"
-              fill="none"
-              stroke="#6b6975"
-              stroke-opacity="0.6"
-              stroke-width="1"
-              stroke-dasharray="1 12"
-            />
-            <circle cx="100" cy="200" r="3" fill="currentColor" fill-opacity="0.75" />
-          </g>
-
-          <!-- 涟漪：从盘边往外甩，垫在圆盘下面才像从里头涌出来的。
-               压在光晕和虚线环之上，才不会糊成一团雾 -->
-          <g class="emblem-ripples">
-            <circle class="emblem-ripple" cx="200" cy="200" r="96" />
-            <circle class="emblem-ripple" cx="200" cy="200" r="96" />
-            <circle class="emblem-ripple emblem-ripple-wide" cx="200" cy="200" r="96" />
-          </g>
-
-          <circle cx="200" cy="200" r="96" fill="#1b1b22" stroke="#34343f" stroke-width="1.5" />
-        </g>
-      </svg>
-
-      <!-- 悬停菜单时，这一叠图形整体上下滑动切换 -->
-      <div class="fun-figures">
-        {
-          figures.map((fig, i) => (
-            <figure class:list={['fun-figure', i === 0 ? 'is-active' : 'is-down']} data-figure>
-              <svg class="fun-figure-icon" viewBox="0 0 64 64" role="presentation">
-                {fig.icon.map((d) => (
-                  <path d={d} />
-                ))}
-              </svg>
-              <span class="fun-figure-word">{fig.en}</span>
-              <span class="fun-figure-sub">{fig.cn}</span>
-            </figure>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <p class="fun-caption">
-    这个页面刚开始搭，后面会往里塞点好玩的东西<span class="fun-caret" aria-hidden="true"></span>
-  </p>
-
-  {/* 下潜转场由 Base 统一绑定（data-dive），这里只管悬停换图 */}
-  <script>
-    import '../scripts/fun-art';
-    import '../scripts/menu-glitch';
-  </script>
+      </span>
+    </footer>
+  </div>
 </Base>
+
+<script>
+  import '../scripts/menu-glitch';
+  import { initSky, initCorruption, startFault } from '../scripts/title-scene';
+
+  const tp = document.querySelector<HTMLElement>('[data-tp]');
+  const root = document.documentElement;
+
+  if (tp) {
+    const KEY = 'hcr:boot:v1';
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const lines = [...tp.querySelectorAll<HTMLElement>('.bl')];
+    const logEl = tp.querySelector<HTMLElement>('[data-log]');
+    const pressEl = tp.querySelector<HTMLElement>('[data-press]');
+    const wordEl = tp.querySelector<HTMLElement>('.tp-word');
+    const faultEl = tp.querySelector<HTMLElement>('[data-fault]');
+    const skyEl = tp.querySelector<HTMLCanvasElement>('[data-sky]');
+    const timers: number[] = [];
+    let phase = 1;
+    let done = false;
+    let aborted = false;
+
+    const sleep = (ms: number) =>
+      new Promise<void>((resolve) => {
+        timers.push(window.setTimeout(resolve, ms));
+      });
+
+    const setPhase = (n: number) => {
+      phase = n;
+      tp.setAttribute('data-phase', String(n));
+    };
+
+    const clearTimers = () => {
+      while (timers.length) window.clearTimeout(timers.pop());
+    };
+
+    /* ---------------- 星空 + 常驻腐蚀 ---------------- */
+
+    if (skyEl) initSky(skyEl);
+    if (wordEl) initCorruption(wordEl, tp);
+
+    /* ---------------- 音量 ---------------- */
+
+    let vol = 50;
+
+    const bars = [...tp.querySelectorAll<HTMLElement>('[data-vol-bars] i')];
+    const volNum = tp.querySelector<HTMLElement>('[data-vol-num]');
+    const horizon = tp.querySelector<HTMLElement>('[data-horizon]');
+
+    const setVol = (next: number, { silent = false } = {}) => {
+      vol = Math.max(0, Math.min(100, Math.round(next)));
+      tp.style.setProperty('--vol', String(vol / 100));
+      bars.forEach((bar, i) => bar.classList.toggle('on', i < Math.round(vol / 10)));
+      if (volNum) volNum.textContent = String(vol);
+      horizon?.setAttribute('aria-valuenow', String(vol));
+      if (!silent) audio.setVolume(vol / 100);
+    };
+
+    /* ---------------- 声音：合成环境音 ---------------- */
+
+    const audio = {
+      ctx: null as AudioContext | null,
+      master: null as GainNode | null,
+      started: false,
+
+      ensure() {
+        if (this.ctx) return;
+        const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+        if (!Ctx) return;
+        const ctx: AudioContext = new Ctx();
+        const master = ctx.createGain();
+        master.gain.value = 0;
+        master.connect(ctx.destination);
+
+        // 低频底噪：两个正弦，微微失谐
+        for (const [freq, gain] of [
+          [55, 0.11],
+          [82.5, 0.055],
+        ] as const) {
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          g.gain.value = gain;
+          osc.connect(g).connect(master);
+          osc.start();
+        }
+
+        // 气声：白噪声过带通
+        const len = ctx.sampleRate * 3;
+        const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        noise.loop = true;
+        const bp = ctx.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = 420;
+        bp.Q.value = 0.8;
+        const ng = ctx.createGain();
+        ng.gain.value = 0.03;
+        noise.connect(bp).connect(ng).connect(master);
+        noise.start();
+
+        // 极慢的起伏，让底噪不那么死
+        const lfo = ctx.createOscillator();
+        const lfoGain = ctx.createGain();
+        lfo.frequency.value = 0.06;
+        lfoGain.gain.value = 0.012;
+        lfo.connect(lfoGain).connect(master.gain);
+        lfo.start();
+
+        this.ctx = ctx;
+        this.master = master;
+      },
+
+      start() {
+        if (this.started) return;
+        this.ensure();
+        if (!this.ctx || !this.master) return;
+        this.started = true;
+        void this.ctx.resume();
+        // 渐入：2.5 秒从 0 爬到当前音量
+        const target = (vol / 100) * 0.55;
+        const now = this.ctx.currentTime;
+        this.master.gain.cancelScheduledValues(now);
+        this.master.gain.setValueAtTime(0, now);
+        this.master.gain.linearRampToValueAtTime(target, now + 2.5);
+      },
+
+      setVolume(v: number) {
+        if (!this.ctx || !this.master || !this.started) return;
+        const target = v * 0.55;
+        const now = this.ctx.currentTime;
+        this.master.gain.cancelScheduledValues(now);
+        this.master.gain.setTargetAtTime(target, now, 0.12);
+      },
+    };
+
+    setVol(50, { silent: true });
+
+    // 拖地平线调音量
+    let dragging = false;
+
+    const fromPointer = (clientX: number) => {
+      const rect = tp.getBoundingClientRect();
+      const p = (clientX - rect.left) / rect.width;
+      // 左右两端留 6% 死区，免得误碰到底
+      const mapped = (p - 0.06) / 0.88;
+      setVol(mapped * 100);
+    };
+
+    horizon?.addEventListener('pointerdown', (event) => {
+      dragging = true;
+      horizon.setPointerCapture(event.pointerId);
+      fromPointer(event.clientX);
+    });
+
+    horizon?.addEventListener('pointermove', (event) => {
+      if (dragging) fromPointer(event.clientX);
+    });
+
+    horizon?.addEventListener('pointerup', (event) => {
+      dragging = false;
+      horizon.releasePointerCapture(event.pointerId);
+    });
+
+    horizon?.addEventListener('pointercancel', () => {
+      dragging = false;
+    });
+
+    // 点小格子调音量
+    tp.querySelector('[data-vol-bars]')?.addEventListener('pointerdown', (event) => {
+      const target = event.target as HTMLElement;
+      const index = bars.indexOf(target);
+      if (index >= 0) setVol((index + 1) * 10);
+    });
+
+    // 键盘
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') setVol(vol - 5);
+      if (event.key === 'ArrowRight') setVol(vol + 5);
+    });
+
+    /* ---------------- 自检：瀑布式铺满 ---------------- */
+
+    const fillAll = () => {
+      for (const el of lines) el.classList.add('on');
+      logEl?.classList.remove('is-out');
+      tp.querySelector('.tp-loading')?.classList.remove('is-out');
+    };
+
+    const FAULT_TEXT = 'PORTFOLIO · HUANG CHENRUI · 战斗策划';
+
+    const runSequence = async () => {
+      // ① 只有 LOADING 的空镜（CSS 负责淡入）
+      await sleep(1600);
+      if (aborted) return;
+
+      // ② 一行一行往下砸，7 行/秒左右
+      for (const el of lines) {
+        if (aborted) return;
+        el.classList.add('on');
+        await sleep(118);
+      }
+
+      // ③ 满屏停留
+      await sleep(2300);
+      if (aborted) return;
+
+      // ④ 整块淡出
+      tp.querySelector('.tp-loading')?.classList.add('is-out');
+      logEl?.classList.add('is-out');
+      await sleep(860);
+      if (aborted) return;
+
+      // ⑤ 黑场
+      tp.classList.add('is-blackout');
+      await sleep(680);
+      if (aborted) return;
+
+      // ⑥ 系统读取中
+      tp.classList.remove('is-blackout');
+      setPhase(2);
+      await sleep(1500);
+      if (aborted) return;
+
+      // ⑦ 黑场 → 一行乱码
+      tp.classList.add('is-blackout');
+      setPhase(3);
+      await sleep(420);
+      if (aborted) return;
+      tp.classList.remove('is-blackout');
+      const stopFault = faultEl ? startFault(faultEl, FAULT_TEXT) : () => {};
+      await sleep(1250);
+      stopFault();
+      if (aborted) return;
+
+      // ⑧ 标题闪入
+      tp.classList.add('is-blackout');
+      setPhase(4);
+      await sleep(280);
+      if (aborted) return;
+      tp.classList.remove('is-blackout');
+      tp.classList.add('is-flash');
+      await sleep(480);
+      tp.classList.remove('is-flash');
+      tp.classList.add('is-grown');
+      void typePress();
+    };
+
+    /* ---------------- PRESS ANY KEY：打字机 + 错字 ---------------- */
+
+    // 看上去像的错字，只为了「打错再改」这个动作
+    const WRONG: Record<string, string> = {
+      A: 'S', B: 'D', C: 'G', E: 'F', K: 'X', N: 'M', O: 'U',
+      P: 'R', R: 'P', S: 'A', T: 'F', U: 'O', Y: 'T',
+    };
+
+    const sleep2 = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
+
+    const typePress = async () => {
+      const txt = tp.querySelector<HTMLElement>('.tp-press .txt');
+      const smear = tp.querySelector<HTMLElement>('.tp-press .smear');
+      if (!txt || !smear) return;
+
+      const target = (txt.dataset.type ?? 'PRESS ANY KEY').split('');
+      const wrongAt = new Set([6, 10]);
+      txt.textContent = '';
+      smear.textContent = '';
+
+      for (let i = 0; i < target.length; i++) {
+        const ch = target[i];
+
+        // 每 5–6 个字错一次：先打错，停一下，删掉，再打对
+        if (wrongAt.has(i) && WRONG[ch]) {
+          txt.textContent += WRONG[ch];
+          smear.textContent = txt.textContent;
+          await sleep2(90);
+          txt.textContent = txt.textContent.slice(0, -1);
+          await sleep2(40);
+        }
+
+        txt.textContent += ch;
+        smear.textContent = txt.textContent;
+        await sleep2(62 + Math.random() * 28);
+      }
+
+      pressEl?.classList.add('done');
+    };
+
+    const enterHome = () => {
+      tp.setAttribute('data-state', 'home');
+      tp.setAttribute('data-phase', '4');
+      tp.classList.add('is-grown');
+      root.classList.remove('is-booting');
+      try {
+        localStorage.setItem(KEY, '1');
+      } catch {
+        /* 隐私模式 */
+      }
+      audio.start();
+    };
+
+    // 只认标题帧那一次点击；前面几帧不许跳过
+    const advance = () => {
+      if (done || phase < 4) return;
+      done = true;
+      clearTimers();
+      enterHome();
+    };
+
+    const params = new URLSearchParams(location.search);
+
+    if (root.getAttribute('data-boot') === 'skip') {
+      // 已经看过的访客：直接落在首页状态
+      done = true;
+      clearTimers();
+      fillAll();
+      tp.setAttribute('data-phase', '4');
+      tp.setAttribute('data-state', 'home');
+      tp.classList.add('is-grown');
+      window.addEventListener('pointerdown', () => audio.start(), { once: true });
+    } else if (params.get('state') === 'home') {
+      // 调试：?state=home 直接看菜单状态
+      fillAll();
+      setPhase(4);
+      tp.classList.add('is-grown');
+      tp.setAttribute('data-state', 'home');
+      const t = tp.querySelector<HTMLElement>('.tp-press .txt');
+      if (t) t.textContent = t.dataset.type ?? '';
+    } else if (params.get('phase')) {
+      // 调试：?phase=1/2/3/4 直接定格到某一帧，只给截图用
+      const jump = Number(params.get('phase'));
+      fillAll();
+      if (jump === 2) {
+        setPhase(2);
+      } else if (jump === 3) {
+        setPhase(3);
+        if (faultEl) startFault(faultEl, FAULT_TEXT);
+      } else if (jump === 4) {
+        setPhase(4);
+        tp.classList.add('is-grown');
+        const txt = tp.querySelector<HTMLElement>('.tp-press .txt');
+        const smear = tp.querySelector<HTMLElement>('.tp-press .smear');
+        if (txt) txt.textContent = txt.dataset.type ?? '';
+        if (smear) smear.textContent = txt?.dataset.type ?? '';
+        pressEl?.classList.add('done');
+      } else {
+        setPhase(1);
+      }
+    } else {
+      root.classList.add('is-booting');
+      setPhase(1);
+
+      if (reduce) {
+        fillAll();
+        setPhase(4);
+        tp.classList.add('is-grown');
+        const txt = tp.querySelector<HTMLElement>('.tp-press .txt');
+        if (txt) txt.textContent = txt.dataset.type ?? '';
+      } else {
+        void runSequence();
+      }
+
+      window.addEventListener('keydown', advance, { capture: true });
+      window.addEventListener('pointerdown', advance, { capture: true });
+
+      // 什么都不做也别把人困住
+      window.setTimeout(() => {
+        if (!done && phase < 4) {
+          aborted = true;
+          fillAll();
+          setPhase(4);
+          tp.classList.add('is-grown');
+        }
+      }, 20_000);
+    }
+  }
+</script>

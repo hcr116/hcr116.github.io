@@ -10,7 +10,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "node scripts/check-links.mjs",
+    "check": "node scripts/check-links.mjs && node scripts/check-isolation.mjs",
     "sample-pdf": "node scripts/make-sample-pdf.mjs"
   },
   "dependencies": {

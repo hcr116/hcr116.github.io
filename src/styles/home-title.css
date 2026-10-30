@@ -1,0 +1,298 @@
+/* 首页：黑场之后露出的标题画面 —— 与启动序列同一套美术 */
+
+@font-face {
+  font-family: 'Zpix';
+  src: url('/fonts/zpix.woff2') format('woff2');
+  font-display: swap;
+}
+
+.title-main {
+  display: flex;
+  min-height: calc(100svh - 64px);
+  flex-direction: column;
+  background: #050506;
+}
+
+/* 首页的顶栏也压成纯黑，跟启动画面接得上 */
+body.mode-fun .site-header {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+  background: #050506;
+}
+
+/* 极淡的像素点阵，跟启动画面接上 */
+.title-main::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(190, 200, 210, 0.05) 1px, transparent 1px);
+  background-size: 3px 3px;
+}
+
+.title-main > * {
+  position: relative;
+  z-index: 1;
+}
+
+.title-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.title-scene i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  animation: titleTwinkle 4.5s ease-in-out infinite;
+}
+
+@keyframes titleTwinkle {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.18;
+  }
+}
+
+.title-stage {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px 24px;
+  text-align: center;
+}
+
+/* RGB 分离：跟启动序列同一个呼吸节奏 */
+@keyframes titleRgb {
+  0%,
+  44%,
+  100% {
+    text-shadow: 1px 0 rgba(255, 45, 65, 0.3), -1px 0 rgba(45, 215, 255, 0.3);
+  }
+  45% {
+    text-shadow: 4px -2px rgba(255, 45, 65, 0.55), -4px 2px rgba(45, 215, 255, 0.55);
+  }
+  47% {
+    text-shadow: 1px 0 rgba(255, 45, 65, 0.3), -1px 0 rgba(45, 215, 255, 0.3);
+  }
+  72% {
+    text-shadow: 2px 0 rgba(255, 45, 65, 0.45), -2px 0 rgba(45, 215, 255, 0.45);
+  }
+  74% {
+    text-shadow: 1px 0 rgba(255, 45, 65, 0.3), -1px 0 rgba(45, 215, 255, 0.3);
+  }
+}
+
+.title-eyebrow {
+  color: rgba(255, 255, 255, 0.42);
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  letter-spacing: 9px;
+}
+
+.title-name {
+  margin: 24px 0 0;
+  color: #f2f0ea;
+  font-family: 'Zpix', monospace;
+  font-size: clamp(54px, 9vw, 104px);
+  font-weight: 400;
+  letter-spacing: 14px;
+  line-height: 1.12;
+  animation: titleRgb 3.6s steps(1, end) infinite;
+}
+
+/* 细线 + 中间一个短点，跟启动序列的 PRESS ANY KEY 同款 */
+.title-rule {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: min(420px, 74vw);
+  margin-top: 26px;
+}
+
+.title-rule i {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.title-rule b {
+  flex: none;
+  width: 8px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.title-role {
+  margin-top: 18px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  letter-spacing: 7px;
+}
+
+/* PRESS START：两侧细线 + 端点圆点 */
+.title-start {
+  position: relative;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 46px;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  letter-spacing: 6px;
+  animation: titleBlink 2.4s ease-in-out infinite;
+}
+
+.title-start::before,
+.title-start::after {
+  content: '';
+  width: clamp(56px, 9vw, 120px);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+@keyframes titleBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ---------- 底部菜单 ---------- */
+
+.title-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 34px;
+  justify-content: center;
+  padding: 0 24px 30px;
+}
+
+.title-menu a {
+  position: relative;
+  display: inline-flex;
+  gap: 10px;
+  align-items: baseline;
+  color: rgba(255, 255, 255, 0.62);
+  font-family: 'Zpix', monospace;
+  font-size: 14px;
+  letter-spacing: 4px;
+  text-decoration: none;
+  transition: color 0.18s var(--ease);
+}
+
+.title-menu a .n {
+  color: rgba(255, 255, 255, 0.28);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.title-menu a:hover {
+  color: #fff;
+}
+
+.title-menu a:hover .n {
+  color: #fff;
+}
+
+/* 悬停时的细下划线 */
+.title-menu a::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -5px;
+  left: 0;
+  height: 1px;
+  background: currentColor;
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition: opacity 0.18s var(--ease), transform 0.18s var(--ease);
+}
+
+.title-menu a:hover::after {
+  opacity: 0.6;
+  transform: none;
+}
+
+/* 阿比斯那项保留信号抖动 */
+.title-menu a.is-signal {
+  position: relative;
+  isolation: isolate;
+}
+
+/* ---------- 页脚 ---------- */
+
+.title-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px var(--gutter, 40px) 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.3);
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.title-social {
+  display: flex;
+  gap: 18px;
+}
+
+.title-social a {
+  color: rgba(255, 255, 255, 0.38);
+  text-decoration: none;
+}
+
+.title-social a:hover {
+  color: #fff;
+}
+
+@media (max-width: 720px) {
+  .title-name {
+    font-size: clamp(42px, 13vw, 64px);
+    letter-spacing: 8px;
+  }
+
+  .title-menu {
+    gap: 8px 20px;
+  }
+
+  .title-menu a {
+    font-size: 12px;
+    letter-spacing: 2px;
+  }
+
+  .title-start {
+    margin-top: 32px;
+  }
+
+  .title-foot {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-name,
+  .title-start {
+    animation: none;
+  }
+}

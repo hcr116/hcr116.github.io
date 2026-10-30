@@ -84,3 +84,62 @@
 .fun-menu a.is-signal em {
   text-shadow: none !important;
 }
+
+/* ------------------------------------------------------------------
+   新首页菜单（.title-menu）复用同一套「信号」效果。
+   选择器不再依赖 .fun-menu，只认 .is-signal 与克隆出来的 .sig-*。
+   ------------------------------------------------------------------ */
+.is-signal {
+  position: relative;
+  isolation: isolate;
+}
+
+.sig-band,
+.sig-fringe {
+  position: absolute !important;
+  inset: 0 !important;
+  margin: 0;
+  /* 跟原行保持同一套内边距，否则克隆会整体偏移 2~4px */
+  padding: 4px 2px !important;
+  border: 0 !important;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* 克隆出来的行不要再带下划线之类 */
+.sig-band::after,
+.sig-fringe::after,
+.sig-band::before,
+.sig-fringe::before {
+  display: none !important;
+}
+
+.sig-band {
+  z-index: 2;
+}
+
+.sig-fringe {
+  z-index: -1;
+  mix-blend-mode: screen;
+}
+
+.sig-fringe.c {
+  color: #38e8ff;
+  opacity: 0.46;
+}
+
+.sig-fringe.m {
+  color: #ff2d8e;
+  opacity: 0.4;
+}
+
+.sig-fringe * {
+  color: inherit !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sig-band,
+  .sig-fringe {
+    display: none;
+  }
+}
