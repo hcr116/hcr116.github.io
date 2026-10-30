@@ -55,15 +55,34 @@ const year = new Date().getFullYear();
 <Base title={SITE.title} description={SITE.intro} bodyClass="mode-fun title-page" mainClass="title-main" hideNav>
   <script is:inline>
     (function () {
-      var KEY = 'hcr:boot:v1';
-      // 先每次进首页都播，方便看效果；定稿后改 false 就变成「看过一次不再播」。
-      var ALWAYS = true;
-      var skip = location.search.indexOf('boot=0') > -1;
-      var seen = false;
+      // 播不播自检：
+      //   首次进站      → 播
+      //   F5 刷新       → 播（刷新就是想再看一遍）
+      //   站内切回/返回 → 不播
+      var KEY = 'hcr:boot:in';
+      var q = location.search;
+      var skip = q.indexOf('boot=0') > -1;
+      var force = q.indexOf('boot=1') > -1;
+
+      var inside = false;
       try {
-        seen = localStorage.getItem(KEY) === '1';
+        inside = sessionStorage.getItem(KEY) === '1';
       } catch (e) {}
-      document.documentElement.setAttribute('data-boot', skip || (!ALWAYS && seen) ? 'skip' : 'play');
+
+      // 区分「刷新」和「站内跳转」：刷新是 reload，点链接是 navigate
+      var navType = 'navigate';
+      try {
+        var nav = performance.getEntriesByType('navigation')[0];
+        if (nav && nav.type) navType = nav.type;
+      } catch (e) {}
+
+      var play = force || (!skip && (navType === 'reload' || !inside));
+
+      try {
+        sessionStorage.setItem(KEY, '1');
+      } catch (e) {}
+
+      document.documentElement.setAttribute('data-boot', play ? 'play' : 'skip');
     })();
   </script>
 
@@ -94,7 +113,7 @@ const year = new Date().getFullYear();
     <!-- 自检层 -->
     <div class="tp-loading"><span class="l1">LOADING</span><span class="l2">_ 系统启动中..</span></div>
     <div class="tp-log" data-log>
-      {bootLines.map((line) => <div class="bl">{line}</div>)}
+      {bootLines.map((line) => <div class="bl" data-text={line}>{line}</div>)}
     </div>
 
     <!-- 系统读取中：上下黑压压，中间一条横带，左右各一组同心圆线 -->
@@ -109,11 +128,16 @@ const year = new Date().getFullYear();
       <span class="ft" data-fault></span>
     </div>
 
-    <!-- 标题：字压在轴线上 -->
+    <!-- 标题：字压在轴线上。
+         色散层（红/青副本）垫在字下面；横切带在"爆发"那几帧把字切成横条。 -->
     <h1 class="tp-word">
+      <span class="chroma" aria-hidden="true">
+        <span class="r">{LOGO}</span>
+        <span class="c">{LOGO}</span>
+      </span>
       <span class="w-a">{LOGO}</span>
       <span class="w-b" aria-hidden="true">{LOGO}</span>
-      <!-- 反白块：右段整块刷白，字母在块里被挖空（视频里最抓眼的那一下） -->
+      <!-- 反白块：右段整块刷白，字母在块里被挖空 -->
       <span class="w-slab" aria-hidden="true">
         <span class="w-slab-bg"></span>
         <span class="w-slab-txt">{LOGO}</span>
@@ -121,16 +145,19 @@ const year = new Date().getFullYear();
       <span class="w-blocks" aria-hidden="true">
         {Array.from({ length: 6 }, () => <i />)}
       </span>
+      <span class="slice" aria-hidden="true"><span>{LOGO}</span></span>
     </h1>
 
-    <!-- PRESS：两侧各一条细线，文案是自己的 -->
+    <!-- PRESS：原版结构 —— 一行小字 + 正下方一条两端带圆点的细线 -->
     <p class="tp-action tp-press" data-press>
-      <span class="rule l" aria-hidden="true"></span>
       <span class="txt-wrap">
         <span class="smear" aria-hidden="true"></span>
-        <span class="txt" data-type="PRESS ANY BUTTON"></span>
+        <span class="txt" data-type="Press Any Button"></span>
       </span>
-      <span class="rule r" aria-hidden="true"></span>
+      <span class="pressline" aria-hidden="true"></span>
+      <span class="streak" aria-hidden="true">
+        {Array.from({ length: 10 }, () => <i />)}
+      </span>
     </p>
 
     <!-- 点过之后：同一行换成菜单 -->
@@ -203,10 +230,41 @@ const year = new Date().getFullYear();
       while (timers.length) window.clearTimeout(timers.pop());
     };
 
-    /* ---------------- 星空 + 常驻腐蚀 ---------------- */
+    /* ---------------- LOADING 那行：点点自己跳 ----------------
+     * 静态的「系统启动中..」很生硬，改成 1 → 2 → 3 个点循环，
+     * 节拍跟主机读盘的指示灯差不多（320ms 一格）。
+     */
+    const dotsEl = tp.querySelector<HTMLElement>('.tp-loading .l2');
+    const DOTS_BASE = '_ 系统启动中';
+    let dotTimer = 0;
+    let dotStep = 1;
+
+    const paintDots = () => {
+      if (!dotsEl) return;
+      dotsEl.textContent = DOTS_BASE + '.'.repeat(dotStep);
+    };
+
+    const startDots = () => {
+      if (!dotsEl || dotTimer) return;
+      dotStep = 1;
+      paintDots();
+      dotTimer = window.setInterval(() => {
+        dotStep = dotStep >= 3 ? 1 : dotStep + 1;
+        paintDots();
+      }, 320);
+    };
+
+    const stopDots = () => {
+      if (!dotTimer) return;
+      window.clearInterval(dotTimer);
+      dotTimer = 0;
+    };
+
+    /* ---------------- 星空 + 常驻腐蚀 + 标题色散 ---------------- */
 
     if (skyEl) initSky(skyEl);
     if (wordEl) initCorruption(wordEl, tp);
+    startLogoChroma();
 
     /* ---------------- 音量 ---------------- */
 
@@ -352,26 +410,192 @@ const year = new Date().getFullYear();
       if (event.key === 'ArrowRight') setVol(vol + 5);
     });
 
-    /* ---------------- 自检：瀑布式铺满 ---------------- */
+    /* ---------------- 自检：逐字打出来（参考的做法） ----------------
+     * 每行从左往右长，14ms/字；前沿会随机闪一个"错字"（参考里就是先错后对）。
+     * 行与行之间 118ms，首行之后先停 0.7 秒再开始刷屏。
+     */
+    const CHAR_MS = 30;
+    const WRONG_POOL = '系统检查读取载入索引通过档位模组素材记录验证渲染战备完成';
+
+    const lineStart = new WeakMap<HTMLElement, number>();
+    let typingOn = false;
+
+    const typeTick = () => {
+      if (!typingOn) return;
+      const now = performance.now();
+      for (const el of lines) {
+        const t0 = lineStart.get(el);
+        if (t0 === undefined) continue;
+        const full = el.dataset.text ?? '';
+        const n = Math.floor((now - t0) / CHAR_MS);
+        if (n >= full.length) {
+          if (el.textContent !== full) el.textContent = full;
+          continue;
+        }
+        const ghost = Math.random() < 0.4 ? WRONG_POOL[Math.floor(Math.random() * WRONG_POOL.length)] : '';
+        el.textContent = full.slice(0, Math.max(0, n)) + ghost;
+      }
+      window.requestAnimationFrame(typeTick);
+    };
+
+    const startLogTyping = () => {
+      typingOn = true;
+      for (const el of lines) el.textContent = '';
+      window.requestAnimationFrame(typeTick);
+    };
 
     const fillAll = () => {
-      for (const el of lines) el.classList.add('on');
+      typingOn = false;
+      for (const el of lines) {
+        el.textContent = el.dataset.text ?? '';
+        el.classList.add('on');
+      }
       logEl?.classList.remove('is-out');
       tp.querySelector('.tp-loading')?.classList.remove('is-out');
     };
 
     const FAULT_TEXT = 'PORTFOLIO · HUANG CHENRUI · 战斗策划';
 
+    /* ---------------- 逐行错位：某一条扫描线偶尔"失锁" ----------------
+     * 照视频实测抄的参数：
+     *   · 每行约 0.38 次/秒，也就是平均 2.6 秒滑一下
+     *   · 每次持续 1~3 帧（40~120ms）就弹回
+     *   · 幅度固定 -1 或 -2px，整数跳，而且要"只往左"
+     *   · 只错已经定型的行（正在淡入的那行本来就在动，再抖就乱）
+     * 用独立的 translate 属性而不是 transform，免得和淡入的 translateY 打架。
+     */
+    const startWobble = (): (() => void) => {
+      if (reduce) return () => {};
+
+      const settled = new WeakMap<HTMLElement, number>();
+      let stopped = false;
+
+      const tick = () => {
+        if (stopped) return;
+        if (phase !== 1) {
+          // 自检层已经退场，收尾
+          for (const el of lines) {
+            el.style.translate = '';
+            el.classList.remove('is-wob');
+          }
+          return;
+        }
+        const now = performance.now();
+        for (const el of lines) {
+          if (!el.classList.contains('on')) continue;
+          const born = settled.get(el);
+          if (born === undefined) {
+            settled.set(el, now);
+            continue;
+          }
+          if (now - born < 420) continue; // 还在淡入/刚定型
+          if (Math.random() < 0.38 * 0.08) {
+            const dx = Math.random() < 0.5 ? -1 : -2;
+            el.style.translate = `${dx}px 0`;
+            el.classList.add('is-wob');
+            window.setTimeout(() => {
+              el.style.translate = '';
+              el.classList.remove('is-wob');
+            }, 40 + Math.random() * 80);
+          }
+        }
+        window.setTimeout(tick, 80);
+      };
+
+      tick();
+      return () => {
+        stopped = true;
+        for (const el of lines) {
+          el.style.translate = '';
+          el.classList.remove('is-wob');
+        }
+      };
+    };
+
+    /* ---------------- 标题的色散与抖动 ----------------
+     * 参考里 logo 是"两档"：
+     *   稳定  明显色偏的亮像素约 1.2%（红/青各偏 0.6~0.9px）
+     *   爆发  约 10%（偏到 2px，同时横切一刀 + 整体错 1px），持续 2~4 帧
+     * 用两份染色文字副本 + blur 去做，出来的彩边是糊的，像色度抽样。
+     */
+    function startLogoChroma(): () => void {
+      if (reduce) return () => {};
+      const chroma = wordEl?.querySelector<HTMLElement>('.chroma');
+      const red = chroma?.querySelector<HTMLElement>('.r');
+      const cyan = chroma?.querySelector<HTMLElement>('.c');
+      const slice = wordEl?.querySelector<HTMLElement>('.slice');
+      if (!wordEl || !red || !cyan || !slice) return () => {};
+
+      let stopped = false;
+      let burst = 0;
+      let next = 14 + Math.floor(Math.random() * 12);
+
+      const tick = () => {
+        if (stopped) return;
+        window.setTimeout(tick, 40);
+        if (document.hidden) return;
+
+        if (burst > 0) burst -= 1;
+        else if (--next <= 0) {
+          burst = 2 + Math.floor(Math.random() * 3);
+          next = 26 + Math.floor(Math.random() * 16);
+        }
+        const hot = burst > 0;
+
+        // 红/青各偏多少
+        const cx = hot ? 1.7 + Math.random() * 0.7 : 0.55 + Math.random() * 0.35;
+        const alpha = hot ? 0.42 : 0.15;
+        const blur = hot ? 1.15 : 0.65;
+        red.style.transform = `translateX(${(-cx).toFixed(2)}px)`;
+        cyan.style.transform = `translateX(${cx.toFixed(2)}px)`;
+        red.style.opacity = String(alpha);
+        cyan.style.opacity = String(alpha);
+        red.style.filter = `blur(${blur}px)`;
+        cyan.style.filter = `blur(${blur}px)`;
+
+        // 爆发：切一条横带错开 + 整体错 1px
+        if (hot) {
+          slice.style.display = 'block';
+          const top = 22 + Math.random() * 46;
+          const h = 4 + Math.random() * 9;
+          slice.style.clipPath = `inset(${top.toFixed(0)}% 0 ${(100 - top - h).toFixed(0)}% 0)`;
+          slice.style.transform = `translateX(${((Math.random() < 0.5 ? -1 : 1) * (1 + Math.random() * 2)).toFixed(1)}px)`;
+          wordEl.style.transform = `translate(-50%, -0.022em) translateX(${(Math.random() < 0.5 ? -1 : 1)}px)`;
+        } else {
+          slice.style.display = 'none';
+          wordEl.style.transform = 'translate(-50%, -0.022em)';
+        }
+      };
+
+      tick();
+      return () => {
+        stopped = true;
+        if (slice) slice.style.display = 'none';
+      };
+    }
+
     const runSequence = async () => {
       // ① 只有 LOADING 的空镜（CSS 负责淡入）
+      startDots();
+      startLogTyping();
       await sleep(1600);
       if (aborted) return;
 
-      // ② 一行一行往下砸，7 行/秒左右
-      for (const el of lines) {
-        if (aborted) return;
+      // ② 首行先单独出，停 0.7 秒，然后逐行刷：
+      //    一行打完才起下一行（严格串行，不叠在一起打）
+      const [first, ...rest] = lines;
+      const typeLine = async (el: HTMLElement) => {
         el.classList.add('on');
-        await sleep(118);
+        lineStart.set(el, performance.now());
+        const len = (el.dataset.text ?? '').length;
+        await sleep(len * CHAR_MS + 50);
+      };
+
+      if (first) await typeLine(first);
+      await sleep(700);
+      for (const el of rest) {
+        if (aborted) return;
+        await typeLine(el);
       }
 
       // ③ 满屏停留
@@ -379,6 +603,8 @@ const year = new Date().getFullYear();
       if (aborted) return;
 
       // ④ 整块淡出
+      typingOn = false;
+      stopDots();
       tp.querySelector('.tp-loading')?.classList.add('is-out');
       logEl?.classList.add('is-out');
       await sleep(860);
@@ -419,44 +645,67 @@ const year = new Date().getFullYear();
       void typePress();
     };
 
-    /* ---------------- PRESS ANY KEY：打字机 + 错字 ---------------- */
-
-    // 看上去像的错字，只为了「打错再改」这个动作
-    const WRONG: Record<string, string> = {
-      A: 'S', B: 'D', C: 'G', E: 'F', K: 'X', N: 'M', O: 'U',
-      P: 'R', R: 'P', S: 'A', T: 'F', U: 'O', Y: 'T',
-    };
+    /* ---------------- PRESS ANY BUTTON：线先到 → 逐字打出来 ----------------
+     * 照原版的节奏：
+     *   ① 线先从中间向两侧展开（300ms），两端圆点随后浮现
+     *   ② 再开始逐字，65ms/字；每个字先闪现一个"错字"约 30ms 再改正
+     *   ③ 打字期间两侧有横向拖影，打完仍会零星闪
+     */
+    const PRESS_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
     const sleep2 = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
 
     const typePress = async () => {
       const txt = tp.querySelector<HTMLElement>('.tp-press .txt');
       const smear = tp.querySelector<HTMLElement>('.tp-press .smear');
+      const streak = tp.querySelector<HTMLElement>('.tp-press .streak');
       if (!txt || !smear) return;
 
-      const target = (txt.dataset.type ?? 'PRESS ANY KEY').split('');
-      const wrongAt = new Set([6, 10]);
+      const chars = [...(txt.dataset.type ?? 'Press Any Button')];
+
+      // ① 线先到
+      pressEl?.classList.add('is-line');
+      await sleep2(300);
+
+      // ② 逐字，前沿错字
       txt.textContent = '';
       smear.textContent = '';
-
-      for (let i = 0; i < target.length; i++) {
-        const ch = target[i];
-
-        // 每 5–6 个字错一次：先打错，停一下，删掉，再打对
-        if (wrongAt.has(i) && WRONG[ch]) {
-          txt.textContent += WRONG[ch];
-          smear.textContent = txt.textContent;
-          await sleep2(90);
-          txt.textContent = txt.textContent.slice(0, -1);
-          await sleep2(40);
-        }
-
-        txt.textContent += ch;
+      for (let i = 0; i < chars.length; i += 1) {
+        const ghost = PRESS_POOL[Math.floor(Math.random() * PRESS_POOL.length)];
+        txt.textContent = chars.slice(0, i).join('') + ghost;
         smear.textContent = txt.textContent;
-        await sleep2(62 + Math.random() * 28);
+        await sleep2(28);
+
+        txt.textContent = chars.slice(0, i + 1).join('');
+        smear.textContent = txt.textContent;
+        await sleep2(37);
       }
 
       pressEl?.classList.add('done');
+
+      // ③ 打字期间与之后，两侧零星拖影
+      const bits = [...(streak?.querySelectorAll<HTMLElement>('i') ?? [])];
+      const drawStreak = (alive: number) => {
+        for (const b of bits) {
+          if (Math.random() > alive) {
+            b.style.opacity = '0';
+            continue;
+          }
+          b.style.left = `${(Math.random() * 100).toFixed(1)}%`;
+          b.style.width = `${(4 + Math.random() * 22).toFixed(1)}%`;
+          b.style.top = `${(30 + Math.random() * 34).toFixed(0)}%`;
+          b.style.opacity = String(0.12 + Math.random() * 0.4);
+        }
+      };
+      for (let i = 0; i < 8; i += 1) {
+        drawStreak(0.5);
+        await sleep2(90);
+      }
+      const idle = window.setInterval(() => drawStreak(0.28), 140);
+      window.setTimeout(() => {
+        window.clearInterval(idle);
+        for (const b of bits) b.style.opacity = '0';
+      }, 5200);
     };
 
     const enterHome = () => {
@@ -499,6 +748,7 @@ const year = new Date().getFullYear();
       tp.setAttribute('data-state', 'home');
       const t = tp.querySelector<HTMLElement>('.tp-press .txt');
       if (t) t.textContent = t.dataset.type ?? '';
+      pressEl?.classList.add('is-line', 'done');
     } else if (params.get('phase')) {
       // 调试：?phase=1/2/3/4 直接定格到某一帧，只给截图用
       const jump = Number(params.get('phase'));
@@ -515,9 +765,10 @@ const year = new Date().getFullYear();
         const smear = tp.querySelector<HTMLElement>('.tp-press .smear');
         if (txt) txt.textContent = txt.dataset.type ?? '';
         if (smear) smear.textContent = txt?.dataset.type ?? '';
-        pressEl?.classList.add('done');
+        pressEl?.classList.add('is-line', 'done');
       } else {
         setPhase(1);
+        startWobble();
       }
     } else {
       root.classList.add('is-booting');
@@ -529,7 +780,9 @@ const year = new Date().getFullYear();
         tp.classList.add('is-grown');
         const txt = tp.querySelector<HTMLElement>('.tp-press .txt');
         if (txt) txt.textContent = txt.dataset.type ?? '';
+        pressEl?.classList.add('is-line', 'done');
       } else {
+        startWobble();
         void runSequence();
       }
 

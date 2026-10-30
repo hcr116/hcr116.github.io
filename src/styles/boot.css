@@ -421,21 +421,29 @@ html.is-booting {
   line-height: 14px;
   color: rgba(246, 248, 250, 0.94);
   text-shadow:
+    /* 常驻 1px 色散：老信号的红/青分离，视频里一直都在 */
+    -1px 0 rgba(255, 64, 72, 0.2),
+    1px 0 rgba(60, 196, 255, 0.2),
     0 0 8px rgba(186, 210, 236, 0.3),
     0 0 22px rgba(140, 180, 225, 0.14);
   opacity: 0;
-  transform: translateY(3px);
-  filter: blur(2px);
-  transition:
-    opacity 0.36s ease,
-    transform 0.36s ease,
-    filter 0.36s ease;
+  transform: none;
+  filter: none;
+  transition: opacity 0.12s linear;
 }
 
 .tp-log .bl.on {
   opacity: 1;
   transform: none;
   filter: none;
+}
+
+/* 失锁的那几帧：色散跟着加强，像信号真的丢了脉冲 */
+.tp-log .bl.is-wob {
+  text-shadow:
+    -1.7px 0 rgba(255, 64, 72, 0.62),
+    1.7px 0 rgba(60, 196, 255, 0.62),
+    0 0 10px rgba(190, 214, 240, 0.32);
 }
 
 /* 打完停留一阵，整块淡出 */
@@ -579,9 +587,61 @@ html.is-booting {
   color: var(--ink);
   white-space: nowrap;
   opacity: 0;
+  isolation: isolate;
   transition:
     font-size 0.8s cubic-bezier(0.16, 0.8, 0.2, 1),
     opacity 0.5s ease;
+}
+
+/* ---- 色散层：红/青两份文字副本，压在字下面并糊一圈 ----
+   平时只偏 0.6~0.9px（跟着参考的"稳定期"），偶尔爆发到 2px，
+   模拟老信号 + 色度抽样那种糊边彩边。 */
+.tp-word .chroma {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  filter: blur(0.65px);
+}
+
+.tp-word .chroma span {
+  position: absolute;
+  inset: 0;
+  display: block;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  white-space: nowrap;
+  opacity: 0.15;
+  will-change: transform, opacity;
+}
+
+.tp-word .chroma .r {
+  color: #ff5a62;
+}
+
+.tp-word .chroma .c {
+  color: #6fe4ff;
+}
+
+/* ---- 横切带：爆发时把字切成一条横带并左右错开 ---- */
+.tp-word .slice {
+  position: absolute;
+  inset: 0;
+  display: none;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tp-word .slice span {
+  position: absolute;
+  inset: 0;
+  display: block;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  white-space: nowrap;
+  color: #fff;
 }
 
 /* 标题帧以外一律不露头 */
@@ -594,8 +654,7 @@ html.is-booting {
   display: block;
 }
 
-/* 第二份：白色、错开一点，用随机块状遮罩切出来，像是字被替换成了像素块 */
-.tp-word .w-b {
+/* 第二份：白色、错开一点，用随机块状遮罩切出来，像是字被替换成了像素块 */.tp-word .w-b {
   position: absolute;
   top: 0;
   left: 0;
@@ -742,29 +801,88 @@ html.is-booting {
   visibility: visible;
 }
 
-/* 两侧各一条细横线，外端一个小方块 */
-.tp-press .rule {
-  position: relative;
-  width: min(23vw, 232px);
-  height: 1px;
-  background: rgba(255, 255, 255, 0.42);
+/* 原版结构：一行小字 + 它正下方一条两端带圆点的细线
+   （不再是「字夹在左右两条线中间」） */
+.tp-press > .rule {
+  display: none;
 }
 
-.tp-press .rule::after {
+.tp-press .pressline {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 9px);
+  width: 268px;
+  height: 1px;
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: 50% 50%;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.42) 9%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.42) 91%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  box-shadow: 0 0 9px rgba(190, 214, 240, 0.32);
+  transition:
+    transform 0.3s cubic-bezier(0.2, 0.9, 0.2, 1),
+    opacity 0.2s linear;
+}
+
+/* 两端圆点：线铺到位之后才浮现 */
+.tp-press .pressline::before,
+.tp-press .pressline::after {
   content: '';
   position: absolute;
   top: -2px;
   width: 5px;
   height: 5px;
-  background: rgba(255, 255, 255, 0.72);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 8px rgba(214, 232, 252, 0.8);
+  opacity: 0;
+  transition: opacity 0.22s ease 0.16s;
 }
 
-.tp-press .rule.l::after {
-  left: 0;
+.tp-press .pressline::before {
+  left: -1px;
 }
 
-.tp-press .rule.r::after {
-  right: 0;
+.tp-press .pressline::after {
+  right: -1px;
+}
+
+.tp-press.is-line .pressline {
+  transform: translateX(-50%) scaleX(1);
+  opacity: 1;
+}
+
+.tp-press.is-line .pressline::before,
+.tp-press.is-line .pressline::after {
+  opacity: 1;
+}
+
+/* 横向拖影：字两侧随机闪的几条细亮线（VHS 味道） */
+.tp-press .streak {
+  position: absolute;
+  left: 24%;
+  right: 24%;
+  top: 50%;
+  height: 26px;
+  margin-top: -20px;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.5;
+}
+
+.tp-press .streak i {
+  position: absolute;
+  display: block;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  filter: blur(0.6px);
+  opacity: 0;
 }
 
 .tp-press .txt-wrap {
@@ -775,18 +893,21 @@ html.is-booting {
 .tp-press .txt,
 .tp-press .smear {
   font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 300;
-  letter-spacing: 0.16em;
+  font-size: 15.5px;
+  font-weight: 400;
+  letter-spacing: 0.008em;
+  text-transform: none;
   white-space: pre;
-  color: rgba(244, 246, 248, 0.92);
+  color: rgba(238, 242, 246, 0.92);
 }
 
 .tp-press .txt {
   position: relative;
   text-shadow:
-    0 0 10px rgba(200, 220, 242, 0.4),
-    0 0 26px rgba(150, 190, 235, 0.2);
+    -1px 0 rgba(255, 90, 98, 0.34),
+    1px 0 rgba(111, 228, 255, 0.34),
+    0 0 10px rgba(210, 230, 250, 0.5),
+    0 0 30px rgba(160, 196, 240, 0.3);
 }
 
 /* 打字期间的残影：没打出来的部分拉成一条虚影 */
