@@ -100,7 +100,8 @@ function initMenuGlitch(): void {
     if (m) m.style.transform = `translate3d(${(FRINGE + jitter).toFixed(1)}px,0,0)`;
   }
 
-  /** 安静的间隙里也有小抖：每次只碰一两条，幅度 1~2px */
+  /** 安静的间隙里也有小抖：每次只碰一两条，幅度 1~2px。
+   *  克隆层平时透明，所以这一步只在爆发期间看得出效果。 */
   function idle(): void {
     const bands = Array.from(link!.querySelectorAll<HTMLElement>('.sig-band'));
     if (!bands.length) return;
@@ -122,12 +123,13 @@ function initMenuGlitch(): void {
   function fire(): void {
     const start = performance.now();
     window.clearInterval(burstTimer);
-    window.clearInterval(idleTimer);
+    // 克隆层平时是透明的，爆发这 0.4 秒里才显形
+    link!.classList.add('is-glitching');
     burstTimer = window.setInterval(() => {
       if (performance.now() - start > BURST) {
         window.clearInterval(burstTimer);
+        link!.classList.remove('is-glitching');
         reset();
-        startIdle();
         return;
       }
       scramble(POWER);
@@ -135,8 +137,8 @@ function initMenuGlitch(): void {
   }
 
   function startIdle(): void {
+    // 克隆层平时是透明的，小抖已经看不出效果了，不再跑这个定时器
     window.clearInterval(idleTimer);
-    idleTimer = window.setInterval(idle, IDLE_EVERY);
   }
 
   function loop(): void {

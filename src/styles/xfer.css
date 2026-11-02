@@ -1,0 +1,305 @@
+/* 换页转场：黑幕 + 扫描带 + 亮边
+ * 四档由 html 上的类决定：
+ *   html.xf-leaving.xf-<kind>   出发
+ *   html.xf-entering.xf-<kind>  到达（head 里就加上，首帧即铺满）
+ *   html.xf-run                 到达动画启动
+ */
+
+.xfer {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: #05060c;
+  opacity: 0;
+  clip-path: inset(100% 0 0 0);
+  will-change: opacity, clip-path, transform;
+}
+
+html.xf-entering .xfer {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+}
+
+.xfer-slices {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+}
+
+.xfer-slices i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 26vh;
+  display: block;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(220, 235, 255, 0.16) 46%,
+    rgba(255, 255, 255, 0.26) 50%,
+    rgba(220, 235, 255, 0.16) 54%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  mix-blend-mode: screen;
+}
+
+.xfer-slices i:nth-child(1) {
+  top: 4vh;
+}
+.xfer-slices i:nth-child(2) {
+  top: 30vh;
+}
+.xfer-slices i:nth-child(3) {
+  top: 56vh;
+}
+.xfer-slices i:nth-child(4) {
+  top: 78vh;
+}
+
+.xfer-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 24vh;
+  opacity: 0;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(214, 232, 252, 0.16) 44%,
+    rgba(255, 255, 255, 0.34) 50%,
+    rgba(214, 232, 252, 0.16) 56%,
+    transparent
+  );
+}
+
+.xfer-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 14vh;
+  opacity: 0;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(214, 232, 252, 0.18) 42%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(214, 232, 252, 0.18) 58%,
+    transparent
+  );
+}
+
+/* ============ 出发 ============ */
+
+/* connect：黑幕自下而上吞掉，四条横带闪一下 */
+html.xf-leaving.xf-connect .xfer {
+  animation: xfRise 0.28s cubic-bezier(0.4, 0.6, 0.2, 1) forwards;
+}
+html.xf-leaving.xf-connect .xfer-slices i {
+  animation: xfSliceFlicker 0.28s steps(4) forwards;
+}
+html.xf-leaving.xf-connect .xfer-slices i:nth-child(2) {
+  animation-delay: 0.02s;
+}
+html.xf-leaving.xf-connect .xfer-slices i:nth-child(3) {
+  animation-delay: 0.04s;
+}
+html.xf-leaving.xf-connect .xfer-slices i:nth-child(4) {
+  animation-delay: 0.06s;
+}
+
+/* scan：黑幕上推，亮带跟着上沿走 */
+html.xf-leaving.xf-scan .xfer {
+  animation: xfRise 0.3s cubic-bezier(0.4, 0.6, 0.2, 1) forwards;
+}
+html.xf-leaving.xf-scan .xfer-band {
+  animation: xfBandUp 0.3s cubic-bezier(0.4, 0.6, 0.2, 1) forwards;
+}
+
+/* slide：整页左移 + 模糊，黑幕淡进来 */
+html.xf-leaving.xf-slide body {
+  animation: xfPageLeft 0.3s cubic-bezier(0.4, 0.6, 0.2, 1) forwards;
+}
+html.xf-leaving.xf-slide .xfer {
+  animation: xfFadeIn 0.3s linear forwards;
+}
+
+/* soft：只淡黑 */
+html.xf-leaving.xf-soft .xfer {
+  animation: xfFadeIn 0.34s ease forwards;
+}
+
+@keyframes xfRise {
+  from {
+    opacity: 1;
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes xfFadeIn {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes xfSliceFlicker {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  30% {
+    opacity: 0.5;
+    transform: translateX(-8px);
+  }
+  60% {
+    opacity: 0.2;
+    transform: translateX(6px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+}
+
+@keyframes xfBandUp {
+  0% {
+    opacity: 0;
+    transform: translateY(100vh);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
+
+@keyframes xfPageLeft {
+  to {
+    transform: translateX(-5%);
+    filter: blur(3px) brightness(0.7);
+  }
+}
+
+/* ============ 到达 ============ */
+
+html.xf-run.xf-connect .xfer {
+  animation: xfRevealDown 0.46s cubic-bezier(0.42, 0.18, 0.5, 1) forwards;
+}
+html.xf-run.xf-connect .xfer-edge {
+  animation: xfEdgeDown 0.46s cubic-bezier(0.42, 0.18, 0.5, 1) forwards;
+}
+
+html.xf-run.xf-scan .xfer {
+  animation: xfRevealDown 0.4s cubic-bezier(0.42, 0.18, 0.5, 1) forwards;
+}
+html.xf-run.xf-scan .xfer-edge {
+  animation: xfEdgeDownSoft 0.4s cubic-bezier(0.42, 0.18, 0.5, 1) forwards;
+}
+
+html.xf-run.xf-slide .xfer {
+  animation: xfSideOut 0.4s cubic-bezier(0.3, 0.8, 0.2, 1) forwards;
+}
+html.xf-run.xf-slide body {
+  animation: xfPageIn 0.44s cubic-bezier(0.3, 0.8, 0.2, 1) forwards;
+}
+
+html.xf-run.xf-soft .xfer {
+  animation: xfFadeOut 0.36s ease forwards;
+}
+
+@keyframes xfRevealDown {
+  from {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(100% 0 0 0);
+  }
+}
+
+@keyframes xfFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes xfSideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(101%);
+  }
+}
+
+@keyframes xfEdgeDown {
+  0% {
+    opacity: 1;
+    transform: translateY(-14vh);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes xfEdgeDownSoft {
+  0% {
+    opacity: 0.6;
+    transform: translateY(-14vh);
+  }
+  18% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes xfPageIn {
+  from {
+    transform: translateX(5%);
+    filter: blur(3px);
+  }
+  to {
+    transform: translateX(0);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xfer,
+  html.xf-leaving .xfer,
+  html.xf-entering .xfer,
+  html.xf-run .xfer,
+  html.xf-leaving body,
+  html.xf-run body {
+    animation: none !important;
+    transition: none !important;
+  }
+}

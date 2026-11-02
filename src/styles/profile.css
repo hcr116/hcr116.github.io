@@ -54,7 +54,60 @@
 
 .pf-rows {
   flex: 1;
-  padding: 16px var(--gutter) 0;
+  padding: 8px var(--gutter) 0;
+}
+
+/* ---------- 分节：自述 / 工作经历 ---------- */
+
+.pf-sec {
+  padding: 40px var(--gutter) 0;
+}
+
+.pf-sec-k {
+  margin: 0 0 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--fun-line);
+  color: rgb(var(--crt));
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+}
+
+/* 自述正文：比经历段落大一点，读起来像一段话 */
+.pf-prose p {
+  max-width: 62ch;
+  margin: 0 0 14px;
+  color: var(--fun-muted);
+  font-size: 14px;
+  line-height: 2;
+}
+
+.pf-prose p:first-child {
+  color: var(--fun-ink);
+}
+
+/* 空状态：等简历导入 */
+.pf-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 22px 18px;
+  border: 1px dashed var(--fun-line);
+  border-radius: 4px;
+  color: var(--fun-faint);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.pf-empty .dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(var(--crt));
+  box-shadow: 0 0 10px rgba(var(--crt), 0.7);
 }
 
 .pf-row {
@@ -169,4 +222,15 @@
     grid-template-columns: 1fr;
     gap: 10px;
   }
+}
+
+/* 页脚那行小注（原来是 .au-status，那套样式只在文章页里） */
+.pf-note {
+  /* 这些区块各自带 var(--gutter) 的横向内边距，.pf-main 自己没有，所以这里要补上 */
+  margin: 28px 0 0;
+  padding: 0 var(--gutter) 40px;
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--fun-faint);
 }

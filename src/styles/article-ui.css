@@ -12,7 +12,7 @@
 
 .au-main {
   display: flex;
-  min-height: calc(100svh - 64px);
+  min-height: calc(100svh - var(--hdr-h));
   flex-direction: column;
 }
 
@@ -111,8 +111,8 @@
 }
 
 .au-f.is-on {
-  border-color: rgba(255, 111, 94, 0.5);
-  background: rgba(255, 111, 94, 0.06);
+  border-color: rgba(232, 236, 242, 0.42);
+  background: rgba(232, 236, 242, 0.05);
   color: var(--fun-accent);
 }
 
@@ -139,7 +139,7 @@
 
 .au-card:hover {
   border-color: var(--fun-accent);
-  box-shadow: inset 0 0 40px rgba(255, 111, 94, 0.06);
+  box-shadow: inset 0 0 40px rgba(232, 236, 242, 0.05);
 }
 
 .au-no {
@@ -273,4 +273,15 @@
   .au-title {
     font-size: 34px;
   }
+}
+
+/* 悬停反色：压过本文件里的 .article-tab 颜色 */
+.article-tab:hover,
+.article-tab[aria-current] {
+  color: #05060c !important;
+}
+
+.article-tab:hover span,
+.article-tab[aria-current] span {
+  color: rgba(5, 6, 12, 0.6) !important;
 }

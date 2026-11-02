@@ -9,20 +9,40 @@
 .ws-main {
   position: relative;
   display: flex;
-  min-height: calc(100svh - 64px);
+  /* 一屏正好放下：页眉高度走 --hdr-h，全站同一个假设 */
+  min-height: calc(100svh - var(--hdr-h));
+  padding-bottom: 0;
   flex-direction: column;
   overflow: hidden;
 }
 
+/* 底色：纯黑，只留一丝冷调 */
 .ws-bg {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(1100px 720px at 60% 46%, color-mix(in srgb, var(--ws-tone) 58%, transparent), transparent 68%),
-    radial-gradient(700px 520px at 10% 78%, color-mix(in srgb, var(--ws-tone) 26%, transparent), transparent 64%),
-    linear-gradient(155deg, #0f0f16, #07070a 72%);
-  transition: background 0.6s var(--ease);
+  background: linear-gradient(155deg, #05060c, #04050a 72%);
   pointer-events: none;
+}
+
+/* 冷光：椭圆 + 倾斜 + 大模糊，中心跟着选中方块走 */
+.ws-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 1320px;
+  height: 700px;
+  margin: -350px 0 0 -660px;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    rgba(172, 200, 240, 0.17),
+    rgba(172, 200, 240, 0.05) 58%,
+    transparent 82%
+  );
+  transform: translate3d(var(--gx, 22%), var(--gy, 24%), 0) rotate(-9deg);
+  filter: blur(46px);
+  transition: transform 0.6s var(--ease);
 }
 
 .ws-bg::after {
@@ -46,7 +66,7 @@
 .ws-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding-top: 22px;
 }
 
@@ -131,29 +151,17 @@
   box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
 }
 
-.ws-art {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: 5px;
-  background:
-    linear-gradient(155deg, color-mix(in srgb, var(--tone) 70%, #0b0b0e), #0b0b0e 74%),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.04) 0 5px, transparent 5px 11px);
-  filter: saturate(0.5) brightness(0.6);
-  transition: filter 0.3s var(--ease);
-}
+/* 悬停不放大，只亮屏；放大只属于"选中"。 */
 
-.ws-tile.is-on .ws-art {
-  filter: none;
-}
+/* 封面里的电视层（.crt-*）在 crt.css 里，两页共用；这里只留位置和文字 */
 
+/* 台标：编号显示成频道号（颜色 / 荧光由 .crt-osd 给） */
 .ws-num {
   position: absolute;
   top: 6px;
   left: 7px;
-  color: rgba(255, 255, 255, 0.5);
   font-family: 'Zpix', monospace;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 
@@ -163,46 +171,44 @@
   bottom: 6px;
   left: 6px;
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.82);
   font-family: 'Zpix', monospace;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1px;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* 压在雪花上，得有一层黑拖底才认得出字 */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8);
 }
 
 .ws-tile.is-on .ws-tag-name {
   opacity: 0;
 }
 
-/* 焦点块右下方的名称：是文字，不是按钮 */
+/* 选中项的名字挂在方框右侧、贴着底边（PS4 那个位置） */
 .ws-inline {
   position: absolute;
-  left: 100%;
   bottom: 4px;
+  left: 100%;
   margin-left: 18px;
-  color: rgba(255, 255, 255, 0.92);
+  color: #fff;
   font-family: 'Zpix', monospace;
-  font-size: 24px;
+  font-size: 20px;
   letter-spacing: 2px;
   line-height: 1.1;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
+  text-shadow: 0 0 14px rgba(198, 231, 243, 0.35);
   transition: opacity 0.2s var(--ease);
 }
 
 .ws-tile.is-on .ws-inline {
   opacity: 1;
-  pointer-events: auto;
-  cursor: pointer;
 }
 
-.ws-tile.is-on .ws-inline:hover {
-  color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 6px;
-}
+/* 选中块右下方的名字已删：名字交给下方 hero 里的 h1，
+   画在块外面会压到动作行，也和 h1 重复。 */
 
 /* 左下标题区 */
 .ws-hero {
@@ -214,12 +220,23 @@
   min-height: 0;
   max-width: 720px;
   padding: 44px 0 44px;
-  transition: opacity 0.16s var(--ease), transform 0.16s var(--ease);
 }
 
+/* 同文章页：用 animation 收尾，is-swap 卡住也不会把大标题藏起来 */
 .ws-hero.is-swap {
-  opacity: 0;
-  transform: translateY(10px);
+  animation: ws-hero-swap 0.16s var(--ease) both;
+}
+
+@keyframes ws-hero-swap {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .ws-hero h1 {
@@ -260,14 +277,15 @@
   gap: 10px;
   align-items: center;
   justify-content: center;
-  min-width: 200px;
-  padding: 13px 30px;
+  min-width: 176px;
+  height: 40px;
+  padding: 0 24px;
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 999px;
   background: rgba(10, 10, 14, 0.78);
   color: #fff;
   font-family: 'Zpix', monospace;
-  font-size: 13px;
+  font-size: 12px;
   letter-spacing: 3px;
   text-decoration: none;
   transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
@@ -279,8 +297,8 @@
 }
 
 .ws-more {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   background: rgba(10, 10, 14, 0.7);
@@ -346,12 +364,72 @@
     height: 132px;
   }
 
-  .ws-inline {
-    font-size: 16px;
-    margin-left: 12px;
-  }
-
   .ws-card {
     display: none;
   }
+
+  /* 窄屏轨道横向滚动 + 吸附（原因同文章页：以前直接裁掉后面几项） */
+  .ws-track {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+
+  .ws-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ws-tile {
+    scroll-snap-align: center;
+  }
+}
+
+/* ===== 作品页与标题画面统一色调：顶栏透明、强调色改中性白 ===== */
+body:has(.ws-main) {
+  --fun-accent: #e8ecf2;
+  background: #05060c;
+}
+
+body:has(.ws-main) .site-header {
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom-color: transparent;
+}
+/* 窄屏：底栏右侧的域名标签放不下就先收起来 */
+@media (max-width: 560px) {
+  .ws-bar > span:last-child {
+    display: none;
+  }
+}
+
+/* 「待导入」标记：红字。全站只有这一处允许用暖色 —— 它是状态警示，不是装饰。
+   （正文/按钮/背景仍然只走冷青-白这条线） */
+.ws-pending {
+  font-style: normal;
+  color: #ff5a52;
+  padding: 0 2px;
+  border-bottom: 1px solid rgba(255, 90, 82, 0.4);
+  text-shadow: 0 0 12px rgba(255, 90, 82, 0.45);
+}
+/* 乱码条目被点之后，大标题变成「权限不足」——红字，和「待导入」同一套警示色 */
+.ws-hero h1.is-denied,
+.ws-hero h1.is-denied + .en {
+  color: #ff5a52;
+}
+
+.ws-hero h1.is-denied {
+  text-shadow: 0 0 28px rgba(255, 90, 82, 0.35);
+}
+
+/* 乱码块的文字不要被选中（看着像真字一样可点） */
+.crt-tile[data-locked] .ws-tag-name,
+.crt-tile[data-locked] .ws-inline {
+  user-select: none;
+}
+/* 乱码条目选中时，「打开」按钮没意义，直接撤掉 */
+.ws-play.is-off {
+  display: none;
 }

@@ -1,7 +1,8 @@
 ---
 import { getEntry } from 'astro:content';
 import '../styles/global.css';
-import { SITE, GOATCOUNTER, TIMELINE_PUBLIC } from '../consts';
+import '../styles/xfer.css';
+import { SITE, GOATCOUNTER } from '../consts';
 
 interface Props {
   title?: string;
@@ -14,6 +15,8 @@ interface Props {
   hideNav?: boolean;
   /** 为 true 时告诉搜索引擎别收录这一页 */
   noindex?: boolean;
+  /** 面包屑最后一段要显示的名字（动态页用：项目名、文章名……） */
+  crumbLast?: string;
 }
 
 const {
@@ -23,16 +26,16 @@ const {
   mainClass = 'wrap',
   hideNav = false,
   noindex = false,
+  crumbLast = '',
 } = Astro.props;
 const path = Astro.url.pathname;
 const year = new Date().getFullYear();
 
-// 首页是「有趣」界面（/），常规站移到 /home/
-// 按钮显示的是「点下去会去哪」：有趣界面显示「简易」，常规页显示「有趣」
+// 首页是「有趣」界面（/）。/home/ 那个简易首页已经删了，主页只有一个落点。
 const isFunRoute = path === '/';
 // 「沉浸页」：从有趣主页点进来、自己撑满一屏的页面。
 // 左上角从「简易」换成「返回」（点回主页），右上角的站内导航整体收起来。
-const IMMERSIVE = ['/brief/', '/timeline/', '/works/', '/articles/', '/abyss/'];
+const IMMERSIVE = ['/brief/', '/works/', '/articles/', '/abyss/'];
 const here = path.endsWith('/') ? path : `${path}/`;
 // 前缀匹配，所以 /articles/ 下的子页也自动算沉浸页
 const isImmersive = IMMERSIVE.some((p) => here === p || here.startsWith(p));
@@ -46,13 +49,9 @@ const parentHref =
       ? '/works/'
       : '/';
 
-const toggleHref = isFunRoute ? '/home/' : parentHref;
-const toggleLabel = isFunRoute ? '简易' : isImmersive ? '返回' : '有趣';
-const toggleAria = isFunRoute
-  ? '切换到简易版主页'
-  : isImmersive
-    ? '返回主页'
-    : '回到有趣的主页';
+const toggleHref = isFunRoute ? '/works/' : parentHref;
+const toggleLabel = isFunRoute ? '作品' : '返回';
+const toggleAria = isFunRoute ? '去看作品' : '返回上一级';
 
 // 背景音乐设置来自 src/content/settings/settings.md
 const settings = await getEntry('settings', 'settings');
@@ -60,14 +59,39 @@ const bgmSrc = settings?.data.bgm?.trim() ?? '';
 const bgmVolume = Math.min(100, Math.max(0, settings?.data.bgmVolume ?? 35)) / 100;
 
 const navItems = [
-  { label: '作品', href: '/home/' },
+  { label: '作品', href: '/works/' },
   { label: '关于', href: '/about/' },
-  // 时间线默认不公开（consts.ts 里 TIMELINE_PUBLIC 控制），先筛掉再渲染
-  ...(TIMELINE_PUBLIC ? [{ label: '时间线', href: '/timeline/' }] : []),
 ];
 
-const isActive = (href: string) => (href === '/home/' ? path === '/home/' : path.startsWith(href));
+const isActive = (href: string) => path.startsWith(href);
 const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
+
+/* ------------------------------------------------------------------
+ * 面包屑：返回按钮右边那串 「首页 / 作品 / AI 功能 / 背诵卡片」
+ * 路径自动拆，中文名从下面这张表拿；动态末段（比如项目 slug）用 Base 的 crumbLast 传。
+ * ------------------------------------------------------------------ */
+const CRUMB_LABELS: Record<string, string> = {
+  brief: '简介',
+  works: '作品',
+  articles: '文章',
+  about: '联系',
+  abyss: '阿比斯',
+  ai: 'AI 功能',
+  combat: '战斗拆解',
+  assets: '素材',
+  play: '试玩',
+  dive: '下潜',
+};
+
+const crumbParts = here.split('/').filter(Boolean);
+const crumbs = crumbParts.map((seg, i) => {
+  const last = i === crumbParts.length - 1;
+  return {
+    label: last && crumbLast ? crumbLast : (CRUMB_LABELS[seg] ?? decodeURIComponent(seg)),
+    // 最后一段是当前页，不给链接
+    href: last ? '' : `/${crumbParts.slice(0, i + 1).join('/')}/`,
+  };
+});
 ---
 
 <!doctype html>
@@ -75,6 +99,8 @@ const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* 构建时间戳：排查「改了没生效」时，F12 里搜 dsh-build 就知道手上是不是最新那版 */}
+    <meta name="dsh-build" content={new Date().toISOString()} />
     <title>{title}</title>
     <meta name="description" content={description} />
     {/* noai / noimageai 是非标准标记，愿意遵守的爬虫会读；真正的拦截在 robots.txt */}
@@ -86,22 +112,32 @@ const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
     <!--
-      换页那一帧先铺深色：首页点菜单时会在 sessionStorage 留一个标记，
-      目标页在样式生效前就读到它，避免「白闪」盖住下潜转场。
-      真正的揭幕在 src/scripts/dive-transition.ts 里。
+      换页转场：抵达页要在首帧就把黑幕铺满，否则换页那一下会白闪。
+      出发端在 src/scripts/xfer.ts，到达端的揭幕也在那里（xferIn）。
     -->
     <script is:inline>
       (function () {
         try {
-          if (!sessionStorage.getItem('dive-to')) return;
+          // 调试用：?xfer=connect|scan|slide|soft 可以单独看某一档的到达动画
+          var forced = /[?&]xfer=(connect|scan|slide|soft)/.exec(location.search);
+          var kind = forced ? forced[1] : sessionStorage.getItem('xf-kind');
+          if (!kind) return;
           var root = document.documentElement;
-          root.classList.add('dive-arriving');
-          // 兜底：万一下潜脚本没跑起来，1.8 秒后恢复成正常页面，不会一片黑
+          root.classList.add('xf-entering', 'xf-' + kind);
+          // 兜底：转场脚本没跑起来也不会一直黑着
           window.setTimeout(function () {
-            root.classList.remove('dive-arriving');
-          }, 1800);
+            root.classList.remove(
+              'xf-entering',
+              'xf-run',
+              'xf-connect',
+              'xf-scan',
+              'xf-slide',
+              'xf-soft',
+            );
+            sessionStorage.removeItem('xf-kind');
+          }, 2200);
         } catch (e) {
-          /* 隐私模式下读不到，就按普通加载处理 */
+          /* 隐私模式：按普通加载处理 */
         }
       })();
     </script>
@@ -127,29 +163,50 @@ const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
   </head>
 
   <body class={bodyClass}>
+    <!-- 换页转场幕布：必须在 body 最前面，首帧就要盖住，晚一帧就会闪 -->
+    <div id="xfer" class="xfer" aria-hidden="true">
+      <span class="xfer-slices"><i></i><i></i><i></i><i></i></span>
+      <span class="xfer-band"></span>
+      <span class="xfer-edge"></span>
+    </div>
+
     <script>
-      // 承接上一页的「下潜」：首帧在 head 里已经铺好深色，这里把遮罩揭开
-      // 顺便把所有 data-dive 的站内链接统一接上转场（首页菜单、沉浸页的「返回」）
-      import { diveIn, bindDiveLinks, bindDiveLifecycle } from '../scripts/dive-transition';
+      // 换页转场：xferIn 揭开上一页留下的幕布，bindXfer 给所有站内链接接上出发动画
+      import { xferIn, bindXfer, bindXferLifecycle } from '../scripts/xfer';
       import { attachSfx } from '../scripts/sfx';
 
-      diveIn();
-      bindDiveLinks();
-      bindDiveLifecycle();
+      xferIn();
+      bindXfer();
+      bindXferLifecycle();
       attachSfx();
     </script>
 
     <header class="site-header">
       <div class="wrap header-inner">
-        <a
-          class="mode-toggle"
-          href={toggleHref}
-          aria-label={toggleAria}
-          /* 「返回」也走同一个下潜转场，来回观感一致 */
-          data-dive={isImmersive ? 'on' : undefined}
-        >
+        <a class="mode-toggle" href={toggleHref} aria-label={toggleAria}>
           {toggleLabel}
         </a>
+        {
+          crumbs.length > 0 && (
+            <nav class="crumbs" aria-label="位置">
+              <a href="/">首页</a>
+              {crumbs.map((c) => (
+                <>
+                  <span class="sep" aria-hidden="true">
+                    /
+                  </span>
+                  {c.href ? (
+                    <a href={c.href}>{c.label}</a>
+                  ) : (
+                    <span class="here" aria-current="page">
+                      {c.label}
+                    </span>
+                  )}
+                </>
+              ))}
+            </nav>
+          )
+        }
         <nav class="nav" aria-label="主导航">
           {
             !hideNav &&
@@ -210,15 +267,9 @@ const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
       <slot />
     </main>
 
-    <footer class="site-footer">
-      <div class="wrap footer-inner">
-        <p>© {year} {SITE.name}{SITE.location ? ` · ${SITE.location}` : ''}</p>
-        <div class="footer-links">
-          {SITE.links.map((link) => <a href={link.href}>{link.label}</a>)}
-          <a href={`mailto:${SITE.email}`}>邮件</a>
-        </div>
-      </div>
-    </footer>
+    {/* 页脚（© 年份 + 社交链接）已经撤掉：主界面和子界面都按「一屏」做，
+        底下再挂一行重复信息会把页面撑出滚动条，看起来就跟普通网页没两样了。
+        联系方式只留在 /about/ 那一页。 */}
 
     <script>
       /*

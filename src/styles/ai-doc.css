@@ -1,0 +1,416 @@
+/* ==========================================================================
+   AI 功能 · 项目详情（文档壳）
+   --------------------------------------------------------------------------
+   列表页还是「老电视方块」（复用 works-ps.css），进到正文就换成安静的文档排版：
+   正文 68ch 左右，右侧目录，节与节之间留白。这里不叠扫描线/雪花，读长字。
+   ========================================================================== */
+
+.ai-main {
+  /* 冷青磷光，和方块那边同一个色。这里不 import crt.css（详情页不放扫描线），
+     所以把 token 就地声明一份。 */
+  --crt: 198, 231, 243;
+
+  /* 顶栏 64px */
+  padding: calc(var(--hdr-h) + 56px) var(--gutter) 96px;
+  background: var(--fun-bg);
+  color: var(--fun-ink);
+  min-height: 100svh;
+}
+
+.ai-doc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: 56px;
+  max-width: 1080px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.ai-col {
+  min-width: 0;
+}
+
+/* ---------- 头部 ---------- */
+
+.ai-eyebrow {
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  color: var(--fun-faint);
+  margin: 0 0 14px;
+}
+
+.ai-head h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 4.2vw, 46px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  margin: 0 0 16px;
+}
+
+.ai-summary {
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--fun-muted);
+  margin: 0 0 22px;
+  max-width: 62ch;
+}
+
+.ai-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 34px;
+}
+
+.ai-meta li {
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--fun-muted);
+  border: 1px solid var(--fun-line);
+  border-radius: 999px;
+  padding: 5px 11px;
+}
+
+.ai-meta li.tech {
+  color: rgb(var(--crt));
+  border-color: rgba(var(--crt), 0.28);
+}
+
+/* ---------- 「仅展示」提示条 ---------- */
+
+.ai-note {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--fun-muted);
+  background: rgba(var(--crt), 0.05);
+  border-left: 2px solid rgba(var(--crt), 0.5);
+  padding: 12px 16px;
+  margin: 0 0 40px;
+}
+
+.ai-note b {
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: rgb(var(--crt));
+  white-space: nowrap;
+}
+
+/* ---------- 视频 ---------- */
+
+.ai-video {
+  margin: 0 0 48px;
+}
+
+.ai-video .frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--fun-line);
+  background: #000;
+  overflow: hidden;
+}
+
+.ai-video iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.ai-video figcaption {
+  font-size: 12px;
+  color: var(--fun-faint);
+  margin-top: 8px;
+}
+
+/* ---------- 正文 ---------- */
+
+.ai-body {
+  max-width: 68ch;
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--fun-ink);
+}
+
+.ai-body > *:first-child {
+  margin-top: 0;
+}
+
+.ai-body h2 {
+  font-family: 'Zpix', monospace;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  color: rgb(var(--crt));
+  margin: 52px 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--fun-line);
+  scroll-margin-top: calc(var(--hdr-h) + 24px);
+}
+
+.ai-body h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 28px 0 10px;
+  color: var(--fun-ink);
+}
+
+.ai-body p {
+  margin: 0 0 16px;
+  color: var(--fun-muted);
+}
+
+.ai-body strong {
+  color: var(--fun-ink);
+  font-weight: 600;
+}
+
+.ai-body a {
+  color: rgb(var(--crt));
+  text-decoration: none;
+  border-bottom: 1px solid rgba(var(--crt), 0.35);
+}
+
+.ai-body a:hover {
+  border-bottom-color: rgb(var(--crt));
+}
+
+.ai-body ul,
+.ai-body ol {
+  margin: 0 0 18px;
+  padding-left: 22px;
+  color: var(--fun-muted);
+}
+
+/* 全局把 ul 的 list-style 清掉了，正文这里要还原成圆点/数字 */
+.ai-body ul {
+  list-style: disc;
+}
+
+.ai-body ol {
+  list-style: decimal;
+}
+
+.ai-body li {
+  margin: 6px 0;
+}
+
+.ai-body li::marker {
+  color: var(--fun-faint);
+}
+
+.ai-body code {
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  background: var(--fun-bg-elev, #101014);
+  border: 1px solid var(--fun-line);
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--fun-ink);
+}
+
+.ai-body pre {
+  background: #0a0a0d;
+  border: 1px solid var(--fun-line);
+  border-radius: 4px;
+  padding: 14px 16px;
+  overflow: auto;
+  margin: 0 0 20px;
+}
+
+.ai-body pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.ai-body blockquote {
+  margin: 0 0 20px;
+  padding: 2px 0 2px 16px;
+  border-left: 2px solid var(--fun-line-strong, #34343c);
+  color: var(--fun-faint);
+}
+
+.ai-body img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--fun-line);
+}
+
+/* ---------- 截图 ---------- */
+
+.ai-shots {
+  margin: 56px 0 0;
+}
+
+.ai-shots h2 {
+  font-family: 'Zpix', monospace;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  color: rgb(var(--crt));
+  margin: 0 0 18px;
+}
+
+.ai-shots .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.ai-shot {
+  position: relative;
+  margin: 0;
+  border: 1px solid var(--fun-line);
+  background: #08080b;
+  overflow: hidden;
+}
+
+.ai-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 0;
+}
+
+.ai-shot figcaption {
+  font-size: 12px;
+  color: var(--fun-faint);
+  padding: 8px 10px;
+  border-top: 1px solid var(--fun-line);
+}
+
+/* 隐私截图：默认糊掉 + 盖一层提示，点一下才看清 */
+.ai-shot.is-masked img {
+  filter: blur(14px) saturate(0.6) brightness(0.7);
+  transform: scale(1.06);
+}
+
+.ai-shot .mask {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: calc(100% - 0px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(4, 5, 8, 0.34);
+  border: 0;
+  color: var(--fun-ink);
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: background 0.2s var(--ease);
+}
+
+.ai-shot .mask:hover {
+  background: rgba(4, 5, 8, 0.16);
+}
+
+.ai-shot .mask .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(var(--crt));
+  box-shadow: 0 0 10px rgba(var(--crt), 0.8);
+}
+
+.ai-shot:not(.is-masked) .mask {
+  display: none;
+}
+
+/* ---------- 上下篇 ---------- */
+
+.ai-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 64px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--fun-line);
+  font-size: 13px;
+}
+
+.ai-pager a {
+  color: var(--fun-muted);
+  text-decoration: none;
+}
+
+.ai-pager a:hover {
+  color: var(--fun-ink);
+}
+
+.ai-pager .next {
+  text-align: right;
+}
+
+/* ---------- 右侧目录 ---------- */
+
+.ai-toc {
+  position: sticky;
+  top: calc(var(--hdr-h) + 32px);
+  font-size: 12px;
+}
+
+.ai-toc .k {
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--fun-faint);
+  margin-bottom: 12px;
+}
+
+.ai-toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 1px solid var(--fun-line);
+}
+
+.ai-toc li a {
+  display: block;
+  padding: 5px 0 5px 12px;
+  color: var(--fun-faint);
+  text-decoration: none;
+  border-left: 1px solid transparent;
+  margin-left: -1px;
+  transition: color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+
+.ai-toc li a:hover {
+  color: var(--fun-ink);
+  border-left-color: rgb(var(--crt));
+}
+
+/* ---------- 窄屏 ---------- */
+
+@media (max-width: 1024px) {
+  .ai-doc {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .ai-toc {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .ai-main {
+    padding: calc(var(--hdr-h) + 32px) 20px 64px;
+  }
+
+  .ai-summary {
+    font-size: 15px;
+  }
+}

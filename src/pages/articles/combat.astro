@@ -119,7 +119,7 @@ const tabs = [
   <footer class="au-status" data-status>
     <span><b data-chapter>01</b> / <b data-chapters>09</b> 章</span>
     <span class="au-progress"><i data-progress></i></span>
-    <span>ESC 返回 · J K 翻页</span>
+    <span>ESC 返回</span>
   </footer>
 </Base>
 
@@ -379,5 +379,13 @@ const tabs = [
 
     buildOutline();
     spy();
+
+    // 底栏写着「ESC 返回」就得真的返回：这里退回文章列表。
+    // 正在目录搜索框里打字时把 ESC 让给输入框，不抢。
+    window.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      if (document.activeElement === search) return;
+      window.location.href = '/articles/';
+    });
   }
 </script>

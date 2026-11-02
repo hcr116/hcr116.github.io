@@ -1,0 +1,427 @@
+/* 方块里的「老电视」——文章页 / 作品页共用
+ *
+ * 用法：
+ *   <a class="xxx-tile crt-tile">
+ *     <span class="crt-art"></span>      底色 + 玻璃反光 + 暗角
+ *     <span class="crt-noise"></span>    雪花
+ *     <span class="crt-scan"></span>     扫描线
+ *     <span class="crt-roll"></span>     滚动亮带
+ *     <span class="crt-flash"></span>    换台白闪
+ *     <span class="crt-osd">01</span>    台标（自己写成 CH 01）
+ *   </a>
+ *
+ * 状态由 JS 挂：
+ *   .is-live      悬停中 / 选中（雪花和扫描线开始动）
+ *   .is-switching 鼠标刚进来这一下（白闪 + 撕裂 + 雪花炸）
+ *   .is-on        选中（由各页自己的选中逻辑挂）
+ *
+ * 配色只有冷青一条：--crt: 198, 231, 243
+ */
+
+.crt-tile {
+  --crt: 198, 231, 243;
+}
+
+/* ---------- 1 底色 + 2 玻璃反光 + 3 暗角 ---------- */
+
+.crt-art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 90% at 50% 38%, rgba(var(--crt), 0.12), transparent 64%),
+    linear-gradient(160deg, #171a21, #07080c 88%);
+  filter: brightness(0.92) saturate(1);
+  /* 默认是关着的：没激活的方块屏幕全黑，只留方框和字 */
+  opacity: 0;
+  transition: opacity 0.18s var(--ease), filter 0.3s var(--ease);
+}
+
+.crt-art::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    122deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.03) 24%,
+    transparent 44%
+  );
+}
+
+.crt-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(115% 100% at 50% 44%, transparent 38%, rgba(0, 0, 0, 0.66) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent 28%, rgba(0, 0, 0, 0.4));
+}
+
+/* ---------- CRT 各层共同的定位 ---------- */
+
+.crt-noise,
+.crt-scan,
+.crt-roll,
+.crt-flash {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ---------- 4 扫描线 ---------- */
+
+.crt-scan {
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.46) 0 1px,
+    rgba(0, 0, 0, 0) 1px 3px
+  );
+  opacity: 0;
+  animation: crt-scan-drift 1.6s steps(2) infinite;
+  animation-play-state: paused;
+  transition: opacity 0.3s var(--ease);
+}
+
+@keyframes crt-scan-drift {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 0 3px;
+  }
+}
+
+/* ---------- 5 雪花（96×96 噪点贴图，1:1 平铺） ---------- */
+
+.crt-noise {
+  background-image: url('/textures/crt-noise.png');
+  background-size: 96px 96px;
+  opacity: 0;
+  animation: crt-noise-jitter 0.7s steps(4) infinite;
+  animation-play-state: paused;
+  transition: opacity 0.3s var(--ease);
+}
+
+@keyframes crt-noise-jitter {
+  0% {
+    background-position: 0 0;
+  }
+
+  25% {
+    background-position: -17px 9px;
+  }
+
+  50% {
+    background-position: 13px -15px;
+  }
+
+  75% {
+    background-position: -8px 17px;
+  }
+
+  100% {
+    background-position: 0 0;
+  }
+}
+
+/* ---------- 6 滚动亮带 ---------- */
+
+.crt-roll {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(var(--crt), 0.06),
+    rgba(var(--crt), 0.2),
+    transparent
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 34%;
+  background-position: 0 -40%;
+  opacity: 0;
+  animation: crt-roll-run 2.8s linear infinite;
+  animation-play-state: paused;
+  transition: opacity 0.3s var(--ease);
+}
+
+@keyframes crt-roll-run {
+  from {
+    background-position: 0 -40%;
+  }
+
+  to {
+    background-position: 0 140%;
+  }
+}
+
+/* ---------- 7 换台白闪 ---------- */
+
+.crt-flash {
+  background: rgb(var(--crt));
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+
+/* ---------- 开机 / 关机（悬停时用） ---------- */
+
+/* 开机：从一条横线撑开，140ms */
+.crt-tile.is-power-on .crt-art,
+.crt-tile.is-power-on .crt-noise,
+.crt-tile.is-power-on .crt-scan,
+.crt-tile.is-power-on .crt-roll {
+  animation: crt-power-on 0.14s ease-out both;
+}
+
+.crt-tile.is-power-on .crt-flash {
+  animation: crt-power-on-flash 0.16s ease-out 1;
+}
+
+@keyframes crt-power-on {
+  from {
+    transform: scaleY(0.03);
+    filter: brightness(2.6);
+  }
+
+  to {
+    transform: none;
+    filter: brightness(0.92);
+  }
+}
+
+@keyframes crt-power-on-flash {
+  0% {
+    opacity: 0.85;
+    transform: scaleY(0.04);
+  }
+
+  55% {
+    opacity: 0.22;
+    transform: scaleY(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleY(1);
+  }
+}
+
+/* 关机：CRT 那个经典收尾——画面压成一条亮线，再横着缩掉，110ms */
+.crt-tile.is-power-off .crt-art,
+.crt-tile.is-power-off .crt-noise,
+.crt-tile.is-power-off .crt-scan,
+.crt-tile.is-power-off .crt-roll {
+  /* 这一瞬间要看得见那条亮线，先把不透明度顶住，交给动画压到 0 */
+  opacity: 1;
+  animation: crt-power-off 0.11s ease-in both;
+}
+
+.crt-tile.is-power-off .crt-flash {
+  animation: crt-power-off-line 0.17s ease-out 1;
+}
+
+@keyframes crt-power-off {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+
+  55% {
+    transform: scaleY(0.03);
+    filter: brightness(2.8);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scaleY(0.03) scaleX(0.12);
+    filter: brightness(2.8);
+    opacity: 0;
+  }
+}
+
+@keyframes crt-power-off-line {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.03);
+  }
+
+  40% {
+    opacity: 0.95;
+    transform: scaleY(0.03);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleY(0.03) scaleX(0.08);
+  }
+}
+
+/* ---------- 8 台标 ---------- */
+
+.crt-osd {
+  color: rgba(var(--crt), 0.55);
+  transition: color 0.3s var(--ease), text-shadow 0.3s var(--ease);
+}
+
+.crt-osd::before {
+  content: 'CH ';
+  opacity: 0.5;
+}
+
+/* ---------- 状态 ----------
+ * 默认（没激活）= 屏幕全黑：只留方框描边、频道号和名字。
+ * 亮 = 选中 或 悬停。
+ */
+
+.crt-tile:is(.is-on, .is-live) .crt-art {
+  opacity: 1;
+  filter: brightness(0.92) saturate(1);
+}
+
+.crt-tile:is(.is-on, .is-live) .crt-scan {
+  opacity: 0.7;
+  animation-play-state: running;
+}
+
+.crt-tile:is(.is-on, .is-live) .crt-noise {
+  opacity: 0.6;
+  animation-play-state: running;
+}
+
+.crt-tile:is(.is-on, .is-live) .crt-roll {
+  opacity: 1;
+  animation-play-state: running;
+}
+
+.crt-tile:is(.is-on, .is-live) .crt-osd {
+  color: rgb(var(--crt));
+  text-shadow: 0 0 10px rgba(var(--crt), 0.45);
+}
+
+/* 换台那一瞬 */
+.crt-tile.is-switching .crt-flash {
+  animation: crt-flash 0.38s ease-out 1;
+}
+
+.crt-tile.is-switching .crt-art,
+.crt-tile.is-switching .crt-scan {
+  animation: crt-tear 0.4s steps(1) 1;
+}
+
+.crt-tile.is-switching .crt-noise {
+  opacity: 1;
+  animation: crt-noise-jitter 0.7s steps(4) infinite, crt-tear 0.4s steps(1) 1;
+  animation-play-state: running, running;
+}
+
+@keyframes crt-flash {
+  0% {
+    opacity: 0.82;
+  }
+
+  22% {
+    opacity: 0.18;
+  }
+
+  38% {
+    opacity: 0.46;
+  }
+
+  62% {
+    opacity: 0.08;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes crt-tear {
+  0% {
+    transform: translateX(0);
+  }
+
+  12% {
+    transform: translateX(-3px);
+  }
+
+  26% {
+    transform: translateX(2px);
+  }
+
+  40% {
+    transform: translateX(-1.5px);
+  }
+
+  54% {
+    transform: translateX(1px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crt-noise,
+  .crt-scan,
+  .crt-roll,
+  .crt-flash {
+    animation: none !important;
+  }
+
+  .crt-tile.is-switching .crt-flash {
+    display: none;
+  }
+}
+
+/* ==========================================================
+   未公开条目（data-locked）：字是跳动的乱码，点一下弹【权限不足】再消失
+   逻辑在 src/scripts/locked.ts
+   ========================================================== */
+
+.crt-tile[data-locked] {
+  cursor: default;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.crt-tile[data-locked] .ws-tag-name,
+.crt-tile[data-locked] .ar-name {
+  color: var(--crt-rgb, rgba(198, 231, 243, 0.55));
+  letter-spacing: 0.08em;
+}
+
+/* 定格 + 塌掉 */
+.crt-tile.is-denied {
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease,
+    filter 0.28s ease;
+}
+
+.crt-tile.is-denied.is-gone {
+  opacity: 0;
+  transform: translateY(-2px) scale(0.97);
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+
+/* 关机那一瞬，文字跟着屏幕一起收掉（不然「权限不足」会孤零零留在黑框里） */
+.crt-tile.is-power-off .ws-tag-name,
+.crt-tile.is-power-off .ws-inline {
+  opacity: 0;
+  transition: opacity 0.1s linear;
+}
+
+/* 乱码块被点之后整块淡出 */
+.crt-tile.is-gone {
+  opacity: 0;
+  transform: translateY(-2px) scale(0.97);
+  pointer-events: none;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}

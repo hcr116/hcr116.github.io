@@ -1,18 +1,71 @@
 ---
 import Base from '../layouts/Base.astro';
 import { SITE } from '../consts';
+import { counts } from '../data/counts';
 import '../styles/works-ps.css';
+import '../styles/crt.css';
 
-// 五个方向。以后有真内容了，往对应分区里加卡片就行。
+/* 五个方向。
+ * href 有值 = 点方块/打开就真的进那个分区；没有就只有锚点（还没内容）。
+ * note 里那句「已导入 N 个」的 N 是数出来的，见 src/data/counts.ts。 */
+const n = counts();
+
 const items = [
-  { id: 'game-demo', cn: '游戏 DEMO', en: 'GAME DEMO', tone: '#b3492f', note: '用 UE5 做的切片和玩法原型。', state: '整理中' },
-  { id: 'combat', cn: '战策经验', en: 'COMBAT DESIGN', tone: '#a8762c', note: '战斗系统拆解、数值、手感相关的笔记。', state: '已有内容' },
-  { id: 'ai', cn: 'AI 功能', en: 'AI FEATURES', tone: '#2f6f7d', note: '把模型塞进玩法里的实验。', state: '整理中' },
-  { id: 'bass', cn: '贝斯弹奏', en: 'BASS', tone: '#6a4a86', note: '业余弹的东西，纯爱好，不保证好听。', state: '整理中' },
-  { id: 'vfx', cn: '特效作品', en: 'VFX', tone: '#3f5a75', note: '特效和动效的尝试。', state: '整理中' },
+  {
+    id: 'game-demo',
+    cn: '游戏 DEMO',
+    en: 'GAME DEMO',
+    tone: '#b3492f',
+    note: '用 UE5 做的切片和玩法原型',
+    state: '整理中',
+  },
+  {
+    id: 'combat',
+    cn: '战策经验',
+    en: 'COMBAT DESIGN',
+    tone: '#a8762c',
+    note: '战斗系统拆解、数值、手感相关的笔记',
+    state: '已有内容',
+  },
+  {
+    id: 'ai',
+    cn: 'AI 功能',
+    en: 'AI FEATURES',
+    tone: '#2f6f7d',
+    note: '由自己提需求、agent 完成编码制作的功能模块',
+    state: '已有内容',
+    href: '/works/ai/',
+  },
+  {
+    id: 'bass',
+    cn: '贝斯弹奏',
+    en: 'BASS',
+    tone: '#6a4a86',
+    note: '业余弹的东西，纯爱好，不保证好听',
+    state: '整理中',
+  },
+  {
+    id: 'vfx',
+    cn: '特效作品',
+    en: 'VFX',
+    tone: '#3f5a75',
+    note: '特效和动效的尝试',
+    state: '整理中',
+  },
 ];
 
-const ready = items.filter((i) => i.state === '已有内容').length;
+/* 导入状态：有内容的写「已导入 N 个」；还是空的写「待导入」并渲染成红字。
+ * 两套文本都生成 —— data-note 是纯文本（无障碍 / 降级用），
+ * data-note-html 带 <em>，给 hero 那块上色用。 */
+const list = items.map((it) => {
+  const count = n[it.id] ?? 0;
+  const suffix = count > 0 ? `，已导入 ${count} 个。` : '，待导入。';
+  const suffixHtml =
+    count > 0 ? `，已导入 ${count} 个。` : `，<em class="ws-pending">待导入</em>。`;
+  return { ...it, note: it.note + suffix, noteHtml: it.note + suffixHtml };
+});
+
+const ready = list.filter((i) => i.state === '已有内容').length;
 ---
 
 <Base
@@ -22,15 +75,11 @@ const ready = items.filter((i) => i.state === '已有内容').length;
   mainClass="ws-main"
   hideNav
 >
-  <div class="ws-bg" data-bg style={`--ws-tone:${items[0].tone}`}></div>
+  <div class="ws-bg"></div>
+  <div class="ws-glow" data-glow></div>
 
   <div class="ws-shell">
     <header class="ws-top">
-      <nav class="ws-tabs">
-        <span class="on">作品</span>
-        <a href="/articles/">文章</a>
-        <a href="/articles/play/">记录</a>
-      </nav>
       <div class="ws-clock">
         <span class="dot" aria-hidden="true"></span>
         <time data-clock>00:00</time>
@@ -40,19 +89,25 @@ const ready = items.filter((i) => i.state === '已有内容').length;
     <div class="ws-rail" data-rail>
       <div class="ws-track" data-track>
         {
-          items.map((it, i) => (
+          list.map((it, i) => (
             <a
-              class:list={['ws-tile', i === 0 && 'is-on']}
-              href={`#${it.id}`}
+              class:list={['ws-tile', 'crt-tile', i === 0 && 'is-on']}
+              href={it.href ?? `#${it.id}`}
               data-tile
+              data-sfx-off
               data-tone={it.tone}
               data-cn={it.cn}
               data-en={it.en}
               data-note={it.note}
+              data-note-html={it.noteHtml}
               style={`--tone:${it.tone}`}
             >
-              <span class="ws-art" aria-hidden="true" />
-              <span class="ws-num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="crt-art" aria-hidden="true" />
+              <span class="crt-noise" aria-hidden="true" />
+              <span class="crt-scan" aria-hidden="true" />
+              <span class="crt-roll" aria-hidden="true" />
+              <span class="crt-flash" aria-hidden="true" />
+              <span class="ws-num crt-osd">{String(i + 1).padStart(2, '0')}</span>
               <span class="ws-tag-name">{it.cn}</span>
               <span class="ws-inline">{it.cn}</span>
             </a>
@@ -62,18 +117,18 @@ const ready = items.filter((i) => i.state === '已有内容').length;
     </div>
 
     <div class="ws-hero" data-hero>
-      <h1 data-hero-title>{items[0].cn}</h1>
-      <div class="en" data-hero-en>{items[0].en}</div>
-      <p data-hero-note>{items[0].note}</p>
+      <h1 data-hero-title>{list[0].cn}</h1>
+      <div class="en" data-hero-en>{list[0].en}</div>
+      <p data-hero-note set:html={list[0].noteHtml}></p>
       <div class="ws-actions">
-        <a class="ws-play" href={`#${items[0].id}`} data-hero-go>▶ 打开</a>
+        <a class="ws-play" href={list[0].href ?? `#${list[0].id}`} data-hero-go>▶ 打开</a>
         <button class="ws-more" type="button" aria-label="更多">•••</button>
       </div>
     </div>
 
     <aside class="ws-card">
       <div class="k">整理进度</div>
-      <div class="row"><b>{ready} / {items.length}</b><span>已整理方向</span></div>
+      <div class="row"><b>{ready} / {list.length}</b><span>已整理方向</span></div>
     </aside>
 
     <div class="ws-bar">
@@ -85,9 +140,12 @@ const ready = items.filter((i) => i.state === '已有内容').length;
 </Base>
 
 <script>
+  import { attachCrt, powerOn, powerOff } from '../scripts/crt-tv';
+
   const rail = document.querySelector('[data-rail]');
   const track = document.querySelector('[data-track]');
-  const bg = document.querySelector('[data-bg]');
+  const glow = document.querySelector('[data-glow]');
+  const shell = document.querySelector('.ws-main');
   const hero = document.querySelector('[data-hero]');
   const tiles = track ? [...track.querySelectorAll('[data-tile]')] : [];
   const titleEl = document.querySelector('[data-hero-title]');
@@ -99,6 +157,9 @@ const ready = items.filter((i) => i.state === '已有内容').length;
   let current = 0;
   let swapTimer = 0;
 
+  /** 窄屏：轨道自己可以横向滚动（scroll-snap），不再用 transform 推 */
+  const narrow = window.matchMedia('(max-width: 900px)');
+
   /**
    * 只有键盘切换才平移轨道：鼠标悬停时若也平移，
    * 方块会跑到光标底下，连环触发 mouseenter，看起来就是「一路滚到底」。
@@ -106,6 +167,11 @@ const ready = items.filter((i) => i.state === '已有内容').length;
    */
   const slide = (tile, allow) => {
     if (!track || !rail || !allow) return 0;
+    if (narrow.matches) {
+      track.style.transform = '';
+      tile.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      return 0;
+    }
     const maxShift = Math.min(0, rail.clientWidth - track.scrollWidth);
     const target = Math.max(maxShift, Math.min(0, -tile.offsetLeft));
     track.style.transform = `translateX(${target}px)`;
@@ -131,26 +197,59 @@ const ready = items.filter((i) => i.state === '已有内容').length;
     if (next === current && animate) return;
 
     const tile = tiles[next];
+    // 只有选中项真的换了才播淡入：首帧、resize 这些"没换内容"的场景直接落字，
+    // 不然标题会一直重播淡入（截图里就抓到过标题半透明的状态）
+    const changed = next !== current;
     current = next;
 
-    tiles.forEach((t, i) => t.classList.toggle('is-on', i === current));
+    tiles.forEach((t, i) => {
+      const was = t.classList.contains('is-on');
+      const now = i === current;
+      t.classList.toggle('is-on', now);
+      if (was && !now) powerOff(t); // 失去选中：CRT 收成一条线
+      if (!was && now) powerOn(t); // 拿到选中：开机
+    });
 
     const shift = slide(tile, slideRow);
 
-    if (bg) bg.style.setProperty('--ws-tone', tile.dataset.tone ?? '#b3492f');
+    // 冷光跟着选中方块的中心走
+    if (glow && shell) {
+      const box = shell.getBoundingClientRect();
+      const rect = tile.getBoundingClientRect();
+      glow.style.setProperty('--gx', `${rect.left - box.left + rect.width / 2}px`);
+      glow.style.setProperty('--gy', `${rect.top - box.top + rect.height / 2}px`);
+    }
 
-    swap(() => {
+    const applyHero = () => {
       if (titleEl) titleEl.textContent = tile.dataset.cn ?? '';
       if (enEl) enEl.textContent = tile.dataset.en ?? '';
-      if (noteEl) noteEl.textContent = tile.dataset.note ?? '';
+      // note 有两套：data-note 是纯文本，data-note-html 带「待导入」的红字标记
+      if (noteEl) noteEl.innerHTML = tile.dataset.noteHtml ?? tile.dataset.note ?? '';
       if (goEl) goEl.setAttribute('href', tile.getAttribute('href') ?? '#');
-    });
+    };
+
+    if (changed) swap(applyHero);
+    else applyHero();
   };
 
   for (const [i, tile] of tiles.entries()) {
+    // 鼠标移到哪块，哪块就选中（变大 + 开机，其余关掉）；
+    // 键盘 Tab 聚焦同样算选中；点一下也是（触屏没有 hover）。
     tile.addEventListener('mouseenter', () => select(i));
     tile.addEventListener('focus', () => select(i));
+    tile.addEventListener('click', (event) => {
+      // 有真地址的（比如 AI 功能 → /works/ai/）让它正常跳过去，
+      // 只有还没内容、href 是 "#id" 的占位块才拦下来，只切选中。
+      const href = tile.getAttribute('href') ?? '';
+      if (href.startsWith('#')) {
+        event.preventDefault();
+        select(i);
+      }
+    });
   }
+
+  /* 老电视：鼠标进入方块 = 换台（白闪 + 撕裂 + 咔哒），实现见 scripts/crt-tv.ts */
+  attachCrt();
 
   window.addEventListener('keydown', (event) => {
     if (event.key === 'ArrowRight') {

@@ -52,29 +52,57 @@ const works = defineCollection({
 });
 
 /**
- * 时间线。
- * 每个 .md 文件 = 时间线上的一个节点。
- * 文件名随意（只用来区分），排序看 year 字段。
+ * AI 功能：作品里「AI 功能」那个方向下的具体项目。
+ * 每个 .md 文件 = 一个项目，文件名就是网址 slug（/works/ai/<slug>/）。
+ *
+ * 正文（body）按四节写：介绍 / 设计目的 / 怎么做的 / 踩了什么坑。
+ * 页面会自动从正文的 ## 小标题生成右侧目录，所以别用别的级别当分节。
  */
-const timeline = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/timeline' }),
+const ai = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/ai' }),
   schema: z.object({
-    /** 时间标签：'至今'、'2025'、'2024' …… 显示在左侧刻度上 */
-    year: z.string(),
+    /** 项目名，卡片和详情页标题 */
+    title: z.string(),
 
-    /** 这一段的小标题，可留空 */
-    title: z.string().optional(),
+    /** 英文名，卡片右下角的小字 */
+    en: z.string().default(''),
 
-    /** 配图路径，如 /images/timeline/boss.jpg。留空则显示占位图框 */
-    image: z.string().optional(),
+    /** 一句话说明，列表卡片与详情页顶部都用 */
+    summary: z.string(),
 
-    /** 配图的文字说明，也当作 alt */
-    imageAlt: z.string().optional(),
+    /** 年份，写成 "2026" 或 "2026.03" */
+    year: z.string().default(''),
 
-    /** 图框比例，CSS 写法，如 '1 / 1'、'4 / 3'。默认 16 / 10 */
-    imageAspect: z.string().optional(),
+    /** 现在的状态 */
+    state: z.enum(['自用中', '已上线', '实验中', '搁置']).default('自用中'),
 
-    /** 设为 true 时这一条不显示 */
+    /** 用到的技术，显示成标签 */
+    stack: z.array(z.string()).default([]),
+
+    /** 代码不公开：详情页顶部挂一条提示 */
+    private: z.boolean().default(true),
+
+    /** 未公开：列表里显示成跳动的乱码，点一下弹【权限不足】然后消失，也不生成详情页 */
+    locked: z.boolean().default(false),
+
+    /** 演示视频嵌入地址，留空则不显示视频块 */
+    video: z.string().optional(),
+
+    /** 截图。blur: true 的默认盖住，点一下才显示 */
+    shots: z
+      .array(
+        z.object({
+          src: z.string(),
+          alt: z.string().default(''),
+          blur: z.boolean().default(false),
+        }),
+      )
+      .default([]),
+
+    /** 排序，数字越大越靠前 */
+    order: z.number().default(0),
+
+    /** 设为 true 时不出现在站上 */
     draft: z.boolean().default(false),
   }),
 });
@@ -86,22 +114,6 @@ const timeline = defineCollection({
 const about = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/about' }),
   schema: z.object({}),
-});
-
-/**
- * 首页文案：大标题、副标题、自我介绍。
- * 只有一个文件，改这里不用碰模板。
- */
-const home = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/home' }),
-  schema: z.object({
-    /** 首屏最大那行字 */
-    title: z.string(),
-    /** 大标题下面的副标题，字号小一档 */
-    subtitle: z.string().optional(),
-    /** 副标题下面的自我介绍 */
-    intro: z.string().optional(),
-  }),
 });
 
 /**
@@ -117,4 +129,4 @@ const settings = defineCollection({
   }),
 });
 
-export const collections = { works, timeline, about, home, settings };
+export const collections = { works, ai, about, settings };

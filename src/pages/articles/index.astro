@@ -3,10 +3,11 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import { SITE } from '../../consts';
-import '../../styles/article-ui.css';
+import '../../styles/ar-ps.css';
+import '../../styles/crt.css';
 
 // 从三块正文里抽出章节标题和那行斜体元信息，列表就不用再手写一遍
-type Card = { no: string; title: string; meta: string; text: string; group: string; href: string };
+type Card = { title: string; meta: string; text: string; group: string; href: string };
 
 const SRC = [
   { key: 'monster', label: '怪物', file: 'monster.md' },
@@ -27,16 +28,14 @@ for (const src of SRC) {
   const flush = () => {
     if (!current) return;
     const title = current.title.replace(/^\d+\s*/, '');
-    // 挑一段像正文的当摘要：别用「文档目的：」这种小标签，也别用年份
     const text =
       current.paras.find(
-        (t) => t.length >= 14 && !t.endsWith('：') && !/^\d{4}\s*年/.test(t)
+        (t) => t.length >= 14 && !t.endsWith('：') && !/^\d{4}\s*年/.test(t),
       ) ?? current.paras[0] ?? '';
     cards.push({
-      no: '',
       title,
       meta: current.meta,
-      text: text.replace(/<[^>]+>/g, '').slice(0, 46),
+      text: text.replace(/<[^>]+>/g, '').slice(0, 60),
       group: src.label,
       href: `/articles/combat/?tab=${src.key}`,
     });
@@ -69,80 +68,326 @@ for (const src of SRC) {
   flush();
 }
 
-// 编号按顺序连续排，不分块重来
-cards.forEach((c, i) => {
-  c.no = String(i + 1).padStart(2, '0');
-});
+// 外层三个文件夹：怪物 / 角色 / 其他（"方法"归到其他里）
+const groups = [
+  {
+    key: 'monster',
+    cn: '怪物',
+    en: 'MONSTERS',
+    tone: '#3c3c45',
+    note: '把战斗拆成可复用的判断：通用框架、Boss 拆解、韧性规则。',
+    items: cards.filter((c) => c.group === '怪物'),
+  },
+  {
+    key: 'character',
+    cn: '角色',
+    en: 'CHARACTERS',
+    tone: '#565660',
+    note: '角色怎么被设计出来：定位、资源流转、循环结构、额外身份。',
+    items: cards.filter((c) => c.group === '角色'),
+  },
+  {
+    key: 'other',
+    cn: '其他',
+    en: 'OTHERS',
+    tone: '#2b2b33',
+    note: '方法类的四篇：帧数表、学习路径、工作复盘这些。',
+    items: cards.filter((c) => c.group === '方法'),
+  },
+];
 
-const count = (g: string) => cards.filter((c) => c.group === g).length;
 const total = cards.length;
+const plan = (i: number) => String(i + 1).padStart(2, '0');
 ---
 
 <Base
   title={`文章 · ${SITE.name}`}
   description={`${SITE.cnName}的文章：战斗策划经验、游戏体验记录、素材库`}
   bodyClass="mode-fun"
-  mainClass="au-main"
+  mainClass="ar-main"
+  hideNav
 >
-  <header class="au-head">
-    <div>
-      <p class="au-eyebrow">ARTICLES</p>
-      <h1 class="au-title">文章</h1>
+  <div class="ar-bg"></div>
+  <div class="ar-wash" data-wash></div>
+  <div class="ar-glow" data-glow></div>
+
+  <div class="ar-shell">
+    <header class="ar-top">
+      <button class="ar-back" type="button" data-back hidden>← 返回文件夹</button>
+      <div class="ar-clock">
+        <span class="dot" aria-hidden="true"></span>
+        <time data-clock>00:00</time>
+      </div>
+    </header>
+
+    <div class="ar-rail">
+      <!-- 外层：三个文件夹 -->
+      <div class="ar-track" data-set="root">
+        {
+          groups.map((g, i) => (
+            <a
+              class:list={['ar-tile', 'is-folder', 'crt-tile', i === 0 && 'is-on']}
+              href="#"
+              data-folder={g.key}
+              data-sfx-off
+              data-tone={g.tone}
+              data-cn={g.cn}
+              data-en={g.en}
+              data-note={g.note}
+              style={`--tone:${g.tone}`}
+            >
+              <span class="crt-art" aria-hidden="true" />
+              <span class="crt-noise" aria-hidden="true" />
+              <span class="crt-scan" aria-hidden="true" />
+              <span class="crt-roll" aria-hidden="true" />
+              <span class="crt-flash" aria-hidden="true" />
+              <span class="ar-num crt-osd">{plan(i)}</span>
+              <span class="ar-name">{g.cn} · {g.items.length}</span>
+              <span class="ar-inline">{g.cn}</span>
+            </a>
+          ))
+        }
+      </div>
+
+      <!-- 内层：每组一轨 -->
+      {
+        groups.map((g) => (
+          <div class="ar-track" data-set={g.key} hidden>
+            {g.items.map((c, i) => (
+              <a
+                class:list={['ar-tile', 'crt-tile']}
+                href={c.href}
+                data-dive="on"
+                data-sfx-off
+                data-cn={c.title}
+                data-en={`${g.en} · ${i + 1}/${g.items.length}`}
+                data-note={c.text}
+                data-tone={g.tone}
+                style={`--tone:${g.tone}`}
+              >
+                <span class="crt-art" aria-hidden="true" />
+                <span class="crt-noise" aria-hidden="true" />
+                <span class="crt-scan" aria-hidden="true" />
+                <span class="crt-roll" aria-hidden="true" />
+                <span class="crt-flash" aria-hidden="true" />
+                <span class="ar-num crt-osd">{plan(i)}</span>
+                <span class="ar-name">{c.title}</span>
+                <span class="ar-inline">{c.title}</span>
+              </a>
+            ))}
+          </div>
+        ))
+      }
     </div>
-    <p class="au-meta">{total} 章 · 66,773 字 · 156 张图</p>
-  </header>
 
-  <nav class="au-filters" aria-label="分类">
-    <button class="au-f is-on" type="button" data-filter="all">全部 {total}</button>
-    <button class="au-f" type="button" data-filter="怪物">怪物 {count('怪物')}</button>
-    <button class="au-f" type="button" data-filter="角色">角色 {count('角色')}</button>
-    <button class="au-f" type="button" data-filter="方法">方法 {count('方法')}</button>
-  </nav>
+    <!--
+      标题区：跟着选中项走（和作品页一致）。
+      方框右侧还会再出现一次名字（PS4 的排法），那是"当前频道"的标识。
+    -->
+    <div class="ar-head" data-head>
+      <h1 data-h1>文章</h1>
+      <div class="en" data-en>ARTICLES · 3 组 · {total} 篇</div>
+      <p data-note>按分类收着的写作档案：怪物 / 角色 / 其他。</p>
+    </div>
 
-  <div class="au-grid" data-grid>
-    {
-      cards.map((c, i) => (
-        <a class="au-card" href={c.href} data-group={c.group} data-dive="on">
-          <span class="au-no">{c.no}</span>
-          <h2 class="au-card-t">{c.title}</h2>
-          <p class="au-card-x">{c.text}</p>
-          <span class="au-card-m">
-            <span>{c.meta}</span>
-            <span class={c.meta.includes('已导入') ? 'au-state is-on' : 'au-state'}>{c.meta ? '' : ''}</span>
-          </span>
-        </a>
-      ))
-    }
+    <div class="ar-actions">
+      <a class="ar-play" href="#" data-play>▶ 打开</a>
+      <button class="ar-more" type="button" aria-label="更多">•••</button>
+    </div>
+
+    <div class="ar-bar">
+      <span data-hint>← → 切换 · ENTER 打开 · ESC 返回</span>
+      <span class="line" aria-hidden="true"></span>
+      <span>HCR · ARTICLES</span>
+    </div>
   </div>
-
-  <div class="au-doors">
-    <a class="au-door" href="/articles/play/">02 各游戏体验记录 <em>PLAY LOGS</em></a>
-    <a class="au-door" href="/articles/assets/">03 游戏素材库收集 <em>ASSETS</em></a>
-  </div>
-
-  <footer class="au-status">
-    <span data-count>{total} / {total} 章</span>
-    <span>ENTER 打开 · ESC 返回</span>
-  </footer>
 </Base>
 
 <script>
-  const grid = document.querySelector('[data-grid]');
-  const buttons = [...document.querySelectorAll('[data-filter]')];
-  const counter = document.querySelector('[data-count]');
-  const cards = grid ? [...grid.querySelectorAll('.au-card')] : [];
+  import { attachCrt, powerOn, powerOff } from '../../scripts/crt-tv';
 
-  for (const btn of buttons) {
-    btn.addEventListener('click', () => {
-      const key = btn.dataset.filter;
-      for (const b of buttons) b.classList.toggle('is-on', b === btn);
-      let shown = 0;
-      for (const card of cards) {
-        const hit = key === 'all' || card.dataset.group === key;
-        card.hidden = !hit;
-        if (hit) shown++;
-      }
-      if (counter) counter.textContent = `${shown} / ${cards.length} 章`;
+  const main = document.querySelector('.ar-main');
+  const washer = document.querySelector<HTMLElement>('[data-wash]');
+  const glow = document.querySelector<HTMLElement>('[data-glow]');
+  const head = document.querySelector<HTMLElement>('[data-head]');
+  // 这三个必须在 head 里找：方块本身也带 data-en / data-note，
+  // 全局 querySelector 会先命中方块。
+  const inHead = (sel: string) => head?.querySelector(sel) ?? null;
+  const h1 = inHead('[data-h1]');
+  const enEl = inHead('[data-en]');
+  const noteEl = inHead('[data-note]');
+  const backBtn = document.querySelector<HTMLButtonElement>('[data-back]');
+  const playEl = document.querySelector<HTMLAnchorElement>('[data-play]');
+  const hint = document.querySelector<HTMLElement>('[data-hint]');
+  const clock = document.querySelector<HTMLElement>('[data-clock]');
+  const sets = new Map<string, HTMLElement>();
+
+  for (const el of document.querySelectorAll<HTMLElement>('[data-set]')) {
+    sets.set(el.dataset.set ?? '', el);
+  }
+
+  let level = 'root';
+  let index = 0;
+
+  const activeSet = () => sets.get(level) as HTMLElement;
+  const tiles = () => [...activeSet().querySelectorAll<HTMLElement>('.ar-tile')];
+
+  /** 窄屏：轨道自己可以横向滚动（scroll-snap），交回浏览器处理 */
+  const narrow = window.matchMedia('(max-width: 900px)');
+
+  /** 轨道只在放不下时平移，且跟着选中块走 */
+  const slide = (tile: HTMLElement) => {
+    const set = activeSet();
+    if (narrow.matches) {
+      set.style.transform = '';
+      tile.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      return;
+    }
+    const rail = set.parentElement;
+    if (!rail) return;
+    const maxShift = Math.min(0, rail.clientWidth - set.scrollWidth);
+    const target = Math.max(maxShift, Math.min(0, -tile.offsetLeft));
+    set.style.transform = `translateX(${target}px)`;
+  };
+
+  const select = (next: number, { slideRow = false } = {}) => {
+    const list = tiles();
+    if (!list.length) return;
+    index = (next + list.length) % list.length;
+    const tile = list[index];
+
+    list.forEach((t, i) => {
+      const was = t.classList.contains('is-on');
+      const now = i === index;
+      t.classList.toggle('is-on', now);
+      if (was && !now) powerOff(t); // 失去选中：CRT 收成一条线
+      if (!was && now) powerOn(t); // 拿到选中：开机
+    });
+    if (slideRow) slide(tile);
+
+    // 背景色调 + 冷光跟着走
+    const tone = tile.dataset.tone ?? '#6a4a3a';
+    main?.style.setProperty('--tone', tone);
+    if (washer) washer.style.background = tone;
+    if (glow && main) {
+      const box = main.getBoundingClientRect();
+      const rect = tile.getBoundingClientRect();
+      glow.style.setProperty('--gx', `${rect.left - box.left + rect.width / 2}px`);
+      glow.style.setProperty('--gy', `${rect.top - box.top + rect.height / 2}px`);
+    }
+
+    if (playEl) {
+      playEl.textContent = level === 'root' ? '▶ 打开文件夹' : '▶ 打开';
+      playEl.setAttribute('href', level === 'root' ? '#' : tile.getAttribute('href') ?? '#');
+    }
+
+    // 标题区跟着选中项走（和作品页一致）
+    if (h1) h1.textContent = tile.dataset.cn ?? '';
+    if (enEl) enEl.textContent = tile.dataset.en ?? '';
+    if (noteEl) noteEl.textContent = tile.dataset.note ?? '';
+  };
+
+  const render = () => {
+    // 文件夹那一轨常驻，章节轨作为第二层展开在下面
+    for (const [key, el] of sets) el.hidden = key !== 'root' && key !== level;
+
+    // 当前打开的文件夹保持选中态
+    for (const el of document.querySelectorAll<HTMLElement>('[data-set="root"] .ar-tile')) {
+      el.classList.toggle('is-on', el.dataset.folder === level);
+    }
+    if (backBtn) backBtn.hidden = level === 'root';
+    if (hint) {
+      hint.textContent =
+        level === 'root'
+          ? '← → 切换 · ENTER 打开文件夹'
+          : '← → 切换文章 · ENTER 打开 · ESC 返回文件夹';
+    }
+    // 切换到新的一组时把轨道归位
+    activeSet().style.transform = '';
+    select(0);
+  };
+
+  const enter = () => {
+    const tile = tiles()[index];
+    if (!tile) return;
+    if (level === 'root') {
+      level = tile.dataset.folder ?? 'root';
+      render();
+      return;
+    }
+    tile.click();
+  };
+
+  const back = () => {
+    if (level === 'root') return;
+    level = 'root';
+    render();
+  };
+
+  // 外层文件夹：鼠标移上去就选中，点一下进组
+  for (const el of document.querySelectorAll<HTMLElement>('[data-folder]')) {
+    el.addEventListener('mouseenter', () => {
+      if (level !== 'root') return;
+      const list = tiles();
+      const i = list.indexOf(el);
+      if (i >= 0) select(i);
+    });
+    el.addEventListener('click', (event) => {
+      event.preventDefault();
+      level = el.dataset.folder ?? 'root';
+      render();
     });
   }
+
+  // 内层文章：同样，移上去就选中；点一下才打开
+  for (const el of document.querySelectorAll<HTMLElement>('[data-set] .ar-tile:not([data-folder])')) {
+    el.addEventListener('mouseenter', () => {
+      if (level === 'root') return;
+      const list = tiles();
+      const i = list.indexOf(el);
+      if (i >= 0) select(i);
+    });
+  }
+
+  /* 老电视：悬停 = 临时开机 / 划走 = CRT 关机，选中项常开（见 scripts/crt-tv.ts） */
+  attachCrt();
+
+  backBtn?.addEventListener('click', back);
+  playEl?.addEventListener('click', (event) => {
+    if (level === 'root') {
+      event.preventDefault();
+      enter();
+    }
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      select(index + 1, { slideRow: true });
+    }
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      select(index - 1, { slideRow: true });
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      enter();
+    }
+    if (event.key === 'Escape') back();
+  });
+
+  window.addEventListener('resize', () => {
+    const tile = tiles()[index];
+    if (tile) slide(tile);
+  });
+
+  const tick = () => {
+    if (!clock) return;
+    const now = new Date();
+    clock.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  };
+  tick();
+  window.setInterval(tick, 30_000);
+
+  render();
 </script>

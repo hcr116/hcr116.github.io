@@ -11,6 +11,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "node scripts/check-links.mjs && node scripts/check-isolation.mjs",
+    "links": "node scripts/links.mjs",
+    "img": "node scripts/img.mjs",
     "sample-pdf": "node scripts/make-sample-pdf.mjs"
   },
   "dependencies": {

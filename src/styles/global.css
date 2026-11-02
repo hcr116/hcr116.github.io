@@ -18,9 +18,16 @@
     'Hiragino Sans GB', 'Microsoft YaHei', 'Source Han Sans SC', sans-serif;
   --font-serif: 'Songti SC', 'Noto Serif SC', 'SimSun', Georgia, 'Times New Roman', serif;
 
+  /* 全站唯一的左边界：正文、标题、页眉、页脚都用它 */
+  --gutter: max(24px, calc(50% - 540px));
+
   --radius: 4px;
   --wrap: 1080px;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* 页眉的确切高度（含 1px 底线）。整屏页算 100svh 时只许减这个值，
+     不许再出现 64 / 76 / 88 这类魔法数。 */
+  --hdr-h: 64px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -111,7 +118,8 @@ body {
 }
 
 main {
-  padding-block: 0 6rem;
+  /* 页脚已经去掉，底部只留一点呼吸，不再给整屏页面留下 96px 的空白 */
+  padding-block: 0 2rem;
   min-height: 60vh;
 }
 
@@ -120,17 +128,77 @@ main {
   position: sticky;
   top: 0;
   z-index: 50;
+  height: var(--hdr-h);
   background: color-mix(in srgb, var(--bg) 82%, transparent);
   backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--line);
 }
 
+/* 高度由 --hdr-h 定死，内容垂直居中；不要再靠 padding 撑高 */
 .header-inner {
   display: flex;
-  align-items: baseline;
+  height: 100%;
+  align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  padding-block: 1.15rem;
+}
+
+/* ---------- 面包屑：返回按钮右边那串「首页 / 作品 / AI 功能 / 背诵卡片」 ---------- */
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  min-width: 0;
+  margin-right: auto;
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--ink-faint);
+  overflow: hidden;
+}
+
+.crumbs .sep {
+  flex: none;
+  color: var(--line-strong);
+}
+
+.crumbs a {
+  flex: none;
+  color: var(--ink-faint);
+  text-decoration: none;
+  padding: 2px 0;
+  border-bottom: 1px solid transparent;
+  transition:
+    color 0.18s var(--ease),
+    border-color 0.18s var(--ease);
+}
+
+.crumbs a:hover {
+  color: var(--ink);
+  border-bottom-color: var(--line-strong);
+}
+
+/* 当前页那段：太长就省略，别把右上角导航挤走 */
+.crumbs .here {
+  flex: 0 1 auto;
+  min-width: 0;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 窄屏只留「首页」和当前页，中间层级省掉 */
+@media (max-width: 720px) {
+  .crumbs .sep {
+    display: none;
+  }
+
+  .crumbs a:not(:first-child) {
+    display: none;
+  }
 }
 
 .brand {
@@ -1201,12 +1269,12 @@ main {
 
 /* ---------- 有趣模式（首页 /）---------- */
 .mode-fun {
-  --fun-bg: #14141a;
+  --fun-bg: #05060c;
   --fun-ink: #f2f0ea;
   --fun-muted: #9b99a5;
   --fun-faint: #6a6875;
-  --fun-line: #292933;
-  --fun-accent: #ff6f5e;
+  --fun-line: rgba(255, 255, 255, 0.1);
+  --fun-accent: #e8ecf2;
 
   background: var(--fun-bg);
   color: var(--fun-ink);
@@ -1225,6 +1293,28 @@ main {
 .mode-fun .mode-toggle:hover {
   border-color: var(--fun-accent);
   color: var(--fun-accent);
+}
+
+/* 面包屑在深色壳里换一套颜色（--ink-* 是纸壳的色，直接用会看不见） */
+.mode-fun .crumbs {
+  color: var(--fun-faint);
+}
+
+.mode-fun .crumbs a {
+  color: var(--fun-faint);
+}
+
+.mode-fun .crumbs a:hover {
+  color: var(--fun-ink);
+  border-bottom-color: var(--fun-line);
+}
+
+.mode-fun .crumbs .sep {
+  color: #3c3c48;
+}
+
+.mode-fun .crumbs .here {
+  color: var(--fun-muted);
 }
 
 .mode-fun .sound-toggle {
@@ -1889,95 +1979,6 @@ main {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-/* ============================================================
-   下潜转场（首页 → /brief/）
-   出发：整页朝点击点放大、模糊、被暖色吞掉
-   到达：目标页从同一层暖色里揭开
-   ============================================================ */
-
-.dive-veil {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0;
-  clip-path: circle(0% at var(--dive-x, 50%) var(--dive-y, 50%));
-  background: radial-gradient(
-    circle at var(--dive-x, 50%) var(--dive-y, 50%),
-    #6f3026 0%,
-    #4a211c 18%,
-    #2a1617 44%,
-    #17141a 72%,
-    #101015 100%
-  );
-  will-change: opacity, clip-path, transform;
-}
-
-.dive-veil.is-in {
-  opacity: 1;
-  clip-path: circle(150% at var(--dive-x, 50%) var(--dive-y, 50%));
-  transition:
-    clip-path 420ms cubic-bezier(0.55, 0, 0.3, 1),
-    opacity 420ms linear;
-}
-
-/* 到达时先整块盖住（无过渡），再交给 .is-out 推开 */
-.dive-veil.is-covering {
-  opacity: 1;
-  clip-path: none;
-  transition: none;
-}
-
-.dive-veil.is-out {
-  opacity: 0;
-  transform: scale(1.28);
-  transition:
-    opacity 540ms ease-in,
-    transform 540ms cubic-bezier(0.2, 0.8, 0.3, 1);
-}
-
-html.is-diving {
-  overflow: hidden;
-}
-
-html.is-diving .site-header,
-html.is-diving main,
-html.is-diving .site-footer {
-  transform-origin: var(--dive-x, 50%) var(--dive-y, 50%);
-  transform: scale(1.6);
-  filter: blur(12px) saturate(1.2);
-  opacity: 0.18;
-  transition:
-    transform 420ms cubic-bezier(0.5, 0, 0.35, 1),
-    filter 420ms ease-out,
-    opacity 340ms ease-out;
-}
-
-body.is-landing .site-header,
-body.is-landing main,
-body.is-landing .site-footer {
-  animation: dive-surface 540ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
-}
-
-@keyframes dive-surface {
-  from {
-    transform: scale(1.06);
-    filter: blur(12px);
-    opacity: 0;
-  }
-
-  to {
-    transform: none;
-    filter: none;
-    opacity: 1;
-  }
-}
-
-/* 目标页首帧：脚本接管前先把底色压深，避免白闪 */
-html.dive-arriving body {
-  background: #14141a;
 }
 
 /* ============================================================
@@ -4210,4 +4211,162 @@ html.gate-open {
   100% {
     opacity: 0.16;
   }
+}
+
+/* ==================================================================
+   尼尔式按钮：悬停时一条白底从左推到右填满，字同时反色。
+   加 .x-fill 就能用；选中的按钮加 .is-on 保持填满。
+   ================================================================== */
+
+.x-fill {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: color 0.16s linear;
+}
+
+.x-fill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #f1f3f6;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.22s cubic-bezier(0.4, 0.6, 0.2, 1);
+}
+
+.x-fill:hover::before,
+.x-fill:focus-visible::before,
+.x-fill.is-on::before {
+  transform: scaleX(1);
+}
+
+.x-fill:hover,
+.x-fill:focus-visible,
+.x-fill.is-on {
+  color: #05060c;
+}
+
+/* 里面的编号也跟着反色 */
+.x-fill:hover .n,
+.x-fill.is-on .n,
+.x-fill:hover span,
+.x-fill.is-on span {
+  color: rgba(5, 6, 12, 0.62);
+}
+
+/* ---------- 接到首页菜单 ---------- */
+.tp-menu a.is-x:hover,
+.tp-menu a.is-x:focus-visible {
+  color: #05060c;
+}
+/* 现有按钮直接继承同一套（不改 markup） */
+.tp-menu a,
+.article-tab,
+.mode-toggle,
+.ar-back {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: color 0.16s linear, border-color 0.16s linear;
+}
+
+.tp-menu a::before,
+.article-tab::before,
+.mode-toggle::before,
+.ar-back::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #f1f3f6;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.22s cubic-bezier(0.4, 0.6, 0.2, 1);
+}
+
+.tp-menu a:hover::before,
+.tp-menu a:focus-visible::before,
+.article-tab:hover::before,
+.article-tab[aria-current]::before,
+.mode-toggle:hover::before,
+.mode-toggle:focus-visible::before,
+.ar-back:hover::before {
+  transform: scaleX(1);
+}
+
+.tp-menu a:hover,
+.tp-menu a:focus-visible,
+.article-tab:hover,
+.article-tab[aria-current],
+.mode-toggle:hover,
+.ar-back:hover {
+  color: #05060c;
+  border-color: #f1f3f6;
+}
+
+.tp-menu a:hover .n,
+.article-tab:hover span,
+.article-tab[aria-current] span {
+  color: rgba(5, 6, 12, 0.6);
+}
+
+/* 尼尔按钮：框感 —— 内边距让白条填成方块，悬停时上下各一条细线 */
+.tp-menu a,
+.article-tab,
+.mode-toggle {
+  padding: 5px 14px;
+  margin-inline: -14px;
+}
+
+.tp-menu a:hover,
+.tp-menu a:focus-visible,
+.article-tab:hover,
+.article-tab[aria-current],
+.mode-toggle:hover {
+  box-shadow:
+    0 -6px 0 -5px rgba(241, 243, 246, 0.85),
+    0 6px 0 -5px rgba(241, 243, 246, 0.85);
+}
+
+/* 返回按钮：不要外框，和主界面菜单同一套（淡底 + 底部进度条） */
+.mode-toggle {
+  border: 0 !important;
+  padding: 6px 16px !important;
+  margin-inline: -16px !important;
+  background: transparent;
+}
+
+.mode-toggle:hover,
+.mode-toggle:focus-visible {
+  color: #f3f5f7 !important;
+  background: rgba(241, 243, 246, 0.08) !important;
+  box-shadow: inset 0 0 0 1px rgba(241, 243, 246, 0.42) !important;
+}
+
+/* 返回按钮不能有白底，也不能有圆角 */
+.mode-toggle,
+.mode-toggle:hover,
+.mode-toggle:focus-visible {
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+
+.mode-toggle::before {
+  background: #f1f3f6 !important;
+  border-radius: 0 !important;
+}
+
+/* 返回按钮：不要那块白底（全局生效，不限首页） */
+.mode-toggle::before {
+  display: none !important;
+}
+
+.mode-toggle:hover,
+.mode-toggle:focus-visible {
+  background: transparent !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(241, 243, 246, 0.42),
+    inset 0 -2px 0 #f1f3f6 !important;
 }

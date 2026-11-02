@@ -204,7 +204,7 @@ export const TIMELINE_PUBLIC = false;
  *
  *   想彻底删 —— 见 docs/abyss-design.md 末尾的「拆除清单」，五分钟的事。
  */
-export const ABYSS_GAME = true;
+export const ABYSS_GAME = false;
 
 /** 全站唯一的「个人信息」配置。
  * 想改名字、简介、邮箱、联系方式 —— 只改这个文件就够了。

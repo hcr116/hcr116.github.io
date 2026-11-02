@@ -1,93 +1,323 @@
 ---
-import { getEntry, render } from 'astro:content';
+// 联系页：四个通道 → 横向轨道（和 /works/、/articles/ 同一套骨架）
+// 配色只有中性灰阶，方块封面是渐变 + 纹理，没有纯色块，也没有红/橙等色相。
 import Base from '../layouts/Base.astro';
-import { SITE, SKILLS, TIMELINE, WECHAT } from '../consts';
+import { SITE, WECHAT } from '../consts';
+import '../styles/contact.css';
 
-// 自述正文在 src/content/about/about.md，可以直接编辑那个文件
-const aboutEntry = await getEntry('about', 'about');
-const AboutContent = aboutEntry ? (await render(aboutEntry)).Content : null;
+type Channel = {
+  id: string;
+  cn: string;
+  en: string;
+  glyph: string;
+  note: string;
+  /** copy = 复制到剪贴板 / open = 新窗口打开 / qr = 露出二维码 */
+  action: 'copy' | 'open' | 'qr';
+  /** 复制的内容 */
+  value?: string;
+  /** 打开的地址 */
+  href?: string;
+  /** 主按钮文案（不含 ▶） */
+  label: string;
+  /** 次要动作：一句小字链到别处 */
+  alt?: { label: string; href: string };
+};
+
+const channels: Channel[] = [
+  {
+    id: 'mail',
+    cn: '邮件',
+    en: 'MAIL',
+    glyph: '✉',
+    note: `${SITE.email} —— 最稳的一条。项目、外包、约稿都走这里，两天内回。`,
+    action: 'copy',
+    value: SITE.email,
+    label: '复制地址',
+    alt: { label: '直接发信', href: `mailto:${SITE.email}` },
+  },
+  {
+    id: 'bilibili',
+    cn: 'B 站',
+    en: 'BILIBILI',
+    glyph: '▶',
+    note: '日常发拆解和试玩，账号 horob。想看我最近在玩什么、写了什么，看这里最全。',
+    action: 'open',
+    href: 'https://space.bilibili.com/4592990',
+    label: '打开主页',
+  },
+  {
+    id: 'github',
+    cn: 'GitHub',
+    en: 'GITHUB',
+    glyph: '</>',
+    note: '工具、脚本，还有这个站本身的源码，都在 hcr116 下面。',
+    action: 'open',
+    href: 'https://github.com/hcr116',
+    label: '打开主页',
+  },
+  {
+    id: 'wechat',
+    cn: '微信',
+    en: 'WECHAT',
+    glyph: '▣',
+    note: `公众号「${WECHAT.name}」。扫码关注，或者在微信里直接搜这个名字。`,
+    action: 'qr',
+    label: '看二维码',
+  },
+];
+
+const total = channels.length;
+const plan = (i: number) => String(i + 1).padStart(2, '0');
+const count = (i: number) => `${plan(i)} / ${plan(total - 1)}`;
 ---
 
-<Base title={`关于 · ${SITE.name}`} description={`关于 ${SITE.name}`}>
-  {/* 页面上不显示标题，但保留一个给屏幕阅读器和搜索引擎的 h1 */}
-  <h1 class="sr-only">关于 {SITE.name}</h1>
+<Base
+  title={`联系 · ${SITE.name}`}
+  description={`联系 ${SITE.name}：邮件、B 站、GitHub、微信`}
+  bodyClass="mode-fun"
+  mainClass="ab-main"
+  hideNav
+>
+  <div class="ab-bg"></div>
+  <div class="ab-glow" data-glow></div>
 
-  <section class="about-block about-block--first">
-    <h2>自述</h2>
-    <div class="prose" style="padding-block: 0;">
-      {AboutContent ? <AboutContent /> : <p>还没有写自述。</p>}
-    </div>
-  </section>
+  <div class="ab-shell">
+    <header class="ab-top">
+      <div class="ab-clock">
+        <span class="dot" aria-hidden="true"></span>
+        <time data-clock>00:00</time>
+      </div>
+    </header>
 
-  {
-    SKILLS.length > 0 && (
-      <section class="about-block">
-        <h2>能力</h2>
-        <div class="skill-groups">
-          {SKILLS.map((group) => (
-            <div class="skill-group" data-level={group.level}>
-              <h3>{group.group}</h3>
-              <ul class="chips">
-                {group.items.map((item) => (
-                  <li>{item}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
-    )
-  }
-
-  {
-    TIMELINE.length > 0 && (
-      <section class="about-block">
-        <h2>经历</h2>
-        <dl class="timeline">
-          {TIMELINE.map((item) => (
-            <div class="timeline-item">
-              <dt>{item.year}</dt>
-              <dd>
-                <h3>{item.title}</h3>
-                <p>{item.detail}</p>
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-    )
-  }
-
-  <section class="about-block">
-    <h2>联系</h2>
-    <div class="contact-list">
-      <a href={`mailto:${SITE.email}`}>
-        <span>{SITE.email}</span>
-        <span class="contact-label">邮件</span>
-      </a>
-      {
-        SITE.links.map((link) => (
-          <a href={link.href} target="_blank" rel="noopener">
-            <span>{link.href.replace(/^https?:\/\//, '')}</span>
-            <span class="contact-label">{link.label}</span>
-          </a>
-        ))
-      }
-    </div>
-
-    <div class="wechat-card">
-      <img
-        src={WECHAT.qr}
-        alt={`微信公众号「${WECHAT.name}」二维码`}
-        width="180"
-        height="180"
-        loading="lazy"
-        decoding="async"
-      />
-      <div class="wechat-meta">
-        <p class="wechat-name">公众号 · {WECHAT.name}</p>
-        <p class="wechat-note">{WECHAT.note}</p>
+    <div class="ab-rail">
+      <div class="ab-track" data-track>
+        {
+          channels.map((c, i) => (
+            <a
+              class:list={['ab-tile', i === 0 && 'is-on']}
+              href={c.href ?? '#'}
+              data-tile
+              data-id={c.id}
+              data-cn={c.cn}
+              data-en={`${c.en} · ${count(i)}`}
+              data-note={c.note}
+              data-action={c.action}
+              data-value={c.value ?? ''}
+              data-href={c.href ?? ''}
+              data-label={c.label}
+              data-alt={c.alt?.label ?? ''}
+              data-alt-href={c.alt?.href ?? ''}
+            >
+              <span class="ab-art" data-p={String(i + 1)} aria-hidden="true" />
+              <span class="ab-num">{plan(i)}</span>
+              <span class="ab-glyph" aria-hidden="true">
+                {c.glyph}
+              </span>
+              <span class="ab-name">{c.cn}</span>
+            </a>
+          ))
+        }
       </div>
     </div>
-  </section>
+
+    <div class="ab-hero">
+      <div class="ab-hero-l">
+        <h1 data-hero-title>{channels[0].cn}</h1>
+        <div class="en" data-hero-en>{channels[0].en}</div>
+        <p data-hero-note>{channels[0].note}</p>
+        <div class="ab-actions">
+          <button class="ab-primary" type="button" data-hero-go>▶ {channels[0].label}</button>
+          <a class="ab-secondary" data-hero-alt href={`mailto:${SITE.email}`}>直接发信</a>
+        </div>
+      </div>
+
+      <figure class="ab-qr" data-qr hidden>
+        <img src={WECHAT.qr} alt={`${WECHAT.name} 的微信二维码`} width="132" height="132" />
+        <figcaption>微信扫码</figcaption>
+      </figure>
+    </div>
+
+    <div class="ab-bar">
+      <span>← → 切换 · ENTER 执行 · ESC 返回</span>
+      <span class="line" aria-hidden="true"></span>
+      <span>HCR · CONTACT</span>
+    </div>
+  </div>
 </Base>
+
+<script>
+  const tiles = [...document.querySelectorAll<HTMLElement>('[data-tile]')];
+  const track = document.querySelector<HTMLElement>('[data-track]');
+  const glow = document.querySelector<HTMLElement>('[data-glow]');
+  const shell = document.querySelector<HTMLElement>('.ab-main');
+  const hero = document.querySelector<HTMLElement>('.ab-hero');
+  const heroTitle = document.querySelector<HTMLElement>('[data-hero-title]');
+  const heroEn = document.querySelector<HTMLElement>('[data-hero-en]');
+  const heroNote = document.querySelector<HTMLElement>('[data-hero-note]');
+  const goBtn = document.querySelector<HTMLButtonElement>('[data-hero-go]');
+  const altLink = document.querySelector<HTMLAnchorElement>('[data-hero-alt]');
+  const qrBox = document.querySelector<HTMLElement>('[data-qr]');
+  const clock = document.querySelector<HTMLElement>('[data-clock]');
+
+  let current = 0;
+  let swapTimer = 0;
+  let doneTimer = 0;
+
+  const narrow = window.matchMedia('(max-width: 900px)');
+
+  /** 悬停不动轨道（否则方块跑到光标底下会连环触发），只有键盘切换才平移 */
+  const slide = (tile: HTMLElement, allow: boolean) => {
+    if (!track || !allow) return;
+    if (narrow.matches) {
+      track.style.transform = '';
+      tile.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      return;
+    }
+    const rail = track.parentElement;
+    if (!rail) return;
+    const maxShift = Math.min(0, rail.clientWidth - track.scrollWidth);
+    const target = Math.max(maxShift, Math.min(0, -tile.offsetLeft));
+    track.style.transform = `translateX(${target}px)`;
+  };
+
+  /** 换内容时淡一下；只有选中项真的变了才播，避免首帧 / resize 反复重播 */
+  const swap = (apply: () => void) => {
+    if (!hero) {
+      apply();
+      return;
+    }
+    hero.classList.add('is-swap');
+    clearTimeout(swapTimer);
+    swapTimer = window.setTimeout(() => {
+      apply();
+      hero.classList.remove('is-swap');
+    }, 130);
+  };
+
+  const applyHero = (tile: HTMLElement) => {
+    if (heroTitle) heroTitle.textContent = tile.dataset.cn ?? '';
+    if (heroEn) heroEn.textContent = tile.dataset.en ?? '';
+    if (heroNote) heroNote.textContent = tile.dataset.note ?? '';
+    if (goBtn) {
+      goBtn.textContent = `▶ ${tile.dataset.label ?? ''}`;
+      goBtn.classList.remove('is-done');
+    }
+    if (qrBox) qrBox.hidden = tile.dataset.action !== 'qr';
+
+    const alt = tile.dataset.alt ?? '';
+    if (altLink) {
+      altLink.hidden = !alt;
+      altLink.textContent = alt;
+      altLink.setAttribute('href', tile.dataset.altHref || '#');
+    }
+  };
+
+  const select = (index: number, { animate = true, slideRow = false } = {}) => {
+    if (!tiles.length) return;
+    const next = (index + tiles.length) % tiles.length;
+    if (next === current && animate) return;
+
+    const tile = tiles[next];
+    const changed = next !== current;
+    current = next;
+
+    tiles.forEach((t, i) => t.classList.toggle('is-on', i === current));
+    slide(tile, slideRow);
+
+    if (glow && shell) {
+      const box = shell.getBoundingClientRect();
+      const rect = tile.getBoundingClientRect();
+      glow.style.setProperty('--gx', `${rect.left - box.left + rect.width / 2}px`);
+      glow.style.setProperty('--gy', `${rect.top - box.top + rect.height / 2}px`);
+    }
+
+    if (changed) swap(() => applyHero(tile));
+    else applyHero(tile);
+  };
+
+  /** 主按钮：按通道类型决定行为 */
+  const run = (): void => {
+    const tile = tiles[current];
+    if (!tile) return;
+
+    if (tile.dataset.action === 'copy') {
+      const text = tile.dataset.value ?? '';
+      if (!text || !goBtn) return;
+      navigator.clipboard
+        ?.writeText(text)
+        .then(() => {
+          goBtn.textContent = '✓ 已复制';
+          goBtn.classList.add('is-done');
+          clearTimeout(doneTimer);
+          doneTimer = window.setTimeout(() => applyHero(tile), 1400);
+        })
+        .catch(() => {
+          /* 剪贴板被拒也没关系，旁边还有「直接发信」 */
+        });
+      return;
+    }
+
+    if (tile.dataset.action === 'open') {
+      const href = tile.dataset.href;
+      if (href) window.open(href, '_blank', 'noopener');
+      return;
+    }
+
+    if (tile.dataset.action === 'qr' && qrBox) qrBox.hidden = !qrBox.hidden;
+  };
+
+  for (const [i, tile] of tiles.entries()) {
+    tile.addEventListener('mouseenter', () => select(i));
+    tile.addEventListener('focus', () => select(i));
+    // 方块本身可点：点了就走它自己的动作（不然 <a href> 会直接跳走）
+    tile.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (i !== current) {
+        select(i);
+        return;
+      }
+      run();
+    });
+  }
+
+  goBtn?.addEventListener('click', run);
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      select(current + 1, { slideRow: true });
+    }
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      select(current - 1, { slideRow: true });
+    }
+    if (event.key === 'Enter') {
+      // 焦点在按钮 / 链接上时交给它们自己处理，避免一次回车触发两遍
+      if ((event.target as HTMLElement | null)?.closest('button, a')) return;
+      event.preventDefault();
+      run();
+    }
+    if (event.key === 'Escape') window.location.href = '/';
+  });
+
+  window.addEventListener('resize', () => {
+    if (tiles[current]) select(current, { animate: false });
+  });
+
+  const tick = () => {
+    if (!clock) return;
+    const now = new Date();
+    clock.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(
+      now.getMinutes()
+    ).padStart(2, '0')}`;
+  };
+  tick();
+  window.setInterval(tick, 30_000);
+
+  requestAnimationFrame(() => {
+    // 支持 /about/?c=wechat 这种直链，方便分享"加我微信"
+    const want = new URLSearchParams(window.location.search).get('c');
+    const hit = want ? tiles.findIndex((t) => t.dataset.id === want) : -1;
+    select(hit >= 0 ? hit : 0, { animate: false });
+  });
+</script>

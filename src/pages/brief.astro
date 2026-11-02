@@ -3,37 +3,17 @@ import Base from '../layouts/Base.astro';
 import { SITE } from '../consts';
 import '../styles/profile.css';
 
-// 先按「经历」硬编码；等你把简历导进来，再换成解析简历的数据源
-const rows = [
-  {
-    year: '至今',
-    en: 'NOW',
-    title: '在动作游戏项目做怪物与 Boss',
-    desc: '打击模组拆解、韧性体系搭建、对峙节奏调优；把「这只怪该怎么被读懂」写成可执行的规则。',
-    tags: ['怪物', 'Boss', '韧性'],
-  },
-  {
-    year: '2025',
-    en: 'FEEL',
-    title: '把打击感拆成分档参数',
-    desc: '顿帧、震屏、卡肉、命中停——按冲击力分级给出参数表，并做成可直接对照的评审表。',
-    tags: ['打击感', '帧数'],
-  },
-  {
-    year: '2024',
-    en: 'ARCHIVE',
-    title: '12 款动作游戏逐招拆完',
-    desc: '累计 18 章、6.7 万字，覆盖怪物、Boss、角色与通用方法论。',
-    tags: ['拆解', '方法'],
-  },
-  {
-    year: '2021',
-    en: 'START',
-    title: '从玩家到策划的起点',
-    desc: '开始把玩过的动作游戏做成一页页拆解，先记清楚「这一刀为什么爽」。',
-    tags: ['起点', '练习'],
-  },
+/* 简介页：先自述，再工作经历（经历等简历导入后自动生成，现在留空） */
+
+// 自述：先写草稿，之后你自己改
+const about = [
+  '做动作游戏的战斗策划，主要管怪物与 Boss：把「这一刀为什么爽」拆成可执行的规则，再把这些规则变成能调、能评审的参数表。',
+  '日常是三件事：拆解已有的动作游戏（18 章、6.7 万字）、把打击反馈拆成分档参数、以及在项目里把怪物的行为逻辑写成别人也能读懂的设计文档。',
+  '业余在折腾 AI 小工具 —— 本站、面试记录归档、背诵卡片都是自己写自己用的。不算产品，但都在跑。',
 ];
+
+// 工作经历：等简历导进来再填。格式先定死，导入脚本照着这个顺序灌。
+const jobs: { range: string; company: string; role: string; note: string }[] = [];
 ---
 
 <Base
@@ -54,37 +34,45 @@ const rows = [
     </p>
   </header>
 
-  <div class="pf-rows">
+  <section class="pf-sec">
+    <h2 class="pf-sec-k">自述</h2>
+    <div class="pf-prose">
+      {about.map((p) => <p>{p}</p>)}
+    </div>
+  </section>
+
+  <section class="pf-sec">
+    <h2 class="pf-sec-k">工作经历</h2>
+
     {
-      rows.map((r, i) => (
-        <article class:list={['pf-row', i === 0 && 'is-now']}>
-          <div class="pf-year">
-            <b>{r.year}</b>
-            <span>{r.en}</span>
-          </div>
-          <div class="pf-card">
-            <h2>{r.title}</h2>
-            <p>{r.desc}</p>
-            <div class="pf-tags">
-              {r.tags.map((t) => (
-                <span>{t}</span>
-              ))}
-            </div>
-          </div>
-        </article>
-      ))
+      jobs.length > 0 ? (
+        <div class="pf-rows">
+          {jobs.map((j) => (
+            <article class="pf-row">
+              <div class="pf-year">
+                <b>{j.range}</b>
+                <span>{j.role}</span>
+              </div>
+              <div class="pf-card">
+                <h3>{j.company}</h3>
+                <p>{j.note}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p class="pf-empty">
+          <span class="dot" aria-hidden="true" />
+          还没有内容 —— 简历导入后按「年份区间 · 公司 · 职位 · 一句话」自动排进来。
+        </p>
+      )
     }
-  </div>
+  </section>
 
   <div class="pf-foot-links">
     <a class="primary" href="/articles/">看拆解 →</a>
     <a href="https://space.bilibili.com/4592990" target="_blank" rel="noopener">Bilibili</a>
     <a href="https://github.com/hcr116" target="_blank" rel="noopener">GitHub</a>
     <span>简历 PDF · 待补</span>
-  </div>
-
-  <div class="au-status" style="margin-top:28px">
-    <span>PROFILE · 01 / 01</span>
-    <span>等简历导入后重做这一页</span>
   </div>
 </Base>

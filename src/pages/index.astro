@@ -1,7 +1,8 @@
 ---
 import { getEntry } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { SITE, ABYSS_GAME } from '../consts';
+import { SITE } from '../consts';
+import { countCombat, countCombatWords, countImages } from '../data/counts';
 import '../styles/menu-glitch.css';
 import '../styles/boot.css';
 
@@ -12,7 +13,7 @@ const role = home?.data.subtitle || '动作游戏战斗策划';
 // 标题画面上的名字（视频那里是 NieR:Automata，这里是自己的）
 const LOGO = 'HuangChenRui';
 
-// 阿比斯是外接的一路信号，ABYSS_GAME 关掉时整项消失
+// 五项菜单：阿比斯带 signal 动效，和其它项一样可点
 const menuAll = [
   { label: '简介', href: '/brief/' },
   { label: '作品', href: '/works/' },
@@ -21,25 +22,31 @@ const menuAll = [
   { label: '阿比斯', href: '/abyss/', signal: true },
 ];
 
-const menu = menuAll.filter((item) => ABYSS_GAME || !item.signal);
+// 阿比斯和其它项一样：只是个入口，带信号动效，点进去到 /abyss/
+// （游戏本体是否开放由 /abyss/ 那页自己说，菜单上不再挂「未开放」）
+const menu = menuAll;
 
+// 右下角的联系方式：B 站 / GitHub / 邮件
 const social = [
-  ...SITE.links.map((l) => ({ label: l.label.split(' · ')[0], href: l.href })),
-  { label: '公众号', href: '/about/' },
+  ...SITE.links.map((l) => ({ label: l.label, href: l.href })),
+  { label: '邮件', href: `mailto:${SITE.email}` },
 ];
 
-// 自检行：一句一行，像机器在自言自语
+/* 自检行：一句一行，像机器在自言自语。
+ * 带数字的几行都是**真数**（src/data/counts.ts 现算），没数据源的只写动作词，不编数字。
+ * 「权限等级」这行的数字由脚本按 localStorage 覆盖，默认 4。 */
 const bootLines = [
   '系统检查开始',
-  '文章索引：18 章 · 通过',
-  '拆解字数：6.7 万 · 已读入',
-  '作品档案：5 项 · 已挂载',
-  '体验记录：12 款 · 读取完成',
-  '素材库：156 张 · 已索引',
-  'Boss 模组：24 个 · 已解析',
-  '帧数档位：9 档 · 已载入',
+  `权限等级：4`,
+  `文章索引：${countCombat()} 章 · 通过`,
+  `拆解字数：${(countCombatWords() / 10000).toFixed(1)} 万 · 已读入`,
+  `作品档案：5 项 · 已挂载`,
+  `素材库：${countImages()} 张 · 已索引`,
+  '体验记录：已归档',
+  'Boss 模组：已解析',
+  '帧数档位：已载入',
   '打击分解：顿帧 / 震屏 · 就绪',
-  '韧性规则：1 套 · 已上线',
+  '韧性规则：已上线',
   '可玩验证：阿比斯 v0.6 · 通过',
   '渲染管线：准备中',
   'MP 残量检查：100%',
@@ -86,8 +93,94 @@ const year = new Date().getFullYear();
     })();
   </script>
 
+<script>
+  /*
+   * 阿比斯：点了不跳转，演一段「信号不清晰 → 信号中断」，然后这一项消失。
+   * 本次会话内不再出现（sessionStorage），新开标签页照旧出现。
+   * 断网 / 关掉 JS 时它是普通链接，落到 /abyss/ 那句「信号中断」页——兜底还算合理。
+   */
+  import { sfx } from '../scripts/sfx';
+
+  const abyss = document.querySelector<HTMLElement>('[data-abyss]');
+  const LOST_KEY = 'hcr:abyss:lost';
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const markLost = () => {
+    document.documentElement.classList.add('abyss-lost');
+    try {
+      sessionStorage.setItem(LOST_KEY, '1');
+    } catch {
+      /* 隐私模式下存不了，本次会话内 still 靠 DOM 状态 */
+    }
+  };
+
+  let alreadyLost = false;
+  try {
+    alreadyLost = sessionStorage.getItem(LOST_KEY) === '1';
+  } catch {
+    alreadyLost = false;
+  }
+  if (alreadyLost) markLost();
+
+  if (abyss) {
+    const label = abyss.querySelector<HTMLElement>('.t');
+    const base = label?.textContent?.trim() || '阿比斯';
+    const NOISE = '▓▒░▚▞⌁≠≡∷';
+
+    const noise = () =>
+      [...base].map(() => NOISE[Math.floor(Math.random() * NOISE.length)]).join('');
+
+    abyss.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (abyss.dataset.lost === '1') return;
+      abyss.dataset.lost = '1';
+
+      sfx.tv();
+
+      const gone = () => {
+        abyss.remove();
+        markLost();
+      };
+
+      if (reduce) {
+        gone();
+        return;
+      }
+
+      // 先把重影层卸掉：它们带的是旧字，留着会和新字打架，也很费合成器
+      abyss.querySelectorAll('.sig-band, .sig-fringe').forEach((node) => node.remove());
+      abyss.classList.add('is-losing');
+
+      // 1) 信号不清晰：文字被打散（只换三次，不用 setInterval）
+      if (label) label.textContent = noise();
+      window.setTimeout(() => label && (label.textContent = noise()), 130);
+      window.setTimeout(() => label && (label.textContent = noise()), 260);
+
+      // 2) 信号中断
+      window.setTimeout(() => {
+        if (label) label.textContent = '信号中断';
+        abyss.classList.add('is-dead');
+        sfx.signalLost();
+      }, 520);
+
+      // 3) 塌掉 → 摘点
+      window.setTimeout(() => abyss.classList.add('is-gone'), 900);
+      window.setTimeout(gone, 1320);
+    });
+
+    // 键盘回车等价于点击
+    abyss.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      abyss.click();
+    });
+  }
+</script>
+
   <div class="tp" data-tp data-state="boot" data-phase="1">
-    <!-- 自检阶段的水印：标题出现时退场 -->
+    <!-- 首屏黑幕：1 秒淡出，屏"亮起来"之后才出 LOADING -->
+    <div class="tp-veil" aria-hidden="true"></div>
+    <!-- 自检时背后的水印：靠右，避开左边的日志栏；进标题帧就退场 -->
     <div class="tp-mark" aria-hidden="true">
       <b>HuangChenRui</b>
       <em>for the record</em>
@@ -160,28 +253,31 @@ const year = new Date().getFullYear();
       </span>
     </p>
 
-    <!-- 点过之后：同一行换成菜单 -->
+    <!-- 点过之后：同一行换成菜单。五项全会话可点，阿比斯带信号动效 -->
     <nav class="tp-menu" aria-label="主导航">
       {
         menu.map((item, i) => (
-          <a href={item.href} class:list={[item.signal && 'is-signal']} data-dive="on">
+          <a
+            href={item.href}
+            class:list={[item.signal && 'is-signal']}
+            data-dive={item.signal ? undefined : 'on'}
+            data-abyss={item.signal ? '' : undefined}
+          >
             <span class="n">{String(i + 1).padStart(2, '0')}</span>
-            {item.label}
+            <span class="t">{item.label}</span>
           </a>
         ))
       }
     </nav>
 
-    <!-- 落款（视频那个位置） -->
-    <div class="tp-credit">© {year} 黄晨睿 · {role} · B 站 horob</div>
-
-    <!-- 页脚：音量 + 社交，收得很淡 -->
+    <!--
+      页脚：一行两块，同一基线。
+      左 = 落款（版权 + 身份），右 = 联系方式。
+      音量小格子已经删掉：音量拖这条主轴（地平线）或按 ← → 就能调，
+      页面里再放一排格子属于同一件事说两遍。
+    -->
     <footer class="tp-foot">
-      <span class="tp-vol">
-        <span>音量</span>
-        <span class="tp-vol-bars" data-vol-bars>{Array.from({ length: 10 }, () => <i />)}</span>
-        <span class="tp-vol-num" data-vol-num>50</span>
-      </span>
+      <span class="tp-credit">© {year} {SITE.cnName} · {role}</span>
       <span class="tp-social">
         {
           social.map((item) => (
@@ -208,6 +304,25 @@ const year = new Date().getFullYear();
     const lines = [...tp.querySelectorAll<HTMLElement>('.bl')];
     const logEl = tp.querySelector<HTMLElement>('[data-log]');
     const pressEl = tp.querySelector<HTMLElement>('[data-press]');
+
+    /* 权限等级：纯叙事，默认 4。访问 ?lv=10 会写进 localStorage，下次开机还是 10。
+     * 它不控制任何内容的可见性（真东西根本不在产物里），只改这一行自检文案。 */
+    let LEVEL = 4;
+    try {
+      const q = new URLSearchParams(location.search).get('lv');
+      if (q && /^\d{1,2}$/.test(q)) localStorage.setItem('hcr:lv', q);
+      LEVEL = Number(localStorage.getItem('hcr:lv')) || 4;
+    } catch {
+      /* 隐私模式：就用默认值 */
+    }
+    const lvLine = [...tp.querySelectorAll<HTMLElement>('.bl')].find((el) =>
+      (el.dataset.text ?? el.textContent ?? '').startsWith('权限等级'),
+    );
+    if (lvLine) {
+      const text = `权限等级：${LEVEL}`;
+      lvLine.dataset.text = text;
+      lvLine.textContent = text;
+    }
     const wordEl = tp.querySelector<HTMLElement>('.tp-word');
     const faultEl = tp.querySelector<HTMLElement>('[data-fault]');
     const skyEl = tp.querySelector<HTMLCanvasElement>('[data-sky]');
@@ -218,7 +333,9 @@ const year = new Date().getFullYear();
 
     const sleep = (ms: number) =>
       new Promise<void>((resolve) => {
-        timers.push(window.setTimeout(resolve, ms));
+        // 不登记进 timers：这是序列自己的节拍，被 clearTimers 掐掉的话
+        // await 永远不 resolve，序列就卡在「黑场」那一步，屏幕再也不会亮回来。
+        window.setTimeout(resolve, ms);
       });
 
     const setPhase = (n: number) => {
@@ -270,15 +387,12 @@ const year = new Date().getFullYear();
 
     let vol = 50;
 
-    const bars = [...tp.querySelectorAll<HTMLElement>('[data-vol-bars] i')];
-    const volNum = tp.querySelector<HTMLElement>('[data-vol-num]');
+    // 页脚那排音量格子已经删了：拖主轴（地平线）或按 ← → 都能调。
     const horizon = tp.querySelector<HTMLElement>('[data-horizon]');
 
     const setVol = (next: number, { silent = false } = {}) => {
       vol = Math.max(0, Math.min(100, Math.round(next)));
       tp.style.setProperty('--vol', String(vol / 100));
-      bars.forEach((bar, i) => bar.classList.toggle('on', i < Math.round(vol / 10)));
-      if (volNum) volNum.textContent = String(vol);
       horizon?.setAttribute('aria-valuenow', String(vol));
       if (!silent) audio.setVolume(vol / 100);
     };
@@ -395,13 +509,6 @@ const year = new Date().getFullYear();
 
     horizon?.addEventListener('pointercancel', () => {
       dragging = false;
-    });
-
-    // 点小格子调音量
-    tp.querySelector('[data-vol-bars]')?.addEventListener('pointerdown', (event) => {
-      const target = event.target as HTMLElement;
-      const index = bars.indexOf(target);
-      if (index >= 0) setVol((index + 1) * 10);
     });
 
     // 键盘
@@ -578,7 +685,8 @@ const year = new Date().getFullYear();
       // ① 只有 LOADING 的空镜（CSS 负责淡入）
       startDots();
       startLogTyping();
-      await sleep(1600);
+      // 黑幕 1s 淡出 → LOADING 1s 起淡入 0.8s（1800ms 到位）→ 再停 200ms
+      await sleep(2000);
       if (aborted) return;
 
       // ② 首行先单独出，停 0.7 秒，然后逐行刷：
@@ -709,6 +817,10 @@ const year = new Date().getFullYear();
     };
 
     const enterHome = () => {
+      // 收尾兜底：序列可能正好卡在「黑场」中间被点了，这里必须把遮罩摘掉
+      aborted = true;
+      clearTimers();
+      tp.classList.remove('is-blackout', 'is-flash');
       tp.setAttribute('data-state', 'home');
       tp.setAttribute('data-phase', '4');
       tp.classList.add('is-grown');
@@ -725,8 +837,7 @@ const year = new Date().getFullYear();
     const advance = () => {
       if (done || phase < 4) return;
       done = true;
-      clearTimers();
-      enterHome();
+      enterHome(); // 里面会 aborted = true + clearTimers + 摘遮罩
     };
 
     const params = new URLSearchParams(location.search);
@@ -793,6 +904,7 @@ const year = new Date().getFullYear();
       window.setTimeout(() => {
         if (!done && phase < 4) {
           aborted = true;
+          tp.classList.remove('is-blackout', 'is-flash');
           fillAll();
           setPhase(4);
           tp.classList.add('is-grown');

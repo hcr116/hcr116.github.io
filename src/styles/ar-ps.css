@@ -1,0 +1,439 @@
+/* 文章页：PS5 式两级（文件夹 → 文章）
+   · 整屏 key art 用"选中项色调"的暖光，不用位图
+   · 选中方块放大 + 白描边 + 外发光，冷光跟着走
+   · 标题在轨道上方（PS5 的排法），操作行在轨道下方
+*/
+
+@font-face {
+  font-family: 'Zpix';
+  src: url('/fonts/zpix.woff2') format('woff2');
+  font-display: swap;
+}
+
+.ar-main {
+  position: relative;
+  display: flex;
+  /* 一屏正好放下：页眉高度走 --hdr-h，全站同一个假设 */
+  min-height: calc(100svh - var(--hdr-h));
+  padding-bottom: 0;
+  flex-direction: column;
+  overflow: hidden;
+  --tone: #6a4a3a;
+}
+
+/* ===== 背景三层：底色 / 色调暖光 / 跟随选中块的冷光 ===== */
+
+.ar-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(160deg, #06070d, #04050a 70%);
+  pointer-events: none;
+}
+
+/* key art：原来按条目上色，现在统一去掉（和主界面的黑白基调冲突） */
+.ar-wash {
+  display: none;
+  position: absolute;
+  inset: -18%;
+  z-index: 0;
+  background: var(--tone);
+  opacity: 0.55;
+  filter: blur(120px) saturate(1.2) brightness(0.62);
+  mask-image: radial-gradient(64% 66% at 30% 46%, #000 0%, rgba(0, 0, 0, 0.5) 55%, transparent 86%);
+  -webkit-mask-image: radial-gradient(64% 66% at 30% 46%, #000 0%, rgba(0, 0, 0, 0.5) 55%, transparent 86%);
+  transition: background-color 0.55s cubic-bezier(0.3, 0.9, 0.2, 1);
+  pointer-events: none;
+}
+
+/* 冷光斑：跟着选中方块中心移动（和作品页同一套） */
+.ar-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 1180px;
+  height: 620px;
+  margin: -310px 0 0 -590px;
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    rgba(186, 208, 244, 0.16),
+    rgba(186, 208, 244, 0.04) 58%,
+    transparent 82%
+  );
+  transform: translate3d(var(--gx, 20%), var(--gy, 30%), 0) rotate(-8deg);
+  filter: blur(44px);
+  transition: transform 0.5s cubic-bezier(0.3, 0.9, 0.2, 1);
+  pointer-events: none;
+}
+
+/* 左右两侧压暗，保证左边文字能看清 */
+.ar-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(100deg, rgba(4, 5, 10, 0.92) 6%, rgba(4, 5, 10, 0.35) 52%, rgba(4, 5, 10, 0.55));
+}
+
+/* ===== 版心 ===== */
+
+.ar-shell {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: min(100% - 3rem, 1080px);
+  margin-inline: auto;
+  min-height: 0;
+  padding-bottom: 18px;
+}
+
+.ar-top {
+  display: flex;
+  align-items: center;
+  /* 时钟永远贴右，和作品页一致；返回靠 margin-right:auto 顶到左边 */
+  justify-content: flex-end;
+  padding-top: 22px;
+  min-height: 30px;
+}
+
+.ar-back {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-right: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.ar-back:hover {
+  color: #fff;
+}
+
+.ar-back[hidden] {
+  display: none;
+}
+
+.ar-clock {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+
+.ar-clock .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* ===== 页面标题区（在轨道下方，和作品页同一处视线落点） =====
+ * 这里是「这一页叫什么」，不跟着选中项变；选中项的名字在方框右侧。
+ */
+
+.ar-head {
+  /* 上方留白吃掉剩余高度，标题压到轨道下面 —— 和 .ws-hero 的 flex:1 等价 */
+  margin-top: auto;
+  padding: 44px 0 0;
+}
+
+.ar-head h1 {
+  margin: 0;
+  color: #fff;
+  font-family: 'Zpix', monospace;
+  font-size: clamp(30px, 3.2vw, 46px);
+  font-weight: 400;
+  letter-spacing: 3px;
+  line-height: 1.15;
+  text-shadow: 0 6px 34px rgba(0, 0, 0, 0.6);
+}
+
+.ar-head .en {
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.42);
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  letter-spacing: 5px;
+}
+
+.ar-head p {
+  margin: 10px 0 0;
+  max-width: 640px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+/* ===== 轨道 ===== */
+
+.ar-rail {
+  position: relative;
+  padding: 4px 0 0;
+  /* 两层轨道上下叠：文件夹常驻，章节展开在下面 */
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  align-items: flex-start;
+}
+
+/* 第二层：与第一层之间用细线隔开 */
+.ar-track[data-set]:not([data-set="root"]) {
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ar-track {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  transition: transform 0.36s cubic-bezier(0.3, 0.9, 0.2, 1);
+  will-change: transform;
+}
+
+/* 关键：author 的 display:flex 会盖掉 [hidden] 的 display:none */
+.ar-track[hidden] {
+  display: none;
+}
+
+.ar-tile {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 112px;
+  height: 112px;
+  padding: 0;
+  overflow: visible;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+  background: #0e0f14;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    width 0.3s cubic-bezier(0.3, 0.9, 0.2, 1),
+    height 0.3s cubic-bezier(0.3, 0.9, 0.2, 1),
+    border-color 0.24s ease,
+    box-shadow 0.3s ease;
+}
+
+/* 选中：放大 + 白描边 + 外发光（发光颜色取自本块色调） */
+.ar-tile.is-on {
+  width: 184px;
+  height: 184px;
+  border-color: rgba(255, 255, 255, 0.62);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 24px 70px rgba(0, 0, 0, 0.6),
+    0 0 64px -18px var(--tone);
+}
+
+/* 悬停不放大，只亮屏（开关机在 crt.css）。
+   放大只属于"选中"——这样同一时刻永远只有一块是大的，
+   也不会出现「选中块被缩回去、名字却还挂在旁边」这种半状态。 */
+
+.ar-tile:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 3px;
+}
+
+/* 方块里的电视层（.crt-*）在 crt.css 里，两页共用；这里只留位置和文字 */
+
+/* 台标：编号显示成频道号（颜色 / 荧光由 .crt-osd 给） */
+.ar-num {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+/* tile 里的名称：未选中时贴底，选中时隐藏（名字交给上方大标题） */
+.ar-name {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  left: 6px;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.82);
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* 压在雪花上，得有一层黑拖底才认得出字 */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8);
+  transition: opacity 0.2s ease;
+}
+
+.ar-tile.is-on .ar-name {
+  opacity: 0;
+}
+
+/* 选中项的名字挂在方框右侧、贴着底边（PS4 那个位置）。
+   用 20px 而不是 24px：它和下面的大标题是同一句话，次要一档。 */
+.ar-inline {
+  position: absolute;
+  bottom: 2px;
+  left: 100%;
+  margin-left: 18px;
+  color: #fff;
+  font-family: 'Zpix', monospace;
+  font-size: 20px;
+  letter-spacing: 2px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  text-shadow: 0 0 14px rgba(var(--crt), 0.35);
+  transition: opacity 0.2s ease;
+}
+
+.ar-tile.is-on .ar-inline {
+  opacity: 1;
+}
+
+/* 选中块右下角的名字已经删掉：选中项的名字由轨道下方的大标题负责，
+   画在块外面会压到下面的动作行，也会和标题重复。 */
+
+/* ===== 操作行 + 底部提示 ===== */
+
+.ar-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 16px 0 0;
+}
+
+.ar-play {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  min-width: 176px;
+  height: 40px;
+  padding: 0 24px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 999px;
+  background: rgba(8, 9, 13, 0.72);
+  color: #fff;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.ar-play:hover {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.ar-more {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 50%;
+  background: rgba(8, 9, 13, 0.7);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.ar-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding-top: 26px;
+  color: rgba(255, 255, 255, 0.32);
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.ar-bar .line {
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+@media (max-width: 900px) {
+  .ar-tile {
+    width: 92px;
+    height: 92px;
+  }
+
+  .ar-tile.is-on {
+    width: 140px;
+    height: 140px;
+  }
+
+  .ar-inline {
+    font-size: 15px;
+    letter-spacing: 1px;
+    margin-left: 12px;
+  }
+
+  .ar-head h1 {
+    font-size: 26px;
+  }
+
+  /* 窄屏轨道改成横向滚动 + 吸附：以前是 overflow:hidden 直接裁掉第 3 项之后的方块，
+     手机上根本点不到。现在整条轨道可以滑，JS 那边同步不再用 translateX 推。 */
+  .ar-track {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+
+  .ar-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ar-tile {
+    scroll-snap-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ar-tile,
+  .ar-glow,
+  .ar-wash,
+  .ar-track,
+  .ar-head {
+    transition: none;
+  }
+}
+
+
+/* 和作品页同一套骨架：轨道在上，动作在下面。
+   顺序交给 DOM —— 以前这里用 order 硬掰，但 markup 里没有 .ar-hero，
+   整段是死代码，还让"标题在轨道上方"这件事一直没被改掉。 */
+.ar-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+/* 窄屏：底栏右侧的域名标签放不下就先收起来，别让左右两段互相挤到裁切 */
+@media (max-width: 560px) {
+  .ar-bar > span:last-child {
+    display: none;
+  }
+}

@@ -24,3 +24,4 @@ _tmp_*
 _PRIVATE.md
 _private/
 *.local.md
+tmp/

@@ -94,16 +94,38 @@
   isolation: isolate;
 }
 
-.sig-band,
-.sig-fringe {
+/* 类名写两遍是有意的：菜单项那条 `.tp-menu a { margin-inline: -18px !important }`
+   优先级更高，不这样压不住。克隆必须 margin: 0 + padding: inherit，
+   否则内容会整体左移 18px，看起来就是「字叠在一起」。 */
+.sig-band.sig-band,
+.sig-fringe.sig-fringe {
   position: absolute !important;
   inset: 0 !important;
-  margin: 0;
-  /* 跟原行保持同一套内边距，否则克隆会整体偏移 2~4px */
-  padding: 4px 2px !important;
+  margin: 0 !important;
+  padding: inherit !important;
   border: 0 !important;
   pointer-events: none;
   will-change: transform;
+}
+
+/* 安静的时候克隆层完全藏起来 —— 这样「阿比斯」四个字和 作品/文章 一模一样，
+   只在爆发（is-glitching）的那 0.4 秒里冒出来，像信号闪了一下。 */
+.sig-band,
+.sig-fringe {
+  opacity: 0;
+  transition: opacity 0.12s linear;
+}
+
+.is-signal.is-glitching .sig-band {
+  opacity: 1;
+}
+
+.is-signal.is-glitching .sig-fringe.c {
+  opacity: 0.46;
+}
+
+.is-signal.is-glitching .sig-fringe.m {
+  opacity: 0.4;
 }
 
 /* 克隆出来的行不要再带下划线之类 */
@@ -125,12 +147,10 @@
 
 .sig-fringe.c {
   color: #38e8ff;
-  opacity: 0.46;
 }
 
 .sig-fringe.m {
   color: #ff2d8e;
-  opacity: 0.4;
 }
 
 .sig-fringe * {

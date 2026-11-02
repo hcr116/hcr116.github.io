@@ -144,6 +144,38 @@ function sweep(down: boolean, delay = 0): void {
   src.stop(t0 + dur + 0.03);
 }
 
+/** 一小段静电（电视雪花那种沙沙声），带淡出，不会咔一下断掉 */
+function hiss(dur: number, gain: number, freq: number, delay = 0): void {
+  const c = ready();
+  if (!c || !master) return;
+
+  const t0 = c.currentTime + delay;
+  const frames = Math.max(1, Math.floor(c.sampleRate * dur));
+  const buffer = c.createBuffer(1, frames, c.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < frames; i += 1) {
+    // 尾巴压下去，听起来像信号自己衰掉，而不是被切掉
+    data[i] = (Math.random() * 2 - 1) * (1 - i / frames);
+  }
+
+  const src = c.createBufferSource();
+  src.buffer = buffer;
+
+  const band = c.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = freq;
+  band.Q.value = 0.7;
+
+  const amp = c.createGain();
+  amp.gain.value = gain;
+
+  src.connect(band);
+  band.connect(amp);
+  amp.connect(master);
+  src.start(t0);
+  src.stop(t0 + dur + 0.02);
+}
+
 export const sfx = {
   hover(index: number, kind: SfxKind): void {
     if (kind === 'nav') {
@@ -193,6 +225,40 @@ export const sfx = {
   surface(): void {
     sweep(false, 0);
   },
+
+  /**
+   * 换台：一声「咔」+ 一小段静电。
+   * 用在文章页的方框上——鼠标进到方块里 = 换到那个频道。
+   * 很短（<100ms），连着扫过几块也不会连成机关枪。
+   */
+  tv(): void {
+    blip({
+      freq: 1600,
+      to: 220,
+      type: 'square',
+      dur: 0.045,
+      gain: 0.06,
+      filter: { type: 'lowpass', freq: 2600 },
+    });
+    hiss(0.075, 0.045, 1500);
+    blip({ freq: 2600, type: 'sine', dur: 0.016, gain: 0.03, delay: 0.004 });
+  },
+
+  /**
+   * 信号中断：频率往下掉 + 一段越来越暗的静电。
+   * 阿比斯菜单项「失联」时用。
+   */
+  signalLost(): void {
+    blip({
+      freq: 620,
+      to: 58,
+      type: 'sawtooth',
+      dur: 0.42,
+      gain: 0.07,
+      filter: { type: 'lowpass', freq: 1200 },
+    });
+    hiss(0.5, 0.05, 900, 0.02);
+  },
 };
 
 /** 一次用户手势之后把音频上下文唤醒——浏览器在此之前不让出声 */
@@ -225,6 +291,9 @@ export function attachSfx(): void {
   document.addEventListener('pointerover', (event) => {
     const el = (event.target as Element | null)?.closest<HTMLElement>(INTERACTIVE);
     if (!el || el === lastEl) return;
+
+    // 自己配了音的元素（比如文章页会换台的方块）不在这里响，免得叠两层
+    if (el.hasAttribute('data-sfx-off')) return;
 
     lastEl = el;
     const now = performance.now();
