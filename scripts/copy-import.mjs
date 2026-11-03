@@ -106,6 +106,7 @@ const problems = [];
 const entries = new Map();
 let pending = 0;
 let dropped = 0;
+let empty = 0;
 
 for (const [n, row] of rows.entries()) {
   const line = n + 2;
@@ -121,8 +122,10 @@ for (const [n, row] of rows.entries()) {
     problems.push(`第 ${line} 行：id 是空的`);
     continue;
   }
+  /* 空 zh = 这条先不要显示（保留 id 占位）。允许，但会提醒一句。 */
   if (!zh) {
-    problems.push(`第 ${line} 行：${id} 的 zh 是空的`);
+    empty += 1;
+    entries.set(id, '');
     continue;
   }
   if (!STATES.has(state)) {
@@ -165,5 +168,5 @@ ${body}
 );
 
 console.log(
-  `[copy] 导入 ${entries.size} 条（待定 ${pending} 条，废弃 ${dropped} 条）→ src/data/copy.generated.ts`,
+  `[copy] 导入 ${entries.size} 条（待定 ${pending} 条，废弃 ${dropped} 条，留空 ${empty} 条）→ src/data/copy.generated.ts`,
 );

@@ -1,108 +1,108 @@
 id,area,zh,state,note
-ui.back,通用/返回,返回,在用,存档态左下角那个 ○ 返回
-ui.back.label,通用/返回,回到五个方向,在用,读屏用（aria-label）
-ui.open,通用/按钮,打开,在用,作品页 hero 的主按钮
-ui.more,通用/按钮,更多,在用,hero 右边那个 ??? 的 aria-label
-ui.more.pending,通用/状态,待导入,在用,没内容的条目后面那句（红字）
-ui.imported,通用/状态,已导入 {n} 个,在用,{n} 会自动替换成数字
-works.tile.game-demo.name,作品页/方块,游戏 DEMO,在用,
-works.tile.game-demo.en,作品页/方块,GAME DEMO,在用,英文副标
-works.tile.game-demo.note,作品页/方块,用 UE5 做的切片和玩法原型,在用,
-works.tile.combat.name,作品页/方块,战策经验,在用,
-works.tile.combat.en,作品页/方块,COMBAT DESIGN,在用,
-works.tile.combat.note,作品页/方块,战斗系统拆解、数值、手感相关的笔记,在用,
-works.tile.ai.name,作品页/方块,AI 功能,在用,
-works.tile.ai.en,作品页/方块,AI FEATURES,在用,
-works.tile.ai.note,作品页/方块,由自己提需求、agent 完成编码制作的功能模块,在用,
-works.tile.bass.name,作品页/方块,贝斯弹奏,在用,
-works.tile.bass.en,作品页/方块,BASS,在用,
-works.tile.bass.note,作品页/方块,业余弹的东西，纯爱好，不保证好听,在用,
-works.tile.vfx.name,作品页/方块,特效作品,在用,
-works.tile.vfx.en,作品页/方块,VFX,在用,
-works.tile.vfx.note,作品页/方块,学战斗demo时期顺带学的VFX制作，作品存档,在用,
-works.stat.title,作品页/整理进度,整理进度,在用,右下角那张小卡
-works.stat.unit,作品页/整理进度,已整理方向,在用,
-works.archive.title,特效存档/标题,特效作品存档,在用,面包屑和页面标题也用这个
-works.archive.channel,特效存档/频道名,特效作品,在用,频道方块下面那行小字
-works.archive.play,特效存档/提示,Enter 播放,在用,选中卡右下角
-works.card.date,特效存档/日期,2023年11月,在用,五张卡共用的日期
-works.card.01,特效存档/卡片,命中,待定,按画面内容起的，可能改名
-works.card.02,特效存档/卡片,蓄力,待定,
-works.card.03,特效存档/卡片,场域,待定,
-works.card.04,特效存档/卡片,爆点,待定,
-works.card.05,特效存档/卡片,坠地,待定,
-articles.title,文章页/默认标题,文章,在用,还没选任何分组时显示的
-articles.en,文章页/英文,ARTICLES · 3 组 · {n} 篇,在用,{n} 是总篇数，自动填
-articles.note,文章页/默认说明,按分类收着的写作档案：怪物 / 角色 / 其他。,在用,
-articles.open,文章页/按钮,打开,在用,
-articles.openFolder,文章页/按钮,打开文件夹,在用,在根层级时用这个
-articles.back,文章页/按钮,返回文件夹,在用,
-articles.folder.monster,文章页/文件夹,怪物,在用,根层三个文件夹
-articles.folder.character,文章页/文件夹,角色,在用,
-articles.folder.method,文章页/文件夹,方法,在用,归到「其他」里
-articles.set.monster.name,文章页/分组,怪物,在用,
-articles.set.monster.en,文章页/分组,MONSTERS,在用,
-articles.set.monster.note,文章页/分组,把战斗拆成可复用的判断：通用框架、Boss 拆解、韧性规则。,在用,
-articles.set.character.name,文章页/分组,角色,在用,
-articles.set.character.en,文章页/分组,CHARACTERS,在用,
-articles.set.character.note,文章页/分组,角色怎么被设计出来：定位、资源流转、循环结构、额外身份。,在用,
-articles.set.other.name,文章页/分组,其他,在用,
-articles.set.other.en,文章页/分组,OTHERS,在用,
-articles.set.other.note,文章页/分组,方法类的四篇：帧数表、学习路径、工作复盘这些。,在用,
-ai.hero.en,AI 页/英文兜底,AI FEATURES,在用,项目没写英文时用这个
-ai.locked,AI 页/占位,未公开,在用,锁定条目的占位字
-ai.locked.note,AI 页/提示,未公开条目。点一下试试。,在用,
-ai.forbidden,AI 页/提示,权限不足,在用,
-contact.mail.name,联系页/频道,邮件,在用,
-contact.mail.note,联系页/频道,{email} —— 最稳的一条。项目、外包、约稿都走这里，两天内回。,在用,{email} 会自动换成你的邮箱
-contact.mail.copy,联系页/按钮,复制地址,在用,
-contact.mail.copied,联系页/按钮,? 已复制,在用,点完之后的反馈
-contact.mail.alt,联系页/按钮,直接发信,在用,
-contact.bilibili.name,联系页/频道,B 站,在用,
-contact.bilibili.note,联系页/频道,日常发拆解和试玩，账号 horob。想看我最近在玩什么、写了什么，看这里最全。,在用,
-contact.bilibili.open,联系页/按钮,打开主页,在用,
-contact.github.name,联系页/频道,GitHub,在用,
-contact.github.note,联系页/频道,工具、脚本，还有这个站本身的源码，都在 hcr116 下面。,在用,
-contact.github.open,联系页/按钮,打开主页,在用,
-contact.wechat.name,联系页/频道,微信,在用,
-contact.wechat.note,联系页/频道,公众号「{name}」。扫码关注，或者在微信里直接搜这个名字。,在用,{name} 是公众号名
-contact.wechat.qr,联系页/按钮,看二维码,在用,
-contact.qr.caption,联系页/图注,微信扫码,在用,
-brief.intro.1,简介页/自述,做动作游戏的战斗策划，主要管怪物与 Boss：把「这一刀为什么爽」拆成可执行的规则，再把这些规则变成能调、能评审的参数表。,在用,
-brief.intro.2,简介页/自述,日常是三件事：拆解已有的动作游戏（18 章、6.7 万字）、把打击反馈拆成分档参数、以及在项目里把怪物的行为逻辑写成别人也能读懂的设计文档。,在用,
-brief.intro.3,简介页/自述,业余在折腾 AI 小工具 —— 本站、面试记录归档、背诵卡片都是自己写自己用的。不算产品，但都在跑。,在用,
-brief.tagline.1,简介页/身份,动作游戏 · 战斗策划,在用,右上那块的第一行
-brief.tagline.2,简介页/身份,怪物 / Boss / 打击反馈,在用,
-brief.tagline.3,简介页/身份,在职 · 可聊,在用,
-brief.sec.about,简介页/小标题,自述,在用,
-brief.sec.work,简介页/小标题,工作经历,在用,
-brief.work.empty,简介页/空状态,还没有内容 —— 简历导入后按「年份区间 · 公司 · 职位 · 一句话」自动排进来。,在用,
-brief.cta,简介页/按钮,看拆解 →,在用,
-brief.pdf,简介页/附件,简历 PDF · 待补,在用,
-home.nav.brief,首页/菜单,简介,在用,
-home.nav.works,首页/菜单,作品,在用,
-home.nav.articles,首页/菜单,文章,在用,
-home.nav.contact,首页/菜单,联系,在用,
-home.nav.abyss,首页/菜单,阿比斯,在用,
-home.social.mail,首页/联系方式,邮件,在用,右下角
-home.boot.0,首页/自检行,系统检查开始,在用,
-home.boot.1,首页/自检行,权限等级：{n},在用,{n} 由本地存储覆盖，默认 4
-home.boot.2,首页/自检行,文章索引：{n} 章 · 通过,在用,
-home.boot.3,首页/自检行,拆解字数：{n} 万 · 已读入,在用,
-home.boot.4,首页/自检行,作品档案：5 项 · 已挂载,在用,
-home.boot.5,首页/自检行,素材库：{n} 张 · 已索引,在用,
-home.boot.6,首页/自检行,体验记录：已归档,在用,
-home.boot.7,首页/自检行,Boss 模组：已解析,在用,
-home.boot.8,首页/自检行,帧数档位：已载入,在用,
-home.boot.9,首页/自检行,打击分解：顿帧 / 震屏 · 就绪,在用,
-home.boot.10,首页/自检行,韧性规则：已上线,在用,
-home.boot.11,首页/自检行,可玩验证：阿比斯 v0.6 · 通过,在用,
-home.boot.12,首页/自检行,渲染管线：准备中,在用,
-home.boot.13,首页/自检行,MP 残量检查：100%,在用,
-home.boot.14,首页/自检行,战斗准备完成,在用,
-home.fault,首页/乱码底串,PORTFOLIO · HUANG CHENRUI · 战斗策划,在用,被撕成乱码前的那行字
-home.loading.1,首页/加载,LOADING,在用,
-home.loading.2,首页/加载,_ 系统启动中..,在用,
-home.reading,首页/加载,系统读取中,在用,
-home.signal.break,首页/彩蛋,信号中断,在用,阿比斯那项的信号动效
-home.role.fallback,首页/身份兜底,动作游戏战斗策划,在用,简介内容里没写时用这个
+ui.back,ͨ��/����,����,����,�浵̬���½��Ǹ� �� ����
+ui.back.label,ͨ��/����,�ص��������,����,�����ã�aria-label��
+ui.open,ͨ��/��ť,��,����,��Ʒҳ hero ������ť
+ui.more,ͨ��/��ť,����,����,hero �ұ��Ǹ� ??? �� aria-label
+ui.more.pending,ͨ��/״̬,������,����,û���ݵ���Ŀ�����Ǿ䣨���֣�
+ui.imported,ͨ��/״̬,�ѵ��� {n} ��,����,{n} ���Զ��滻������
+works.tile.game-demo.name,��Ʒҳ/����,��Ϸ DEMO,����,
+works.tile.game-demo.en,��Ʒҳ/����,GAME DEMO,����,Ӣ�ĸ���
+works.tile.game-demo.note,��Ʒҳ/����,�� UE5 ������Ƭ���淨ԭ��,����,
+works.tile.combat.name,��Ʒҳ/����,ս�߾���,����,
+works.tile.combat.en,��Ʒҳ/����,COMBAT DESIGN,����,
+works.tile.combat.note,��Ʒҳ/����,ս��ϵͳ��⡢��ֵ���ָ���صıʼ�,����,
+works.tile.ai.name,��Ʒҳ/����,AI ����,����,
+works.tile.ai.en,��Ʒҳ/����,AI FEATURES,����,
+works.tile.ai.note,��Ʒҳ/����,���Լ�������agent ��ɱ��������Ĺ���ģ��,����,
+works.tile.bass.name,��Ʒҳ/����,��˹����,����,
+works.tile.bass.en,��Ʒҳ/����,BASS,����,
+works.tile.bass.note,��Ʒҳ/����,ҵ�൯�Ķ����������ã�����֤����,����,
+works.tile.vfx.name,��Ʒҳ/����,��Ч��Ʒ,����,
+works.tile.vfx.en,��Ʒҳ/����,VFX,����,
+works.tile.vfx.note,��Ʒҳ/����,ѧս��demoʱ��˳��ѧ��VFX��������Ʒ�浵,����,
+works.stat.title,��Ʒҳ/��������,��������,����,���½�����С��
+works.stat.unit,��Ʒҳ/��������,����������,����,
+works.archive.title,��Ч�浵/����,��Ч��Ʒ�浵,����,���м��ҳ�����Ҳ�����
+works.archive.channel,��Ч�浵/Ƶ����,��Ч��Ʒ,����,Ƶ��������������С��
+works.archive.play,��Ч�浵/��ʾ,Enter ����,����,ѡ�п����½�
+works.card.date,��Ч�浵/����,2023��11��,����,���ſ����õ�����
+works.card.01,��Ч�浵/��Ƭ,����,����,������������ģ����ܸ���
+works.card.02,��Ч�浵/��Ƭ,����,����,
+works.card.03,��Ч�浵/��Ƭ,����,����,
+works.card.04,��Ч�浵/��Ƭ,����,����,
+works.card.05,��Ч�浵/��Ƭ,׹��,����,
+articles.title,����ҳ/Ĭ�ϱ���,����,����,��ûѡ�κη���ʱ��ʾ��
+articles.en,����ҳ/Ӣ��,ARTICLES �� 3 �� �� {n} ƪ,����,{n} ����ƪ�����Զ���
+articles.note,����ҳ/Ĭ��˵��,���������ŵ�д������������ / ��ɫ / ������,����,
+articles.open,����ҳ/��ť,��,����,
+articles.openFolder,����ҳ/��ť,���ļ���,����,�ڸ��㼶ʱ�����
+articles.back,����ҳ/��ť,�����ļ���,����,
+articles.folder.monster,����ҳ/�ļ���,����,����,���������ļ���
+articles.folder.character,����ҳ/�ļ���,��ɫ,����,
+articles.folder.method,����ҳ/�ļ���,����,����,�鵽����������
+articles.set.monster.name,����ҳ/����,����,����,
+articles.set.monster.en,����ҳ/����,MONSTERS,����,
+articles.set.monster.note,����ҳ/����,ս���߻�����ʼ�,����,
+articles.set.character.name,����ҳ/����,��ɫ,����,
+articles.set.character.en,����ҳ/����,CHARACTERS,����,
+articles.set.character.note,����ҳ/����,��ɫ�������̣�δ����,����,
+articles.set.other.name,����ҳ/����,����,����,
+articles.set.other.en,����ҳ/����,OTHERS,����,
+articles.set.other.note,����ҳ/����,���������ƪ,����,
+ai.hero.en,AI ҳ/Ӣ�Ķ���,AI FEATURES,����,��ĿûдӢ��ʱ�����
+ai.locked,AI ҳ/ռλ,δ����,����,������Ŀ��ռλ��
+ai.locked.note,AI ҳ/��ʾ,δ����,����,
+ai.forbidden,AI ҳ/��ʾ,Ȩ�޲���,����,
+contact.mail.name,��ϵҳ/Ƶ��,�ʼ�,����,
+contact.mail.note,��ϵҳ/Ƶ��,{email} ,����,{email} ���Զ������������
+contact.mail.copy,��ϵҳ/��ť,���Ƶ�ַ,����,
+contact.mail.copied,��ϵҳ/��ť,? �Ѹ���,����,����֮��ķ���
+contact.mail.alt,��ϵҳ/��ť,ֱ�ӷ���,����,
+contact.bilibili.name,��ϵҳ/Ƶ��,B վ,����,
+contact.bilibili.note,��ϵҳ/Ƶ��,�ճ�����������,����,
+contact.bilibili.open,��ϵҳ/��ť,����ҳ,����,
+contact.github.name,��ϵҳ/Ƶ��,GitHub,����,
+contact.github.note,��ϵҳ/Ƶ��,���ߡ��ű����������վ�����Ĵ˼·,����,
+contact.github.open,��ϵҳ/��ť,����ҳ,����,
+contact.wechat.name,��ϵҳ/Ƶ��,΢��,����,
+contact.wechat.note,��ϵҳ/Ƶ��,���ںš�{name}����ɨ���,����,{name} �ǹ��ں���
+contact.wechat.qr,��ϵҳ/��ť,����ά��,����,
+contact.qr.caption,��ϵҳ/ͼע,΢��ɨ��,����,
+brief.intro.1,���ҳ/����,��ã��ҽлƳ��һ��ս���߻�����Ҫ���������ơ� ���ú�ɢ���о����϶����� ���� �����˾����������������վ�� ��⡢��Ʒ�������Լ�д���õĹ��ߣ����������,����,
+brief.intro.2,���ҳ/����,,����,
+brief.intro.3,���ҳ/����,,����,
+brief.tagline.1,���ҳ/����,������Ϸ �� ս���߻�,����,�����ǿ�ĵ�һ��
+brief.tagline.2,���ҳ/����,����,����,
+brief.tagline.3,���ҳ/����,��ְ ,����,
+brief.sec.about,���ҳ/С����,����,����,
+brief.sec.work,���ҳ/С����,��������,����,
+brief.work.empty,���ҳ/��״̬,��û������ ���� ������������,����,
+brief.cta,���ҳ/��ť,����� ��,����,
+brief.pdf,���ҳ/����,���� PDF �� ����,����,
+home.nav.brief,��ҳ/�˵�,���,����,
+home.nav.works,��ҳ/�˵�,��Ʒ,����,
+home.nav.articles,��ҳ/�˵�,����,����,
+home.nav.contact,��ҳ/�˵�,��ϵ,����,
+home.nav.abyss,��ҳ/�˵�,����˹,����,
+home.social.mail,��ҳ/��ϵ��ʽ,�ʼ�,����,���½�
+home.boot.0,��ҳ/�Լ���,ϵͳ��鿪ʼ,����,
+home.boot.1,��ҳ/�Լ���,Ȩ�޵ȼ���{n},����,{n} �ɱ��ش洢���ǣ�Ĭ�� 4
+home.boot.2,��ҳ/�Լ���,����������{n} �� �� ͨ��,����,
+home.boot.3,��ҳ/�Լ���,���������{n} �� �� �Ѷ���,����,
+home.boot.4,��ҳ/�Լ���,��Ʒ������5 �� �� �ѹ���,����,
+home.boot.5,��ҳ/�Լ���,�زĿ⣺{n} �� �� ������,����,
+home.boot.6,��ҳ/�Լ���,�����¼���ѹ鵵,����,
+home.boot.7,��ҳ/�Լ���,Boss ģ�飺�ѽ���,����,
+home.boot.8,��ҳ/�Լ���,֡����λ��������,����,
+home.boot.9,��ҳ/�Լ���,����ֽ⣺��֡ / ���� �� ����,����,
+home.boot.10,��ҳ/�Լ���,���Թ���������,����,
+home.boot.11,��ҳ/�Լ���,������֤������˹ v0.6 �� ͨ��,����,
+home.boot.12,��ҳ/�Լ���,��Ⱦ���ߣ�׼����,����,
+home.boot.13,��ҳ/�Լ���,MP ������飺100%,����,
+home.boot.14,��ҳ/�Լ���,ս��׼�����,����,
+home.fault,��ҳ/����״�,PORTFOLIO �� HUANG CHENRUI �� ս���߻�,����,��˺������ǰ��������
+home.loading.1,��ҳ/����,LOADING,����,
+home.loading.2,��ҳ/����,_ ϵͳ������..,����,
+home.reading,��ҳ/����,ϵͳ��ȡ��,����,
+home.signal.break,��ҳ/�ʵ�,�ź��ж�,����,����˹������źŶ�Ч
+home.role.fallback,��ҳ/���ݶ���,������Ϸս���߻�,����,���������ûдʱ�����

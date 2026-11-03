@@ -13,10 +13,14 @@
 
 import { COPY } from './copy.generated';
 
-/** 取一条文案 */
+/**
+ * 取一条文案
+ *
+ * 表里「有这一行」就用表里的值（哪怕 zh 是空的 —— 空表示"这条先不显示"）；
+ * 表里「没这一行」才用兜底字。所以"清空"和"删行"是两种意思。
+ */
 export function t(id: string, fallback = ''): string {
-  const value = COPY[id];
-  return value === undefined || value === '' ? fallback : value;
+  return id in COPY ? COPY[id] : fallback;
 }
 
 /** 取一条文案并把 {n} 之类的占位换掉 */
