@@ -153,6 +153,8 @@ const archiveData = JSON.stringify(archiveChannels);
               data-en={it.en}
               data-note={it.note}
               data-note-html={it.noteHtml}
+              data-count={n[it.id] ?? 0}
+              data-ready={it.state === '已有内容' ? '1' : '0'}
               style={`--tone:${it.tone}`}
             >
               <span class="crt-art" aria-hidden="true" />
@@ -183,7 +185,7 @@ const archiveData = JSON.stringify(archiveChannels);
 
     <aside class="ws-card">
       <div class="k">{t('works.stat.title', '整理进度')}</div>
-      <div class="row"><b>{ready} / {list.length}</b><span>{t('works.stat.unit', '已整理方向')}</span></div>
+      <div class="row"><b data-stat>{ready} / {list.length}</b><span>{t('works.stat.unit', '已整理方向')}</span></div>
     </aside>
 
     {/* ============================================================
@@ -234,6 +236,8 @@ const archiveData = JSON.stringify(archiveChannels);
 <script>
   import { attachCrt, powerOn, powerOff } from '../scripts/crt-tv';
   import { initArchive } from '../scripts/archive';
+  import { dissolveTile, removeAndShift } from '../scripts/dissolve';
+  import { worldlineSwap } from '../scripts/worldline';
   import { t } from '../data/copy';
 
   const rail = document.querySelector('[data-rail]');
@@ -326,6 +330,95 @@ const archiveData = JSON.stringify(archiveChannels);
     else applyHero();
   };
 
+  /* ============================================================
+     战策经验：数据销毁
+     ------------------------------------------------------------
+     点它不跳文章页，而是把这格屏"删掉"：递减 → 崩解 → 收线，
+     下方打出「权限不足」，再用世界线噪声把字换掉，最后整排左移补位。
+     销毁后**不自动选中**任何方向（按 → 才选第一个）。
+     ============================================================ */
+  const combatTile = tiles.find((t) => (t.getAttribute('href') ?? '') === '/articles/?from=combat') ?? null;
+  combatTile?.setAttribute('data-no-xfer', '');
+  let destroying = false;
+
+  const sleep = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
+
+  const typeInto = async (el: HTMLElement, text: string, ms = 72): Promise<void> => {
+    el.textContent = '';
+    for (let i = 1; i <= text.length; i += 1) {
+      el.textContent = text.slice(0, i);
+      await sleep(ms);
+    }
+  };
+
+  const updateStat = (): void => {
+    const statEl = document.querySelector<HTMLElement>('[data-stat]');
+    if (!statEl) return;
+    const ready = tiles.filter((t) => t.dataset.ready === '1').length;
+    statEl.textContent = `${ready} / ${tiles.length}`;
+  };
+
+  const destroyCombat = async (): Promise<void> => {
+    if (!combatTile || destroying) return;
+    destroying = true;
+    combatTile.setAttribute('aria-disabled', 'true');
+    combatTile.style.pointerEvents = 'none';
+
+    /* 先把选中挪到这一格：不然下方写的是别的方向的名字，点它却把它销毁了 */
+    const at = tiles.indexOf(combatTile);
+    if (at >= 0 && at !== current) {
+      select(at, { animate: false });
+      await sleep(160);
+    }
+
+    /* 第 1–3 幕：递减 + 崩解 + 收线 */
+    await dissolveTile(combatTile, { count: Number(combatTile.dataset.count) || 0 });
+
+    /* 下方：权限不足（打字机） */
+    if (titleEl) await typeInto(titleEl, t('works.combat.denied', '权限不足'));
+    if (enEl) enEl.textContent = t('works.combat.restricted', 'RESTRICTED');
+    if (noteEl) noteEl.textContent = '';
+    if (goEl) goEl.hidden = true;
+
+    await sleep(140);
+
+    /* 第 4 幕：世界线噪声替换 —— 噪声最密时把字清空 */
+    if (hero) {
+      await worldlineSwap(hero, {
+        swap: () => {
+          if (titleEl) titleEl.textContent = '';
+          if (enEl) enEl.textContent = '';
+          if (noteEl) noteEl.textContent = '';
+        },
+      });
+    }
+
+    /* 左移补位：剩下的从旧位置滑到新位置 */
+    const rest = tiles.filter((tile) => tile !== combatTile);
+    await removeAndShift(combatTile, rest);
+
+    /* 不选中任何方向；把数组和计数更新掉 */
+    for (const tile of rest) tile.classList.remove('is-on');
+    current = -1;
+    const gone = tiles.indexOf(combatTile);
+    if (gone >= 0) tiles.splice(gone, 1);
+    updateStat();
+
+    /* 没有选中项了：把轨道和 hero 一起收干净 */
+    document.querySelector('.ws-rail')?.classList.add('no-selection');
+    document.querySelector('.ws-hero')?.classList.add('is-empty');
+    if (goEl) goEl.hidden = true;
+    document.querySelector<HTMLElement>('.ws-more')?.setAttribute('hidden', '');
+
+    /* 剩下的重新编号（CH 03 → CH 02 …），像它从来没存在过 */
+    for (const [k, tile] of tiles.entries()) {
+      const num = tile.querySelector<HTMLElement>('.ws-num');
+      if (num) num.textContent = String(k + 1).padStart(2, '0');
+    }
+
+    if (combatTile) combatTile.remove();
+  };
+
 
   for (const [i, tile] of tiles.entries()) {
     // 鼠标移到哪块，哪块就选中（变大 + 开机，其余关掉）；
@@ -349,6 +442,12 @@ const archiveData = JSON.stringify(archiveChannels);
           event.preventDefault();
           select(i);
         }
+        return;
+      }
+      // 战策经验：不跳转，走"数据销毁"（见 destroyCombat）
+      if (tile === combatTile) {
+        event.preventDefault();
+        void destroyCombat();
         return;
       }
       // 有真地址的（比如 AI 功能 → /works/ai/）让它正常跳过去，
@@ -461,7 +560,7 @@ const archiveData = JSON.stringify(archiveChannels);
         return;
       }
       /* 存档态下点别的方向 = 换频道：先退出存档，再按它自己的规则走 */
-      if (archive.open) {
+      if (archive.opened) {
         archive.close();
         const href = tile.getAttribute('href') ?? '';
         if (href.startsWith('#')) {

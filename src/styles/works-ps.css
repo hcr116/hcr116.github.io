@@ -1497,3 +1497,147 @@ html.is-vfx-playing .ws-bar {
     white-space: nowrap;
   }
 }
+
+/* ==========================================================================
+   数据销毁（战策经验）
+   --------------------------------------------------------------------------
+   四幕：递减 → 切片崩解 + 闪白 → 收成亮线 → 交接给「权限不足」。
+   时机由 scripts/dissolve.ts 用 setTimeout 推进，这里只负责长相。
+   ========================================================================== */
+
+.ws-tile.is-dissolving {
+  pointer-events: none;
+}
+
+.ds-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+/* 切片：每片带一点屏幕的底噪，错位飞散时像"屏在碎" */
+.ds-strip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background:
+    linear-gradient(180deg, rgba(198, 231, 243, 0.07), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
+    #0b0d13;
+  will-change: transform, opacity;
+}
+
+/* 闪白一帧 */
+.ds-flash {
+  position: absolute;
+  inset: 0;
+  background: #dff2fb;
+  opacity: 0;
+  transition: opacity 60ms linear;
+}
+
+.ds-flash.is-on {
+  opacity: 0.42;
+}
+
+/* 计数行：贴在左下，等宽小字 */
+.ds-count {
+  position: absolute;
+  left: 6px;
+  bottom: 5px;
+  font-family: 'Zpix', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: rgba(198, 231, 243, 0.85);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 收束：整层塌成中线一条亮线 */
+.ds-layer.is-collapse {
+  transition: transform 220ms ease-in, filter 220ms ease-in;
+  transform: scaleY(0.012);
+  filter: brightness(2.4);
+}
+
+/* ---------- 世界线噪声（盖在下方大字区上） ---------- */
+
+.wl-noise {
+  position: absolute;
+  inset: -6px -10px;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 90ms linear;
+  mix-blend-mode: screen;
+}
+
+.wl-noise.is-on {
+  opacity: 0.85;
+}
+
+.wl-noise.is-peak {
+  opacity: 1;
+}
+
+/* 抽走：整层向右滑出，同时淡掉 */
+.wl-noise.is-sweep {
+  transition: transform 150ms cubic-bezier(0.4, 0, 1, 1), opacity 150ms linear;
+  transform: translateX(14%);
+  opacity: 0;
+}
+
+.wl-noise i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: block;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(198, 231, 243, 0.5) 0 1px,
+      rgba(10, 12, 18, 0.85) 1px 3px
+    );
+  animation: wl-flicker 0.32s steps(3) infinite;
+}
+
+@keyframes wl-flicker {
+  0% { opacity: 0.55; transform: translateY(0); }
+  50% { opacity: 0.95; transform: translateY(-2px); }
+  100% { opacity: 0.7; transform: translateY(1px); }
+}
+
+/* 关掉动效时，这套演出不该有 */
+@media (prefers-reduced-motion: reduce) {
+  .wl-noise i {
+    animation: none;
+  }
+}
+
+/* 收束阶段：方块自己的边框和底也一起淡掉，别留一个空框 */
+.ws-tile.is-collapsing {
+  border-color: transparent !important;
+  background-color: transparent;
+  opacity: 0;
+  transition: opacity 200ms linear, border-color 200ms linear;
+}
+
+/* 销毁后没有选中项：那个"右侧大字"也该消失，别留个孤儿 */
+.ws-rail.no-selection .ws-inline,
+.ws-rail.no-selection .ws-ch-name {
+  opacity: 0;
+}
+
+/* hero 里的按钮被 hidden 时真的别显示（.ws-play 是 inline-flex，会盖掉 hidden） */
+.ws-hero [hidden],
+.ws-play[hidden] {
+  display: none !important;
+}
+
+/* 没有选中项时，hero 里不该剩任何可点的东西 */
+.ws-hero.is-empty .ws-actions {
+  opacity: 0;
+  pointer-events: none;
+}

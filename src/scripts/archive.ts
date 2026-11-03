@@ -62,7 +62,8 @@ export type ArchiveOptions = {
 };
 
 export type ArchiveHandle = {
-  readonly open: boolean;
+  /** 存档层是否开着 */
+  readonly opened: boolean;
   readonly index: number;
   readonly channelId: string;
   open: (channelId: string, animate?: boolean) => void;
@@ -474,7 +475,7 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
   }
 
   return {
-    get open() {
+    get opened() {
       return isOpen;
     },
     get index() {
