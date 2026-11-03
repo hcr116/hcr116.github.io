@@ -172,12 +172,13 @@ const crumbs = crumbParts.map((seg, i) => {
 
     <script>
       // 换页转场：xferIn 揭开上一页留下的幕布，bindXfer 给所有站内链接接上出发动画
-      import { xferIn, bindXfer, bindXferLifecycle } from '../scripts/xfer';
+      import { xferIn, bindXfer, bindXferLifecycle, bindPrefetch } from '../scripts/xfer';
       import { attachSfx } from '../scripts/sfx';
 
       xferIn();
       bindXfer();
       bindXferLifecycle();
+      bindPrefetch();
       attachSfx();
     </script>
 

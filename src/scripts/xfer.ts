@@ -116,6 +116,47 @@ export function bindXfer(): void {
   );
 }
 
+/* --------------------------------------------------------------------------
+   预取：鼠标移到站内链接上（或键盘聚焦）就先把下一页拉进缓存。
+   静态站每次点击都是真实跳转，这一下能把"黑幕揭开时页面还没到"的空档抹平。
+   -------------------------------------------------------------------------- */
+
+const prefetched = new Set<string>();
+
+function prefetch(url: string): void {
+  if (prefetched.has(url)) return;
+  prefetched.add(url);
+  const link = document.createElement('link');
+  link.rel = 'prefetch';
+  link.href = url;
+  link.as = 'document';
+  document.head.append(link);
+}
+
+function maybePrefetch(target: EventTarget | null): void {
+  const link = (target as Element | null)?.closest?.('a');
+  if (!(link instanceof HTMLAnchorElement)) return;
+  if (link.target && link.target !== '_self') return;
+  if (link.hasAttribute('download')) return;
+  if (link.hasAttribute('data-no-xfer')) return;
+
+  const href = link.getAttribute('href');
+  if (!href || href.startsWith('#')) return;
+  if (/^(mailto:|tel:|javascript:)/i.test(href)) return;
+
+  const url = new URL(link.href, location.href);
+  if (url.origin !== location.origin) return;
+  if (url.pathname === location.pathname && url.search === location.search) return;
+
+  prefetch(url.href);
+}
+
+/** 给站内链接挂上"悬停预取"（只挂一次） */
+export function bindPrefetch(): void {
+  document.addEventListener('pointerover', (event) => maybePrefetch(event.target), { passive: true });
+  document.addEventListener('focusin', (event) => maybePrefetch(event.target));
+}
+
 /** 到达：上一页留了标记就揭开黑幕 */
 export function xferIn(): void {
   const root = document.documentElement;
@@ -141,23 +182,43 @@ export function xferIn(): void {
   const veil = ensureVeil();
   void veil.offsetWidth;
 
-  requestAnimationFrame(() => {
+  const lift = (): void => {
     requestAnimationFrame(() => {
-      root.classList.add('xf-run');
+      requestAnimationFrame(() => {
+        root.classList.add('xf-run');
 
-      window.setTimeout(() => {
-        root.classList.remove(
-          'xf-entering',
-          'xf-run',
-          'xf-connect',
-          'xf-scan',
-          'xf-slide',
-          'xf-soft',
-        );
-        veil.style.transform = '';
-      }, IN_MS);
+        window.setTimeout(() => {
+          root.classList.remove(
+            'xf-entering',
+            'xf-run',
+            'xf-connect',
+            'xf-scan',
+            'xf-slide',
+            'xf-soft',
+          );
+          veil.style.transform = '';
+        }, IN_MS);
+      });
     });
-  });
+  };
+
+  /* 等新页画完再揭幕：静态站每次都是真实跳转，
+     如果固定 520ms 就揭开，字体/图片还没到，会"白一下再跳出来"。
+     兜底 900ms —— 再慢也不能让人对着黑屏干等。 */
+  if (document.readyState === 'complete') {
+    lift();
+    return;
+  }
+
+  const fallback = window.setTimeout(lift, 900);
+  window.addEventListener(
+    'load',
+    () => {
+      window.clearTimeout(fallback);
+      lift();
+    },
+    { once: true },
+  );
 }
 
 /** 浏览器前进/后退时收拾现场（bfcache 恢复时脚本不会重跑） */
