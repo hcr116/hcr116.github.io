@@ -179,6 +179,36 @@ const CASES = [
     `,
   },
   {
+    id: 'works-history',
+    page: 'works',
+    title: '作品页：URL / 后退 — 关掉存档后地址栏干净，浏览器后退能关',
+    code: `
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const shell = document.querySelector('.ws-main');
+      const out = [];
+      const check = (name, ok, info = '') => out.push({ name, ok: !!ok, info });
+      const tile = [...document.querySelectorAll('.ws-rail .ws-tile')]
+        .find((t) => t.getAttribute('href') === '#vfx');
+
+      tile && tile.click();
+      await sleep(400);
+      check('开存档后 URL 带 ch', location.search.includes('ch='), location.search);
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      await sleep(300);
+      check('关存档后 URL 干净', !location.search.includes('ch='), location.search || '(空)');
+      check('关存档后类名去掉', !shell.classList.contains('is-vfx'));
+
+      tile && tile.click();
+      await sleep(400);
+      history.back();
+      await sleep(500);
+      check('浏览器后退能关存档', !shell.classList.contains('is-vfx'));
+
+      return out;
+    `,
+  },
+  {
     id: 'works-rail',
     page: 'works',
     title: '作品页 rail：方向键换方向、hero 跟着变',
