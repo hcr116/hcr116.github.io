@@ -92,6 +92,8 @@ export function bindXfer(): void {
       if (link.hasAttribute('data-abyss')) return;
       // 未公开条目自己处理（乱码 → 权限不足 → 消失），不要跳转
       if (link.closest('[data-locked]')) return;
+      // 页面自己接管这个链接（作品页点「特效作品」是原地展开，不是换页）
+      if (link.hasAttribute('data-no-xfer')) return;
 
       // 新标签页 / 下载 / 纯锚点 / 外链：一律放行
       if (link.target && link.target !== '_self') return;

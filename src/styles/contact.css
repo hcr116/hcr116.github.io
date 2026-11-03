@@ -385,22 +385,7 @@
 
 /* ---------- 底栏 ---------- */
 
-.ab-bar {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  padding: 0 0 18px;
-  color: rgba(255, 255, 255, 0.35);
-  font-family: 'Zpix', monospace;
-  font-size: 12px;
-  letter-spacing: 2px;
-}
 
-.ab-bar .line {
-  flex: 1;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.08);
-}
 
 /* ---------- 窄屏 ---------- */
 

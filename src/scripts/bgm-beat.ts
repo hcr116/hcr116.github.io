@@ -1,21 +1,33 @@
 /**
- * 背景音乐的节拍检测
+ * 背景音乐的节拍 / 能量检测
  * ------------------------------------------------------------------
- * 把 <audio> 接到 Web Audio 上，用一个 AnalyserNode 只看低频段：
- * 能量明显高出滑动平均就算一拍，往 window 上抛 `bgm:beat`。
- * 音乐暂停 / 音量为 0 时抛 `bgm:idle`，页面据此停掉一切律动。
+ * 把 <audio> 接到 Web Audio 上，用 AnalyserNode 只看中频段：
+ *   · 能量明显高出滑动平均 → 抛 `bgm:beat`（离散的"这一下"）
+ *   · 每帧的能量按最近峰值归一化 → 抛 `bgm:level`（0~1 的连续值）
  *
- * 为什么不按 BPM 设个定时器：
- * 曲子是固定的，但换曲、前奏、间奏都会让定时器立刻和音乐错开，
- * 而「跟着音乐抖但错开半拍」比完全不抖更难受。真的去测能量反而更稳。
+ * 为什么要换频段：原来只听 200Hz 以下（底鼓/贝斯），那是对着电子乐调的。
+ * 现在这首是 エミール —— 钢琴 + 合唱，能量全在 300–2000Hz，
+ * 继续听低频等于什么都没听到，标题就不会呼吸。
+ * fftSize 1024 @44.1kHz → 每桶约 43Hz，300Hz≈第 7 桶，2000Hz≈第 46 桶。
+ *
+ * 为什么不按 BPM 设个定时器：曲子固定，但换曲、前奏、间奏都会让定时器错开半拍，
+ * 「跟着音乐抖但错开」比完全不抖更难受。真的去测能量反而更稳。
  *
  * 注意：createMediaElementSource 一旦调用，<audio> 就不再直接出声，
- * 必须接回 destination，否则音乐直接没了。所以只在「确实开始播放」之后才建图。
+ * 必须接回 destination，否则音乐直接没了。所以只在确实开始播放之后才建图。
  */
 
 type BeatDetail = { level: number };
 
 let wired = false;
+
+const BIN_FROM = 7;
+const BIN_TO = 46;
+
+const RATIO = 1.18; // 中频起伏比低频平缓，阈值放低一点
+const FLOOR = 0.05;
+const REFRACTORY = 240; // 两拍之间至少隔这么久
+const LEVEL_GAP = 33; // bgm:level 大约 30fps，够用又不浪费
 
 export function attachBgmBeat(audio: HTMLAudioElement): void {
   if (wired || typeof window === 'undefined') return;
@@ -32,14 +44,9 @@ export function attachBgmBeat(audio: HTMLAudioElement): void {
   let data: Uint8Array | null = null;
   let raf = 0;
   let avg = 0;
+  let peak = 0;
   let lastBeat = 0;
-
-  // 实测这支曲子（135 秒的慢速电子）：低频段标准差约 0.21，
-  // 用「超过滑动平均 1.22 倍」判一拍，8 秒里能落到 11 下左右，差不多是歌的拍子。
-  // 之前用 1.35 倍 + 平滑 0.62，结果一次都不触发——阈值比曲子本身的起伏还高。
-  const RATIO = 1.26;
-  const FLOOR = 0.08;
-  const REFRACTORY = 260;
+  let lastLevel = 0;
 
   const ensureGraph = (): boolean => {
     if (ctx && analyser && data) return true;
@@ -65,24 +72,31 @@ export function attachBgmBeat(audio: HTMLAudioElement): void {
     raf = requestAnimationFrame(tick);
     if (!analyser || !data || !ctx) return;
 
-    analyser.getByteFrequencyData(data);
+    analyser.getByteFrequencyData(data as Uint8Array<ArrayBuffer>);
 
-    // 只数低频：fftSize 1024 时一个桶约 43Hz，取前 4 个桶 ≈ 200Hz 以下（底鼓/贝斯）
-    const bins = Math.min(4, data.length);
+    const from = Math.min(BIN_FROM, data.length - 1);
+    const to = Math.min(BIN_TO, data.length);
     let sum = 0;
-    for (let i = 0; i < bins; i += 1) sum += data[i];
-    const energy = sum / bins / 255;
+    for (let i = from; i < to; i += 1) sum += data[i];
+    const energy = sum / Math.max(1, to - from) / 255;
 
-    // 滑动平均的时间常数要按「每帧都跑」来算：60fps 下 0.97/0.03 ≈ 半秒窗口，
-    // 窗口太短的话平均线会跟着自己跑，随便一点起伏都算一拍。
+    // 滑动平均：60fps 下 0.97/0.03 ≈ 半秒窗口；窗口太短平均线会跟着自己跑
     avg = avg * 0.97 + energy * 0.03;
 
+    // 峰值包络：慢慢衰减，用来把 energy 归一化到 0~1
+    peak = Math.max(energy, peak * 0.995);
+    const level = peak > 0.001 ? Math.min(1, energy / peak) : 0;
+
     const now = performance.now();
+
+    if (now - lastLevel > LEVEL_GAP) {
+      lastLevel = now;
+      window.dispatchEvent(new CustomEvent<BeatDetail>('bgm:level', { detail: { level } }));
+    }
+
     if (energy > FLOOR && energy > avg * RATIO && now - lastBeat > REFRACTORY) {
       lastBeat = now;
-      window.dispatchEvent(
-        new CustomEvent<BeatDetail>('bgm:beat', { detail: { level: energy } }),
-      );
+      window.dispatchEvent(new CustomEvent<BeatDetail>('bgm:beat', { detail: { level } }));
     }
   };
 
@@ -97,6 +111,7 @@ export function attachBgmBeat(audio: HTMLAudioElement): void {
     cancelAnimationFrame(raf);
     raf = 0;
     avg = 0;
+    peak = 0;
     window.dispatchEvent(new CustomEvent('bgm:idle'));
   };
 

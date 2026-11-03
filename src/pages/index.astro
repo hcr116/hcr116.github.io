@@ -1,25 +1,28 @@
 ---
 import { getEntry } from 'astro:content';
 import Base from '../layouts/Base.astro';
+import { t as ct, tf } from '../data/copy';
 import { SITE } from '../consts';
 import { countCombat, countCombatWords, countImages } from '../data/counts';
 import '../styles/menu-glitch.css';
 import '../styles/boot.css';
+import '../styles/title-look3.css';
+import '../styles/title-breath.css';
 
 // 副标题可以在后台「首页 · 文案」里改
 const home = await getEntry('home', 'home');
-const role = home?.data.subtitle || '动作游戏战斗策划';
+const role = home?.data.subtitle || ct('home.role.fallback', '动作游戏战斗策划');
 
 // 标题画面上的名字（视频那里是 NieR:Automata，这里是自己的）
 const LOGO = 'HuangChenRui';
 
 // 五项菜单：阿比斯带 signal 动效，和其它项一样可点
 const menuAll = [
-  { label: '简介', href: '/brief/' },
-  { label: '作品', href: '/works/' },
-  { label: '文章', href: '/articles/' },
-  { label: '联系', href: '/about/' },
-  { label: '阿比斯', href: '/abyss/', signal: true },
+  { label: ct('home.nav.brief', '简介'), href: '/brief/' },
+  { label: ct('home.nav.works', '作品'), href: '/works/' },
+  { label: ct('home.nav.articles', '文章'), href: '/articles/' },
+  { label: ct('home.nav.contact', '联系'), href: '/about/' },
+  { label: ct('home.nav.abyss', '阿比斯'), href: '/abyss/', signal: true },
 ];
 
 // 阿比斯和其它项一样：只是个入口，带信号动效，点进去到 /abyss/
@@ -29,32 +32,52 @@ const menu = menuAll;
 // 右下角的联系方式：B 站 / GitHub / 邮件
 const social = [
   ...SITE.links.map((l) => ({ label: l.label, href: l.href })),
-  { label: '邮件', href: `mailto:${SITE.email}` },
+  { label: ct('home.social.mail', '邮件'), href: `mailto:${SITE.email}` },
 ];
 
 /* 自检行：一句一行，像机器在自言自语。
  * 带数字的几行都是**真数**（src/data/counts.ts 现算），没数据源的只写动作词，不编数字。
  * 「权限等级」这行的数字由脚本按 localStorage 覆盖，默认 4。 */
 const bootLines = [
-  '系统检查开始',
-  `权限等级：4`,
-  `文章索引：${countCombat()} 章 · 通过`,
-  `拆解字数：${(countCombatWords() / 10000).toFixed(1)} 万 · 已读入`,
-  `作品档案：5 项 · 已挂载`,
-  `素材库：${countImages()} 张 · 已索引`,
-  '体验记录：已归档',
-  'Boss 模组：已解析',
-  '帧数档位：已载入',
-  '打击分解：顿帧 / 震屏 · 就绪',
-  '韧性规则：已上线',
-  '可玩验证：阿比斯 v0.6 · 通过',
-  '渲染管线：准备中',
-  'MP 残量检查：100%',
-  '战斗准备完成',
+  ct('home.boot.0', '系统检查开始'),
+  tf('home.boot.1', { n: 4 }, '权限等级：{n}'),
+  tf('home.boot.2', { n: countCombat() }, '文章索引：{n} 章 · 通过'),
+  tf('home.boot.3', { n: (countCombatWords() / 10000).toFixed(1) }, '拆解字数：{n} 万 · 已读入'),
+  tf('home.boot.4', { n: 5 }, '作品档案：{n} 项 · 已挂载'),
+  tf('home.boot.5', { n: countImages() }, '素材库：{n} 张 · 已索引'),
+  ct('home.boot.6', '体验记录：已归档'),
+  ct('home.boot.7', 'Boss 模组：已解析'),
+  ct('home.boot.8', '帧数档位：已载入'),
+  ct('home.boot.9', '打击反馈：顿帧 / 震屏 · 就绪'),
+  ct('home.boot.10', '韧性规则：已上线'),
+  ct('home.boot.11', '可玩验证：阿比斯 v0.6 · 通过'),
+  ct('home.boot.12', '渲染管线：准备中'),
+  ct('home.boot.13', 'MP 残量检查：100%'),
+  ct('home.boot.14', '战斗准备完成'),
 ];
 
 // 乱码行用的原始串（自己的字）
-const FAULT_TEXT = 'PORTFOLIO · HUANG CHENRUI · 战斗策划';
+const FAULT_TEXT = ct('home.fault', 'PORTFOLIO · HUANG CHENRUI · 战斗策划');
+
+/* V3 示意用的尘埃：手写死的坐标（不用随机数，截图才稳定）。
+   都是"近景"粒子：大、慢、糊，和远处的星空区分开。 */
+const dust = [
+  { x: 8, y: 62, s: 2, d: 26, delay: 3, o: 0.35 },
+  { x: 15, y: 38, s: 3, d: 34, delay: 12, o: 0.22 },
+  { x: 22, y: 74, s: 2, d: 22, delay: 7, o: 0.4 },
+  { x: 29, y: 48, s: 4, d: 40, delay: 19, o: 0.16 },
+  { x: 36, y: 66, s: 2, d: 28, delay: 2, o: 0.3 },
+  { x: 44, y: 32, s: 3, d: 36, delay: 15, o: 0.2 },
+  { x: 51, y: 72, s: 2, d: 24, delay: 9, o: 0.34 },
+  { x: 58, y: 44, s: 5, d: 44, delay: 24, o: 0.12 },
+  { x: 63, y: 60, s: 2, d: 27, delay: 5, o: 0.3 },
+  { x: 69, y: 36, s: 3, d: 38, delay: 17, o: 0.18 },
+  { x: 74, y: 70, s: 2, d: 23, delay: 11, o: 0.36 },
+  { x: 80, y: 52, s: 4, d: 42, delay: 21, o: 0.14 },
+  { x: 86, y: 64, s: 2, d: 29, delay: 6, o: 0.28 },
+  { x: 91, y: 40, s: 3, d: 35, delay: 13, o: 0.2 },
+  { x: 95, y: 76, s: 2, d: 25, delay: 8, o: 0.32 },
+];
 
 const year = new Date().getFullYear();
 ---
@@ -100,6 +123,7 @@ const year = new Date().getFullYear();
    * 断网 / 关掉 JS 时它是普通链接，落到 /abyss/ 那句「信号中断」页——兜底还算合理。
    */
   import { sfx } from '../scripts/sfx';
+  import { t as ct } from '../data/copy';
 
   const abyss = document.querySelector<HTMLElement>('[data-abyss]');
   const LOST_KEY = 'hcr:abyss:lost';
@@ -115,6 +139,16 @@ const year = new Date().getFullYear();
   };
 
   let alreadyLost = false;
+  // ?reset=1 一键清掉"这一轮失联"的记忆（阿比斯 + 未公开条目），方便反复测试
+  try {
+    if (new URLSearchParams(location.search).get('reset') === '1') {
+      sessionStorage.removeItem(LOST_KEY);
+      sessionStorage.removeItem('hcr:locked:gone');
+      document.documentElement.classList.remove('abyss-lost');
+    }
+  } catch {
+    /* 隐私模式 */
+  }
   try {
     alreadyLost = sessionStorage.getItem(LOST_KEY) === '1';
   } catch {
@@ -124,7 +158,7 @@ const year = new Date().getFullYear();
 
   if (abyss) {
     const label = abyss.querySelector<HTMLElement>('.t');
-    const base = label?.textContent?.trim() || '阿比斯';
+    const base = label?.textContent?.trim() || ct('home.nav.abyss', '阿比斯');
     const NOISE = '▓▒░▚▞⌁≠≡∷';
 
     const noise = () =>
@@ -158,7 +192,7 @@ const year = new Date().getFullYear();
 
       // 2) 信号中断
       window.setTimeout(() => {
-        if (label) label.textContent = '信号中断';
+        if (label) label.textContent = ct('home.signal.break', '信号中断');
         abyss.classList.add('is-dead');
         sfx.signalLost();
       }, 520);
@@ -192,7 +226,7 @@ const year = new Date().getFullYear();
       <div class="tp-haze" aria-hidden="true"></div>
       <div class="tp-water" aria-hidden="true"></div>
 
-      <div class="tp-horizon" data-horizon tabindex="0" role="slider" aria-label="音量" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>
+      <div class="tp-horizon" aria-hidden="true"></div>
     </div>
 
     <!-- 屏幕质感 -->
@@ -201,10 +235,31 @@ const year = new Date().getFullYear();
     <div class="tp-scan" aria-hidden="true"></div>
     <div class="tp-vignette" aria-hidden="true"></div>
     <div class="tp-flicker" aria-hidden="true"></div>
+
+    <!-- ============================================================
+         V3「仪式」示意层：默认全部隐藏，加 ?look=3 才出现。
+         只叠层，不改原有结构 —— 随时能整体摘掉。
+         前景剪影 / 发光核心 / 尘埃 / 呼吸 / 推镜
+         ============================================================ -->
+    <div class="tp-dust" aria-hidden="true">
+      {dust.map((d) => (
+        <i
+          style={`--x:${d.x}%;--y:${d.y}%;--s:${d.s}px;--d:${d.d}s;--delay:-${d.delay}s;--o:${d.o}`}
+        />
+      ))}
+    </div>
+    <div class="tp-core" aria-hidden="true"></div>
+    <div class="tp-fore" aria-hidden="true">
+      <svg viewBox="0 0 1440 160" preserveAspectRatio="none" focusable="false">
+        <path d="M0,96 C120,78 210,104 320,92 C430,80 500,112 620,100 C740,88 830,116 950,102 C1070,88 1150,110 1260,98 C1330,90 1390,100 1440,94 L1440,160 L0,160 Z" />
+      </svg>
+    </div>
+    <div class="tp-breathe" aria-hidden="true"></div>
+
     <div class="tp-blackout" aria-hidden="true"></div>
 
     <!-- 自检层 -->
-    <div class="tp-loading"><span class="l1">LOADING</span><span class="l2">_ 系统启动中..</span></div>
+    <div class="tp-loading"><span class="l1">{ct('home.loading.1', 'LOADING')}</span><span class="l2">{ct('home.loading.2', '_ 系统启动中..')}</span></div>
     <div class="tp-log" data-log>
       {bootLines.map((line) => <div class="bl" data-text={line}>{line}</div>)}
     </div>
@@ -213,7 +268,7 @@ const year = new Date().getFullYear();
     <div class="tp-read" aria-hidden="true">
       <i class="l"></i>
       <i class="r"></i>
-      <span>系统读取中</span>
+      <span>{ct('home.reading', '系统读取中')}</span>
     </div>
 
     <!-- 乱码帧：只有一行小字，带色散 -->
@@ -240,6 +295,9 @@ const year = new Date().getFullYear();
       </span>
       <span class="slice" aria-hidden="true"><span>{LOGO}</span></span>
     </h1>
+
+    <!-- V3：标题下面那行像游戏版本号的极小事（默认隐藏，?look=3 才显示） -->
+    <p class="tp-ver" aria-hidden="true">v0.6 · 第 6 次迭代 · 2026</p>
 
     <!-- PRESS：原版结构 —— 一行小字 + 正下方一条两端带圆点的细线 -->
     <p class="tp-action tp-press" data-press>
@@ -294,6 +352,9 @@ const year = new Date().getFullYear();
 <script>
   import '../scripts/menu-glitch';
   import { initSky, initCorruption, startFault } from '../scripts/title-scene';
+  import { initTitleBreath } from '../scripts/title-breath';
+  import { t as ct } from '../data/copy';
+  import { initBgm, startBgmWhenReady, fadeOutBgm } from '../scripts/bgm';
 
   const tp = document.querySelector<HTMLElement>('[data-tp]');
   const root = document.documentElement;
@@ -301,6 +362,42 @@ const year = new Date().getFullYear();
   if (tp) {
     const KEY = 'hcr:boot:v1';
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ---------------- 音乐：只在标题画面起播 ----------------
+     * 加载/自检那一段不响（用户明确要求）。所以在标题帧落位的地方调这里，
+     * 而不是在页面一加载就初始化。渐入 2.4s，见 scripts/bgm.ts。 */
+    let musicOn = false;
+    const startTitleMusic = (): void => {
+      if (musicOn) return;
+      musicOn = true;
+      const src = document.body.dataset.bgm || '';
+      if (!src) return;
+      initBgm(src, Number(document.body.dataset.bgmVolume) || 0.16);
+      startBgmWhenReady();
+    };
+
+    // 点菜单离开首页时先渐出 320ms，别硬切
+    for (const link of tp.querySelectorAll<HTMLAnchorElement>('.tp-menu a:not([data-abyss])')) {
+      link.addEventListener('click', () => fadeOutBgm(320));
+    }
+
+    /* V3「仪式」示意：?look=3 打开、?look=0 关掉（只加层，不动结构） */
+    try {
+      const look = new URLSearchParams(location.search).get('look');
+      if (look === '3') tp.setAttribute('data-look', '3');
+    } catch {
+      /* 无所谓 */
+    }
+
+    /* 标题呼吸：?breath=1 跟音乐，?breath=demo 假呼吸（看效果用） */
+    try {
+      const mode = new URLSearchParams(location.search).get('breath');
+      if (mode === 'demo') initTitleBreath('demo');
+      else if (mode === '1') initTitleBreath('audio');
+    } catch {
+      /* 无所谓 */
+    }
+
     const lines = [...tp.querySelectorAll<HTMLElement>('.bl')];
     const logEl = tp.querySelector<HTMLElement>('[data-log]');
     const pressEl = tp.querySelector<HTMLElement>('[data-press]');
@@ -384,138 +481,10 @@ const year = new Date().getFullYear();
     startLogoChroma();
 
     /* ---------------- 音量 ---------------- */
+    /* ---------------- 地平线（只作视觉轴，不再是音量条） ---------------- */
 
-    let vol = 50;
-
-    // 页脚那排音量格子已经删了：拖主轴（地平线）或按 ← → 都能调。
-    const horizon = tp.querySelector<HTMLElement>('[data-horizon]');
-
-    const setVol = (next: number, { silent = false } = {}) => {
-      vol = Math.max(0, Math.min(100, Math.round(next)));
-      tp.style.setProperty('--vol', String(vol / 100));
-      horizon?.setAttribute('aria-valuenow', String(vol));
-      if (!silent) audio.setVolume(vol / 100);
-    };
-
-    /* ---------------- 声音：合成环境音 ---------------- */
-
-    const audio = {
-      ctx: null as AudioContext | null,
-      master: null as GainNode | null,
-      started: false,
-
-      ensure() {
-        if (this.ctx) return;
-        const Ctx = window.AudioContext || (window as any).webkitAudioContext;
-        if (!Ctx) return;
-        const ctx: AudioContext = new Ctx();
-        const master = ctx.createGain();
-        master.gain.value = 0;
-        master.connect(ctx.destination);
-
-        // 低频底噪：两个正弦，微微失谐
-        for (const [freq, gain] of [
-          [55, 0.11],
-          [82.5, 0.055],
-        ] as const) {
-          const osc = ctx.createOscillator();
-          const g = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.value = freq;
-          g.gain.value = gain;
-          osc.connect(g).connect(master);
-          osc.start();
-        }
-
-        // 气声：白噪声过带通
-        const len = ctx.sampleRate * 3;
-        const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
-        const noise = ctx.createBufferSource();
-        noise.buffer = buffer;
-        noise.loop = true;
-        const bp = ctx.createBiquadFilter();
-        bp.type = 'bandpass';
-        bp.frequency.value = 420;
-        bp.Q.value = 0.8;
-        const ng = ctx.createGain();
-        ng.gain.value = 0.03;
-        noise.connect(bp).connect(ng).connect(master);
-        noise.start();
-
-        // 极慢的起伏，让底噪不那么死
-        const lfo = ctx.createOscillator();
-        const lfoGain = ctx.createGain();
-        lfo.frequency.value = 0.06;
-        lfoGain.gain.value = 0.012;
-        lfo.connect(lfoGain).connect(master.gain);
-        lfo.start();
-
-        this.ctx = ctx;
-        this.master = master;
-      },
-
-      start() {
-        if (this.started) return;
-        this.ensure();
-        if (!this.ctx || !this.master) return;
-        this.started = true;
-        void this.ctx.resume();
-        // 渐入：2.5 秒从 0 爬到当前音量
-        const target = (vol / 100) * 0.55;
-        const now = this.ctx.currentTime;
-        this.master.gain.cancelScheduledValues(now);
-        this.master.gain.setValueAtTime(0, now);
-        this.master.gain.linearRampToValueAtTime(target, now + 2.5);
-      },
-
-      setVolume(v: number) {
-        if (!this.ctx || !this.master || !this.started) return;
-        const target = v * 0.55;
-        const now = this.ctx.currentTime;
-        this.master.gain.cancelScheduledValues(now);
-        this.master.gain.setTargetAtTime(target, now, 0.12);
-      },
-    };
-
-    setVol(50, { silent: true });
-
-    // 拖地平线调音量
-    let dragging = false;
-
-    const fromPointer = (clientX: number) => {
-      const rect = tp.getBoundingClientRect();
-      const p = (clientX - rect.left) / rect.width;
-      // 左右两端留 6% 死区，免得误碰到底
-      const mapped = (p - 0.06) / 0.88;
-      setVol(mapped * 100);
-    };
-
-    horizon?.addEventListener('pointerdown', (event) => {
-      dragging = true;
-      horizon.setPointerCapture(event.pointerId);
-      fromPointer(event.clientX);
-    });
-
-    horizon?.addEventListener('pointermove', (event) => {
-      if (dragging) fromPointer(event.clientX);
-    });
-
-    horizon?.addEventListener('pointerup', (event) => {
-      dragging = false;
-      horizon.releasePointerCapture(event.pointerId);
-    });
-
-    horizon?.addEventListener('pointercancel', () => {
-      dragging = false;
-    });
-
-    // 键盘
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'ArrowLeft') setVol(vol - 5);
-      if (event.key === 'ArrowRight') setVol(vol + 5);
-    });
+    // 音量/键盘调节已经撤掉：地平线现在只是那条横线，--vol 固定 0.5 给雾和水面定量。
+    tp.style.setProperty('--vol', '0.5');
 
     /* ---------------- 自检：逐字打出来（参考的做法） ----------------
      * 每行从左往右长，14ms/字；前沿会随机闪一个"错字"（参考里就是先错后对）。
@@ -561,7 +530,7 @@ const year = new Date().getFullYear();
       tp.querySelector('.tp-loading')?.classList.remove('is-out');
     };
 
-    const FAULT_TEXT = 'PORTFOLIO · HUANG CHENRUI · 战斗策划';
+    const FAULT_TEXT = ct('home.fault', 'PORTFOLIO · HUANG CHENRUI · 战斗策划');
 
     /* ---------------- 逐行错位：某一条扫描线偶尔"失锁" ----------------
      * 照视频实测抄的参数：
@@ -750,6 +719,7 @@ const year = new Date().getFullYear();
       await sleep(480);
       tp.classList.remove('is-flash');
       tp.classList.add('is-grown');
+      startTitleMusic();
       void typePress();
     };
 
@@ -824,6 +794,7 @@ const year = new Date().getFullYear();
       tp.setAttribute('data-state', 'home');
       tp.setAttribute('data-phase', '4');
       tp.classList.add('is-grown');
+      startTitleMusic();
       root.classList.remove('is-booting');
       try {
         localStorage.setItem(KEY, '1');
@@ -850,12 +821,14 @@ const year = new Date().getFullYear();
       tp.setAttribute('data-phase', '4');
       tp.setAttribute('data-state', 'home');
       tp.classList.add('is-grown');
+      startTitleMusic();
       window.addEventListener('pointerdown', () => audio.start(), { once: true });
     } else if (params.get('state') === 'home') {
       // 调试：?state=home 直接看菜单状态
       fillAll();
       setPhase(4);
       tp.classList.add('is-grown');
+      startTitleMusic();
       tp.setAttribute('data-state', 'home');
       const t = tp.querySelector<HTMLElement>('.tp-press .txt');
       if (t) t.textContent = t.dataset.type ?? '';
@@ -872,6 +845,7 @@ const year = new Date().getFullYear();
       } else if (jump === 4) {
         setPhase(4);
         tp.classList.add('is-grown');
+        startTitleMusic();
         const txt = tp.querySelector<HTMLElement>('.tp-press .txt');
         const smear = tp.querySelector<HTMLElement>('.tp-press .smear');
         if (txt) txt.textContent = txt.dataset.type ?? '';
@@ -889,6 +863,7 @@ const year = new Date().getFullYear();
         fillAll();
         setPhase(4);
         tp.classList.add('is-grown');
+        startTitleMusic();
         const txt = tp.querySelector<HTMLElement>('.tp-press .txt');
         if (txt) txt.textContent = txt.dataset.type ?? '';
         pressEl?.classList.add('is-line', 'done');
@@ -908,6 +883,7 @@ const year = new Date().getFullYear();
           fillAll();
           setPhase(4);
           tp.classList.add('is-grown');
+          startTitleMusic();
         }
       }, 20_000);
     }

@@ -141,7 +141,10 @@
     width 0.32s cubic-bezier(0.3, 0.9, 0.2, 1),
     height 0.32s cubic-bezier(0.3, 0.9, 0.2, 1),
     border-color 0.25s var(--ease),
-    box-shadow 0.3s var(--ease);
+    box-shadow 0.3s var(--ease),
+    /* 同页展开时方块要退场 / 回来，这两条留给它 */
+    opacity 0.34s var(--ease),
+    transform 0.42s cubic-bezier(0.32, 0.9, 0.24, 1);
 }
 
 .ws-tile.is-on {
@@ -432,4 +435,1065 @@ body:has(.ws-main) .site-header {
 /* 乱码条目选中时，「打开」按钮没意义，直接撤掉 */
 .ws-play.is-off {
   display: none;
+}
+
+/* ==========================================================================
+   特效作品存档（XMB）—— 同页展开
+   --------------------------------------------------------------------------
+   点「特效作品」不换页：上面那排方块压成一条频道条，下面开一条横向轨道。
+   顶部「返回 / 面包屑」不动，因为没离开这一页。
+
+   结构：
+     .ws-vfx           整个存档层
+       .ws-vfx-top     频道条 + 索引/名字/日期 + 返回
+       .ws-vfx-wrap    轨道可视区（左右渐隐）
+         .ws-vfx-track 横向轨道（transform 位移由 JS 算）
+           .ws-vfx-card    一张卡（16:9）
+   ========================================================================== */
+
+.ws-vfx {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  /* 顶上那行信息撤掉之后，这层直接从频道条下面开始（频道条底边约 190） */
+  top: 112px;
+  bottom: 70px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+
+  /* 收起状态：整层藏起来。不能用 display:none —— 那样加 class 那帧没有
+     "之前的样子"，transition 不跑，会直接弹出来。 */
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.28s ease,
+    transform 0.4s cubic-bezier(0.22, 0.9, 0.2, 1),
+    visibility 0s linear 0.4s;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-vfx {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.3s ease 0.12s,
+    transform 0.45s cubic-bezier(0.22, 0.9, 0.2, 1) 0.12s,
+    visibility 0s linear 0s;
+}
+
+/* ---------- 内容区：2×2 四格 ---------- */
+/* 一次露四张（两行两列），比"一张大卡 + 露出半张"更好扫。
+   选中哪张由边框/亮度表示，不是放大。 */
+
+.ws-vfx-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.ws-vfx-track {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 12px;
+  height: 100%;
+}
+
+.ws-vfx-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--fun-line);
+  border-radius: 4px;
+  background: #0a0b10;
+  cursor: pointer;
+  opacity: 0.5;
+  transition:
+    opacity 0.3s ease,
+    border-color 0.25s,
+    box-shadow 0.3s,
+    filter 0.3s;
+}
+
+/* 不在当前这一页的卡：直接不占位 */
+.ws-vfx-card.is-offpage {
+  display: none;
+}
+
+.ws-vfx-card.is-on {
+  opacity: 1;
+  border-color: rgba(198, 231, 243, 0.75);
+  box-shadow:
+    0 0 0 1px rgba(198, 231, 243, 0.12),
+    0 18px 50px -26px rgba(150, 210, 240, 0.6);
+}
+
+.ws-vfx-card video {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+.ws-vfx-card.is-on video {
+  opacity: 1;
+}
+
+/* 扫描线 + 底部压暗 */
+.ws-vfx-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 3px);
+}
+
+.ws-vfx-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(5, 6, 12, 0.05) 35%, rgba(5, 6, 12, 0.86));
+}
+
+.ws-vfx-card .tag {
+  position: absolute;
+  top: 10px;
+  left: 11px;
+  z-index: 3;
+  font-family: 'Zpix', monospace;
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  color: rgba(198, 231, 243, 0.5);
+}
+
+.ws-vfx-card .dur {
+  position: absolute;
+  top: 10px;
+  right: 11px;
+  z-index: 3;
+  font-family: 'Zpix', monospace;
+  font-size: 9px;
+  color: rgba(198, 231, 243, 0.6);
+}
+
+.ws-vfx-card .cap {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 11px;
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.ws-vfx-card .cap b {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--fun-ink);
+  letter-spacing: 0.01em;
+}
+
+.ws-vfx-card .cap span {
+  font-family: 'Zpix', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  color: var(--fun-faint);
+}
+
+/* 「Enter 播放」只在选中的卡上出现 */
+.ws-vfx-card .hint {
+  position: absolute;
+  right: 12px;
+  bottom: 13px;
+  z-index: 3;
+  font-family: 'Zpix', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: rgba(198, 231, 243, 0.55);
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.ws-vfx-card.is-on .hint {
+  opacity: 1;
+  transform: none;
+}
+
+.ws-vfx-card.is-on:hover {
+  border-color: rgba(214, 242, 255, 0.9);
+}
+
+/* 存档态里，右上角那张「整理进度」没意义，收掉（它也叫 .ws-card，别混） */
+:is(.ws-main, .ar-main).is-vfx .ws-card {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* ---------- 方块行自己压成频道条（XMB 的关键就是这一步） ----------
+   不是"方块消失 + 另起一条频道条"，而是同一批方块原地缩小，
+   选中的那块留 56px 亮着。所以观众看到的是一个连续的变化。 */
+
+:is(.ws-main, .ar-main).is-vfx .ws-track {
+  gap: 8px;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile.is-on {
+  width: 56px;
+  height: 56px;
+  border-color: rgba(198, 231, 243, 0.75);
+  box-shadow:
+    0 0 0 1px rgba(198, 231, 243, 0.15),
+    0 10px 30px -12px rgba(150, 210, 240, 0.5);
+}
+
+/* 名字在 40px 里放不下，收掉；只留编号当频道号 */
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile .ws-tag-name,
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile .ws-inline {
+  display: none;
+}
+
+/* 「CH 」前缀会把 40px 的方块挤成两行，去掉 */
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile .ws-num::before {
+  content: '';
+  display: none;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile .ws-num {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 9.5px;
+  line-height: 1;
+  white-space: nowrap;
+  color: rgba(198, 231, 243, 0.7);
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile.is-on .ws-num {
+  font-size: 10.5px;
+  color: rgba(214, 242, 255, 0.95);
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-hero {
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-vfx-card {
+  /* 进场：轨道从右侧稍微推进来一点，像换了个频道 */
+  animation: cardIn 0.5s cubic-bezier(0.22, 0.9, 0.2, 1) both;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateX(26px) scale(0.94);
+  }
+}
+
+/* ---------- 窄屏 ---------- */
+
+
+/* ---------- 窄屏 ---------- */
+
+@media (max-width: 900px) {
+  /* 窄屏频道条更矮（32/42），存档层起点跟着上移 */
+  .ws-vfx {
+    top: 118px;
+    bottom: 52px;
+  }
+
+  .ws-vfx-wrap {
+    max-height: 56vw;
+  }
+
+  .ws-vfx-card {
+    /* 留一点缝，下一张露出来，才看得出还能往右走 */
+    max-width: 78vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-vfx,
+  .ws-vfx-card,
+  :is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile,
+  :is(.ws-main, .ar-main).is-vfx .ws-hero {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ---------- 全屏播放层 ---------- */
+
+.ws-vfx-player {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4vh 4vw;
+  background: rgba(3, 4, 8, 0.94);
+}
+
+.ws-vfx-player[hidden] {
+  display: none;
+}
+
+.ws-vfx-player video {
+  width: min(1280px, 100%);
+  max-height: 86vh;
+  border: 1px solid var(--fun-line);
+  background: #000;
+}
+
+.ws-vfx-player-x {
+  position: absolute;
+  top: 3.5vh;
+  right: 4vw;
+  padding: 6px 14px;
+  border: 1px solid var(--fun-line);
+  background: transparent;
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--fun-dim);
+  cursor: pointer;
+}
+
+.ws-vfx-player-x:hover {
+  color: var(--fun-ink);
+  border-color: rgba(198, 231, 243, 0.5);
+}
+
+
+/* ---------- 返回按钮（补回来的那个，浮在右上） ---------- */
+
+.ws-vfx-back {
+  position: absolute;
+  right: 0;
+  top: -30px;
+  z-index: 30;
+  padding: 6px 14px;
+  border: 1px solid var(--fun-line);
+  background: transparent;
+  font-family: 'Zpix', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--fun-dim);
+  cursor: pointer;
+  transition: color 0.25s, border-color 0.25s;
+}
+
+.ws-vfx-back:hover {
+  color: var(--fun-ink);
+  border-color: rgba(198, 231, 243, 0.5);
+}
+
+/* ---------- 左右翻组热区 ---------- */
+
+.ws-vfx-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 6;
+  width: 9%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  font-family: 'Zpix', monospace;
+  font-size: 22px;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+}
+
+.ws-vfx-zone.is-prev {
+  left: -1%;
+}
+
+.ws-vfx-zone.is-next {
+  right: -1%;
+}
+
+/* 贴上去才显出箭头和一层很淡的渐变 */
+.ws-vfx-zone:hover {
+  color: rgba(198, 231, 243, 0.75);
+  background: linear-gradient(90deg, rgba(198, 231, 243, 0.09), transparent);
+}
+
+.ws-vfx-zone.is-next:hover {
+  background: linear-gradient(270deg, rgba(198, 231, 243, 0.09), transparent);
+}
+
+.ws-vfx-zone.is-prev::after,
+.ws-vfx-zone.is-next::after {
+  content: '‹';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ws-vfx-zone.is-next::after {
+  content: '›';
+}
+
+/* 到头了：那一侧的热区关掉 */
+.ws-main.vfx-at-start .ws-vfx-zone.is-prev,
+.ws-main.vfx-at-end .ws-vfx-zone.is-next {
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* ==========================================================================
+   存档态的层级（按 PS4 的三层模型：内容主、频道次、返回最弱）
+   --------------------------------------------------------------------------
+   频道条：只有选中那颗满亮 + 带名字，其余压到 45%、只剩屏幕没有文字
+   内容：四格占满下方，只有选中那张满亮
+   返回：底部一行按键图例（○），不是按钮
+   ========================================================================== */
+
+/* ---------- 频道条降权 ---------- */
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile {
+  opacity: 0.45;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile.is-on {
+  opacity: 1;
+}
+
+/* 没选中的方块：连编号都不显示，只剩一块黑屏幕 */
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile:not(.is-on) .ws-num {
+  opacity: 0;
+}
+
+/* 选中的那颗：名字挂在下面 */
+.ws-ch-name {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  display: none;
+  margin-top: 7px;
+  transform: translateX(-50%);
+  font-family: 'Zpix', monospace;
+  font-size: 9.5px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+  color: rgba(214, 242, 255, 0.8);
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile.is-on .ws-ch-name {
+  display: block;
+}
+
+/* ---------- 背景：跟着选中的视频 ---------- */
+
+.ws-vfx-bg {
+  position: absolute;
+  inset: -8% -6%;
+  z-index: -1;
+  pointer-events: none;
+  background-position: center;
+  background-size: cover;
+  opacity: 0.07;
+  filter: blur(26px) saturate(0.7);
+  transition: opacity 0.4s ease;
+}
+
+/* ---------- 底部返回图例（PS4 的按键提示） ---------- */
+
+.ws-vfx-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: rgba(214, 226, 240, 0.55);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.ws-vfx-legend[hidden] {
+  display: none;
+}
+
+.ws-vfx-legend i {
+  font-style: normal;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.ws-vfx-legend:hover {
+  color: var(--fun-ink);
+}
+
+/* 没选中的频道块：压到 45% 但别变成"什么都没有" ——
+   给一层极淡的边框和一点屏幕反光，让人看得出那还是块屏 */
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile:not(.is-on) {
+  border-color: rgba(255, 255, 255, 0.09);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.025), transparent 62%),
+    #0b0c11;
+}
+
+/* 选中那颗下面的名字要有地方待，所以这层不能被盖住 */
+:is(.ws-main, .ar-main).is-vfx .ws-rail {
+  z-index: 21;
+}
+
+/* 背景再露一点，7% 在黑底上几乎看不出来 */
+.ws-vfx-bg {
+  opacity: 0.1;
+}
+
+/* ==========================================================================
+   存档态：频道条"抬起来"让位 + 底部只留一个返回
+   --------------------------------------------------------------------------
+   进存档不是把方块原地缩小，而是整排往上抬、同时缩小 —— 空间让给内容。
+   底部其余文字（提示、分割线、HCR · WORKS）在存档态全部撤掉，只留返回。
+   ========================================================================== */
+
+.ws-rail {
+  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.2, 1);
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail {
+  /* 往上抬 44px：占位让给下面的内容 */
+  transform: translateY(-44px);
+}
+
+/* 底部：存档态只留返回 */
+:is(.ws-main, .ar-main).is-vfx .ws-bar {
+  gap: 0;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-bar .ws-bar-hint,
+:is(.ws-main, .ar-main).is-vfx .ws-bar .line,
+:is(.ws-main, .ar-main).is-vfx .ws-bar > span:last-child {
+  display: none;
+}
+
+/* 返回和内容左边缘对齐（bar 本身已经按 --gutter 缩进） */
+:is(.ws-main, .ar-main).is-vfx .ws-vfx-legend {
+  margin-left: 0;
+}
+
+/* 内容区跟着频道条一起让位：抬 44 之后，从 126px 起（gap ≈ 24px） */
+:is(.ws-main, .ar-main).is-vfx .ws-vfx {
+  transition-delay: 0.06s;
+}
+
+/* 带 ?vfx=1 直达时不该再演一遍展开：所有相关过渡关掉，直接到终态 */
+:is(.ws-main, .ar-main).is-vfx-instant .ws-vfx,
+:is(.ws-main, .ar-main).is-vfx-instant .ws-vfx-card,
+:is(.ws-main, .ar-main).is-vfx-instant .ws-rail,
+:is(.ws-main, .ar-main).is-vfx-instant .ws-rail .ws-tile,
+:is(.ws-main, .ar-main).is-vfx-instant .ws-hero,
+:is(.ws-main, .ar-main).is-vfx-instant .ws-card {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* 返回和内容左边缘对齐（内容层比底栏多缩进了 24px） */
+:is(.ws-main, .ar-main).is-vfx .ws-bar {
+  padding-left: 24px;
+}
+
+/* ==========================================================================
+   焦点框 + 背景交叉淡入 + 播放层干净化
+   ========================================================================== */
+
+/* 焦点框：一张卡那么大的框，在四格之间滑动（PS4 的选中框就是会动的） */
+.ws-vfx-focus {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 4;
+  pointer-events: none;
+  border: 1px solid rgba(198, 231, 243, 0.75);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(198, 231, 243, 0.1),
+    0 18px 50px -26px rgba(150, 210, 240, 0.55);
+  opacity: 0;
+  transition:
+    transform 0.34s cubic-bezier(0.22, 0.9, 0.2, 1),
+    width 0.34s cubic-bezier(0.22, 0.9, 0.2, 1),
+    height 0.34s cubic-bezier(0.22, 0.9, 0.2, 1),
+    opacity 0.3s ease;
+}
+
+.ws-vfx-focus.is-on {
+  opacity: 1;
+}
+
+/* 卡片自己不再画边框（边框归焦点框管），只靠亮度区分 */
+.ws-vfx-card.is-on {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* 背景两层交叉淡入 */
+.ws-vfx-bg {
+  opacity: 0;
+}
+
+.ws-vfx-bg.is-on {
+  opacity: 0.1;
+}
+
+/* 进场：四格逐格升上来一点（接上"内容登场"，不再是整块硬出现） */
+:is(.ws-main, .ar-main).is-vfx .ws-vfx-card {
+  animation: vfxCardIn 0.42s cubic-bezier(0.22, 0.9, 0.2, 1) both;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-vfx-card:nth-child(2) { animation-delay: 0.04s; }
+:is(.ws-main, .ar-main).is-vfx .ws-vfx-card:nth-child(3) { animation-delay: 0.08s; }
+:is(.ws-main, .ar-main).is-vfx .ws-vfx-card:nth-child(4) { animation-delay: 0.12s; }
+:is(.ws-main, .ar-main).is-vfx .ws-vfx-card:nth-child(5) { animation-delay: 0.16s; }
+
+@keyframes vfxCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* 播放层打开时：站点头部整个收掉，画面要干净 */
+html.is-vfx-playing .site-header {
+  /* 播放时头部直接不画（不做淡出，省得第一帧还看得见） */
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+html.is-vfx-playing .ws-bar {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 存档态：时钟不显示（右上角那块地方让出来，频道条就不用顾着它了） */
+:is(.ws-main, .ar-main).is-vfx .ws-clock {
+  visibility: hidden;
+}
+
+/* 时钟让位之后，频道条再往上抬一点（-44 → -58） */
+:is(.ws-main, .ar-main).is-vfx .ws-rail {
+  transform: translateY(-58px);
+}
+
+/* 频道条为了压住"频道名"抬到 z-index 21，但它是一整条 —— 会挡住下面的卡片。
+   所以让整条不吃点击，只把命中区还给方块本身。 */
+:is(.ws-main, .ar-main).is-vfx .ws-rail {
+  pointer-events: none;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile {
+  pointer-events: auto;
+}
+
+/* ---------- 点空白返回用的背板 ----------
+   铺满整屏、比内容低一层：点哪儿都返回，但不挡卡片、频道条、返回按钮。 */
+
+.ws-vfx-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  display: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-vfx-backdrop {
+  display: block;
+}
+
+/* 频道条（z 21）和底部返回条要在背板之上，才点得到 */
+:is(.ws-main, .ar-main).is-vfx .ws-bar {
+  position: relative;
+  z-index: 25;
+}
+
+/* ==========================================================================
+   一轮优化：翻页过渡 / 播放层开合 / 卡片 hover / 退出时序 / 页码
+   ========================================================================== */
+
+/* ---------- 1. 翻页不再硬切 ----------
+   用 opacity + visibility 换 display:none：格子位置不动，卡片淡出淡入。 */
+.ws-vfx-card.is-offpage {
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  transform: scale(0.985);
+  pointer-events: none;
+}
+
+.ws-vfx-card {
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease,
+    border-color 0.25s,
+    box-shadow 0.3s,
+    filter 0.3s;
+}
+
+/* ---------- 2. 卡片本体：悬停有反应 ---------- */
+
+.ws-vfx-card:not(.is-on):hover {
+  opacity: 0.72;
+  transform: translateY(-2px);
+  border-color: rgba(198, 231, 243, 0.2);
+  box-shadow: 0 14px 40px -30px rgba(150, 210, 240, 0.5);
+}
+
+.ws-vfx-card.is-on:hover {
+  /* 选中的那张：只是轻微一提，别让它跳出去 */
+  transform: translateY(-2px);
+}
+
+/* ---------- 3. 播放层开合淡入淡出 ---------- */
+
+.ws-vfx-player {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.22s ease,
+    visibility 0s linear 0.22s;
+}
+
+.ws-vfx-player.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.22s ease,
+    visibility 0s linear 0s;
+}
+
+.ws-vfx-player video {
+  transform: scale(0.985);
+  transition: transform 0.26s cubic-bezier(0.22, 0.9, 0.2, 1);
+}
+
+.ws-vfx-player.is-on video {
+  transform: none;
+}
+
+/* ---------- 4. 退出时序：内容先撤，频道条再落回 ---------- */
+
+.ws-rail {
+  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.2, 1) 0.16s;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail {
+  transition-delay: 0s;
+}
+
+/* 退出时内容层走得快一点（不留尾巴） */
+.ws-vfx {
+  transition:
+    opacity 0.22s ease,
+    transform 0.3s cubic-bezier(0.22, 0.9, 0.2, 1),
+    visibility 0s linear 0.3s;
+}
+
+/* ---------- 5. 页码（右下角，极淡） ---------- */
+
+.ws-vfx-pager {
+  position: absolute;
+  right: 0;
+  top: -20px;
+  font-family: 'Zpix', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  color: rgba(198, 231, 243, 0.38);
+  pointer-events: none;
+  user-select: none;
+}
+
+.ws-vfx-pager b {
+  font-weight: 400;
+  color: rgba(198, 231, 243, 0.72);
+}
+
+/* ==========================================================================
+   频道条再弱一档：内容才是主角，频道条只是"我现在在哪"
+   --------------------------------------------------------------------------
+   之前那颗选中方块是满亮雪花 + 0.75 青边，亮度和第一张卡抢。
+   现在：整排再压一档、雪花停掉（只留一层静态噪点）、边框降到 0.34、
+        名字变小变淡。仍然认得出"我在第五个"，但眼睛不会先被它抓走。
+   ========================================================================== */
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail {
+  opacity: 0.66;
+}
+
+/* 选中那颗：不要动的东西 */
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile.is-on {
+  border-color: rgba(198, 231, 243, 0.34);
+  box-shadow: none;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile.is-on .crt-noise {
+  opacity: 0.12;
+  animation: none;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile.is-on .crt-scan {
+  opacity: 0.26;
+  animation: none;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile.is-on .ws-num {
+  opacity: 0.42;
+}
+
+/* 频道名：9px、45% 青，退到背景里 */
+:is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile.is-on .ws-ch-name {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: rgba(198, 231, 243, 0.45);
+}
+
+/* ---------- 空频道：网格留空，中央一行灰字 ---------- */
+
+.ws-vfx-empty {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: rgba(198, 231, 243, 0.34);
+  user-select: none;
+}
+
+/* link 卡（文章）：没有视频，给一点底，别显得空 */
+.ws-vfx-card[data-kind='link'] {
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.035), transparent 58%),
+    #0a0b10;
+}
+
+/* ==========================================================================
+   文章页接存档层：把「文件夹」当成频道，「文章」当成卡片
+   --------------------------------------------------------------------------
+   结构沿用作品页那套（.ws-vfx），这里只补文章页自己的差异：
+   · 顶部是 .ar-rail / .ar-tile，不是 .ws-rail / .ws-tile
+   · 进存档后大标题区 .ar-head 收起来
+   ========================================================================== */
+
+/* 文章页的频道条：和作品页同一套尺寸 */
+:is(.ws-main, .ar-main).is-vfx .ar-rail {
+  z-index: 21;
+  pointer-events: none;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-tile {
+  pointer-events: auto;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ar-rail {
+  transform: translateY(-58px);
+  opacity: 0.66;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-tile {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-tile.is-on {
+  width: 56px;
+  height: 56px;
+  border-color: rgba(198, 231, 243, 0.34);
+  box-shadow: none;
+  opacity: 1;
+}
+
+/* 存档态：大标题区收起来（内容才是主角） */
+:is(.ws-main, .ar-main).is-vfx .ar-head {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 存档态：下面的按钮行也别露出来 */
+:is(.ws-main, .ar-main).is-vfx .ar-actions {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 文章页频道条：方块里原有的名字在存档态会挤出来，统一收成"只有选中那颗露名字" */
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-tile:not(.is-on) .ar-name,
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-tile:not(.is-on) .ar-inline,
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-tile:not(.is-on) .ar-num {
+  display: none;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-tile.is-on .ar-name {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 7px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: rgba(198, 231, 243, 0.45);
+  white-space: nowrap;
+}
+
+/* 频道条不必抬（文章页本来就贴着页眉），抬了会撞 header */
+:is(.ws-main, .ar-main).is-vfx .ar-rail {
+  transform: none;
+}
+
+/* 底部返回条：文章页的 shell 是 flex 列，把 bar 推到最底下 */
+:is(.ws-main, .ar-main).is-vfx .ws-bar {
+  margin-top: auto;
+}
+
+/* 文章页频道条尺寸：ar-ps.css 里 .ar-tile 用了 flex:none + 固定尺寸，
+   这里必须压过去（存档态下它只是频道条，不是主内容） */
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-track .ar-tile {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-track .ar-tile.is-on {
+  width: 56px !important;
+  height: 56px !important;
+}
+
+
+/* ==========================================================================
+   文章页存档态：对齐作品页（逐条核对过的差异）
+   --------------------------------------------------------------------------
+   作品页那边已经定下来的规矩，文章页之前漏了这些：
+     1. 时钟隐藏
+     2. 频道条往上抬（让位给内容）
+     3. 频道名不挂在方块上（40px 放不下，会压到隔壁）
+     4. 底部返回条钉在最下面
+     5. 内容层起点跟着频道条重算
+   ========================================================================== */
+
+/* 1. 时钟 */
+:is(.ws-main, .ar-main).is-vfx .ar-clock {
+  visibility: hidden;
+}
+
+/* 2. 频道条抬高 —— 和作品页同一个量（-58px） */
+:is(.ws-main, .ar-main).is-vfx .ar-rail {
+  transform: translateY(-58px);
+}
+
+/* 3. 频道名删掉（不留标签，选中态只靠方块本身：亮 + 青边） */
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-name,
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-inline {
+  display: none !important;
+}
+
+/* 4. 返回条钉到底 */
+:is(.ws-main, .ar-main).is-vfx .ar-shell > .ws-bar {
+  margin-top: auto;
+  padding-bottom: 18px;
+}
+
+/* 5. 内容层起点：文章页的轨道比作品页低，抬完 -58 之后取 96 */
+:is(.ws-main, .ar-main).is-vfx .ws-vfx {
+  top: 96px;
+}
+
+/* 修正：文章页的轨道本来就比作品页高，抬 -58 会撞到页眉，改成 -30 */
+:is(.ws-main, .ar-main).is-vfx .ar-rail {
+  transform: translateY(-30px);
+}
+
+/* 内容层起点跟着改 */
+:is(.ws-main, .ar-main).is-vfx .ws-vfx {
+  top: 128px;
+}
+
+/* 返回条：绝对定位钉到底，别靠 flex 的 margin-top（shell 里不一定吃得到） */
+:is(.ws-main, .ar-main).is-vfx .ar-shell > .ws-bar {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: 18px;
+  margin: 0;
+  padding: 0;
+}
+
+/* 频道条尺寸：ar-ps.css 的 .ar-tile 是固定 112/184，必须压过去（存档态它只是频道条） */
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-track > .ar-tile {
+  width: 40px !important;
+  height: 40px !important;
+  flex: 0 0 auto;
+}
+
+:is(.ws-main, .ar-main).is-vfx .ar-rail .ar-track > .ar-tile.is-on {
+  width: 56px !important;
+  height: 56px !important;
+}
+
+/* ---------- 窄屏：卡片里的标题和说明别打架 ---------- */
+@media (max-width: 900px) {
+  /* 窄屏不显示 Enter 提示（本来就靠点） */
+  .ws-vfx-card .hint {
+    display: none;
+  }
+
+  .ws-vfx-card .cap {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+
+  .ws-vfx-card .cap b {
+    flex: 0 1 auto;
+    max-width: 62%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ws-vfx-card .cap span {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }

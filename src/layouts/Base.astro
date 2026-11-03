@@ -162,7 +162,7 @@ const crumbs = crumbParts.map((seg, i) => {
     }
   </head>
 
-  <body class={bodyClass}>
+  <body class={bodyClass} data-bgm={bgmSrc} data-bgm-volume={String(bgmVolume)}>
     <!-- 换页转场幕布：必须在 body 最前面，首帧就要盖住，晚一帧就会闪 -->
     <div id="xfer" class="xfer" aria-hidden="true">
       <span class="xfer-slices"><i></i><i></i><i></i><i></i></span>
@@ -217,48 +217,6 @@ const crumbs = crumbParts.map((seg, i) => {
                 </a>
               ))
           }
-          {
-            bgmSrc && (
-              <div class="sound-control">
-                <button
-                  type="button"
-                  class="sound-toggle"
-                  id="sound-toggle"
-                  data-on="false"
-                  data-src={bgmSrc}
-                  data-volume={bgmVolume}
-                  aria-expanded="false"
-                  aria-controls="sound-panel"
-                  aria-label="声音设置"
-                  title="声音设置"
-                >
-                  <span class="sound-wave" aria-hidden="true" />
-                  <span class="sound-wave" aria-hidden="true" />
-                  <svg data-icon="off" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" />
-                    <path d="M16.5 8.5l5 5m0-5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
-                  </svg>
-                  <svg data-icon="on" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" />
-                    <path d="M16.5 8.2a5 5 0 0 1 0 7.6M19 5.8a8.5 8.5 0 0 1 0 12.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
-                  </svg>
-                </button>
-
-                <div class="sound-panel" id="sound-panel" hidden>
-                  <label class="sound-row">
-                    <span class="sound-row-label">音效</span>
-                    <input class="sound-range" id="sfx-volume" type="range" min="0" max="100" step="1" />
-                    <b class="sound-row-value" data-sfx-value>75</b>
-                  </label>
-                  <label class="sound-row">
-                    <span class="sound-row-label">音乐</span>
-                    <input class="sound-range" id="bgm-volume" type="range" min="0" max="100" step="1" />
-                    <b class="sound-row-value" data-bgm-value>0</b>
-                  </label>
-                </div>
-              </div>
-            )
-          }
         </nav>
       </div>
     </header>
@@ -272,148 +230,11 @@ const crumbs = crumbParts.map((seg, i) => {
         联系方式只留在 /about/ 那一页。 */}
 
     <script>
-      /*
-       * 声音设置：右上角那个圆钮现在只管「打开设置面板」，真正的开关在面板里的两条滑杆上。
-       *   · 音效 —— 控制界面音效（sfx.ts 的主音量），默认 75
-       *   · 音乐 —— 控制背景音乐，默认 0（也就是关着）
-       * 两个值都记在 localStorage，翻页后保持。
-       *
-       * 浏览器禁止带声音的自动播放，所以音乐滑杆拉起来时才算一次用户手势，
-       * 那一刻调用 play() 是允许的；如果是刷新后恢复音量，play 可能被拦，
-       * 就先挂着，等第一次点按再补上。
-       */
-      import { setSfxVolume } from '../scripts/sfx';
-      import { attachBgmBeat } from '../scripts/bgm-beat';
+      /* 音效模块（全局 pointerover 的轻响）。
+       * 背景音乐不在这里初始化 —— 只有首页标题画面才放，见 index.astro。 */
+      import { attachSfx } from '../scripts/sfx';
 
-      const btn = document.getElementById('sound-toggle');
-
-      if (btn) {
-        const panel = document.getElementById('sound-panel');
-        const sfxInput = document.getElementById('sfx-volume') as HTMLInputElement | null;
-        const bgmInput = document.getElementById('bgm-volume') as HTMLInputElement | null;
-        const sfxOut = document.querySelector('[data-sfx-value]');
-        const bgmOut = document.querySelector('[data-bgm-value]');
-
-        const audio = new Audio();
-        audio.src = btn.dataset.src || '';
-        audio.loop = true;
-        audio.preload = 'none';
-        // 节拍检测：音乐真的开起来之后，才把 <audio> 接进 Web Audio 量低频
-        attachBgmBeat(audio);
-
-        const SFX_KEY = 'sfx-volume';
-        const BGM_KEY = 'bgm-volume';
-        const SFX_DEFAULT = 75;
-        const BGM_DEFAULT = 0;
-
-        const clamp = (n: number): number => Math.min(100, Math.max(0, Math.round(n)));
-        const read = (key: string, fallback: number): number => {
-          try {
-            const raw = localStorage.getItem(key);
-            if (raw === null) return fallback;
-            const n = Number(raw);
-            return Number.isNaN(n) ? fallback : clamp(n);
-          } catch {
-            return fallback;
-          }
-        };
-        const write = (key: string, value: number): void => {
-          try {
-            localStorage.setItem(key, String(value));
-          } catch {
-            /* 隐私模式存不了，本次会话内有效 */
-          }
-        };
-
-        // 老版本只存了「开/关」，迁过来
-        let legacyOn = false;
-        try {
-          legacyOn = localStorage.getItem('bgm-on') === '1';
-        } catch {
-          legacyOn = false;
-        }
-
-        let sfxValue = read(SFX_KEY, SFX_DEFAULT);
-        let bgmValue = read(BGM_KEY, legacyOn ? 35 : BGM_DEFAULT);
-
-        const render = (): void => {
-          const musicOn = bgmValue > 0;
-          btn.dataset.on = String(musicOn);
-          btn.setAttribute('aria-label', musicOn ? '声音设置（音乐开）' : '声音设置（音乐关）');
-          btn.title = btn.getAttribute('aria-label') || '';
-          // 音乐关着就一直招呼两下，开了就安静
-          btn.classList.toggle('is-calling', !musicOn);
-          if (sfxOut) sfxOut.textContent = String(sfxValue);
-          if (bgmOut) bgmOut.textContent = String(bgmValue);
-          if (sfxInput) sfxInput.value = String(sfxValue);
-          if (bgmInput) bgmInput.value = String(bgmValue);
-        };
-
-        const applySfx = (): void => {
-          setSfxVolume(sfxValue / 100);
-        };
-
-        const play = async (): Promise<void> => {
-          try {
-            await audio.play();
-          } catch {
-            // 还没拿到用户手势，等第一次点按再补
-          }
-        };
-
-        const applyBgm = (): void => {
-          audio.volume = bgmValue / 100;
-          if (bgmValue > 0) void play();
-          else audio.pause();
-        };
-
-        applySfx();
-        applyBgm();
-        render();
-
-        // 音量恢复后 play 常被拦，第一次点按补一次
-        const retry = (): void => {
-          if (bgmValue > 0 && audio.paused) void play();
-        };
-        window.addEventListener('pointerdown', retry, { once: true });
-        window.addEventListener('keydown', retry, { once: true });
-
-        sfxInput?.addEventListener('input', () => {
-          sfxValue = clamp(Number(sfxInput.value));
-          applySfx();
-          write(SFX_KEY, sfxValue);
-          render();
-          // 拖动时给个即时反馈
-          setSfxVolume(sfxValue / 100);
-        });
-
-        bgmInput?.addEventListener('input', () => {
-          bgmValue = clamp(Number(bgmInput.value));
-          applyBgm();
-          write(BGM_KEY, bgmValue);
-          render();
-        });
-
-        const setOpen = (open: boolean): void => {
-          btn.setAttribute('aria-expanded', String(open));
-          if (panel) panel.hidden = !open;
-          if (open) btn.classList.remove('is-calling');
-          else if (bgmValue === 0) btn.classList.add('is-calling');
-        };
-
-        btn.addEventListener('click', (event) => {
-          event.stopPropagation();
-          setOpen(btn.getAttribute('aria-expanded') !== 'true');
-        });
-
-        document.addEventListener('click', (event) => {
-          if (panel && !panel.hidden && !panel.contains(event.target as Node)) setOpen(false);
-        });
-
-        document.addEventListener('keydown', (event) => {
-          if (event.key === 'Escape' && panel && !panel.hidden) setOpen(false);
-        });
-      }
+      attachSfx();
     </script>
   </body>
 </html>

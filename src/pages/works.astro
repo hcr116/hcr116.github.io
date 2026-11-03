@@ -1,7 +1,10 @@
 ---
+import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import { SITE } from '../consts';
 import { counts } from '../data/counts';
+import { vfxItems } from '../data/vfx';
+import { t, tf } from '../data/copy';
 import '../styles/works-ps.css';
 import '../styles/crt.css';
 
@@ -13,44 +16,53 @@ const n = counts();
 const items = [
   {
     id: 'game-demo',
-    cn: '游戏 DEMO',
-    en: 'GAME DEMO',
+    title: t('works.tile.game-demo.name', '游戏 DEMO'),
+    cn: t('works.tile.game-demo.name', '游戏 DEMO'),
+    en: t('works.tile.game-demo.en', '游戏 DEMO'),
     tone: '#b3492f',
-    note: '用 UE5 做的切片和玩法原型',
+    note: t('works.tile.game-demo.note', '用 UE5 做的切片和玩法原型'),
     state: '整理中',
+    /* 还没内容，但点它就地展开一个空网格 */
+    href: '#game-demo',
   },
   {
     id: 'combat',
-    cn: '战策经验',
-    en: 'COMBAT DESIGN',
+    cn: t('works.tile.combat.name', '战斗拆解'),
+    en: t('works.tile.combat.en', '战斗拆解'),
     tone: '#a8762c',
-    note: '战斗系统拆解、数值、手感相关的笔记',
+    note: t('works.tile.combat.note', '战斗系统拆解、数值、手感相关的笔记'),
     state: '已有内容',
+    /* 战策经验跳文章页：和「AI 功能」一样走站内转场，不就地展开 */
+    href: '/articles/?from=combat',
   },
   {
     id: 'ai',
-    cn: 'AI 功能',
-    en: 'AI FEATURES',
+    cn: t('works.tile.ai.name', 'AI 功能'),
+    en: t('works.tile.ai.en', 'AI 功能'),
     tone: '#2f6f7d',
-    note: '由自己提需求、agent 完成编码制作的功能模块',
+    note: t('works.tile.ai.note', '由自己提需求、agent 完成编码制作的功能模块'),
     state: '已有内容',
-    href: '/works/ai/',
+    /* 和特效一样：不跳页面，就地展开 */
+    href: '#ai',
   },
   {
     id: 'bass',
-    cn: '贝斯弹奏',
-    en: 'BASS',
+    cn: t('works.tile.bass.name', '贝斯弹奏'),
+    en: t('works.tile.bass.en', '贝斯弹奏'),
     tone: '#6a4a86',
-    note: '业余弹的东西，纯爱好，不保证好听',
+    note: t('works.tile.bass.note', '业余弹的东西，纯爱好，不保证好听'),
     state: '整理中',
+    href: '#bass',
   },
   {
     id: 'vfx',
-    cn: '特效作品',
-    en: 'VFX',
+    cn: t('works.tile.vfx.name', '特效作品'),
+    en: t('works.tile.vfx.en', '特效作品'),
     tone: '#3f5a75',
-    note: '特效和动效的尝试',
-    state: '整理中',
+    note: t('works.tile.vfx.note', '特效和动效的尝试'),
+    state: '已有内容',
+    /* 不再跳独立页面：点它就在本页展开存档（见下面的 .ws-vfx） */
+    href: '#vfx',
   },
 ];
 
@@ -59,13 +71,54 @@ const items = [
  * data-note-html 带 <em>，给 hero 那块上色用。 */
 const list = items.map((it) => {
   const count = n[it.id] ?? 0;
-  const suffix = count > 0 ? `，已导入 ${count} 个。` : '，待导入。';
-  const suffixHtml =
-    count > 0 ? `，已导入 ${count} 个。` : `，<em class="ws-pending">待导入</em>。`;
+  const done = tf('ui.imported', { n: count }, '已导入 {n} 个');
+  const pending = t('ui.more.pending', '待导入');
+  const suffix = count > 0 ? `，${done}。` : `，${pending}。`;
+  const suffixHtml = count > 0 ? `，${done}。` : `，<em class="ws-pending">${pending}</em>。`;
   return { ...it, note: it.note + suffix, noteHtml: it.note + suffixHtml };
 });
 
 const ready = list.filter((i) => i.state === '已有内容').length;
+
+/* 存档层的数据：每个"就地展开"的频道一份。
+   卡片不再写死在模板里，由 archive.ts 按这份数据渲染。 */
+/* AI 功能：同样就地展开。只列能打开的，锁定条目不露标题。 */
+const aiItems = (await getCollection('ai', ({ data }) => !data.draft && !data.locked))
+  .sort(
+    (a, b) => b.data.order - a.data.order || b.data.year.localeCompare(a.data.year),
+  )
+  .map((it, i) => ({
+    id: it.id,
+    kind: 'link' as const,
+    title: it.data.title,
+    sub: [it.data.en, it.data.year].filter(Boolean).join(' · '),
+    tag: String(i + 1).padStart(2, '0'),
+    href: `/works/ai/${it.id}/`,
+  }));
+
+const vfxCards = vfxItems.map((v) => ({
+  id: v.id,
+  kind: 'video' as const,
+  title: v.label,
+  sub: v.date,
+  tag: `VFX ${v.id}`,
+  dur: v.dur,
+  poster: v.poster,
+  src: v.src,
+}));
+
+const archiveChannels = {
+  vfx: { id: 'vfx', title: t('works.tile.vfx.name', '特效作品'), items: vfxCards },
+  'game-demo': {
+    id: 'game-demo',
+    title: t('works.tile.game-demo.name', '游戏 DEMO'),
+    items: [] as typeof vfxCards,
+  },
+  ai: { id: 'ai', title: t('works.tile.ai.name', 'AI 功能'), items: aiItems },
+  bass: { id: 'bass', title: t('works.tile.bass.name', '贝斯弹奏'), items: [] as typeof vfxCards },
+};
+
+const archiveData = JSON.stringify(archiveChannels);
 ---
 
 <Base
@@ -110,6 +163,8 @@ const ready = list.filter((i) => i.state === '已有内容').length;
               <span class="ws-num crt-osd">{String(i + 1).padStart(2, '0')}</span>
               <span class="ws-tag-name">{it.cn}</span>
               <span class="ws-inline">{it.cn}</span>
+              {/* 存档态下只有选中那颗挂名字（PS4 的做法） */}
+              <span class="ws-ch-name">{it.cn}</span>
             </a>
           ))
         }
@@ -121,26 +176,65 @@ const ready = list.filter((i) => i.state === '已有内容').length;
       <div class="en" data-hero-en>{list[0].en}</div>
       <p data-hero-note set:html={list[0].noteHtml}></p>
       <div class="ws-actions">
-        <a class="ws-play" href={list[0].href ?? `#${list[0].id}`} data-hero-go>▶ 打开</a>
-        <button class="ws-more" type="button" aria-label="更多">•••</button>
+        <a class="ws-play" href={list[0].href ?? `#${list[0].id}`} data-hero-go>▶ {t('ui.open', '打开')}</a>
+        <button class="ws-more" type="button" aria-label={t('ui.more', '更多')}>•••</button>
       </div>
     </div>
 
     <aside class="ws-card">
-      <div class="k">整理进度</div>
-      <div class="row"><b>{ready} / {list.length}</b><span>已整理方向</span></div>
+      <div class="k">{t('works.stat.title', '整理进度')}</div>
+      <div class="row"><b>{ready} / {list.length}</b><span>{t('works.stat.unit', '已整理方向')}</span></div>
     </aside>
 
+    {/* ============================================================
+        同页展开：特效作品存档（XMB 结构）
+        ------------------------------------------------------------
+        点「特效作品」方块 → 不跳路由，给 .ws-main 加 .is-vfx：
+        上面那排方块压成一条"频道条"，下面开出一条横向内容轨道。
+        顶部「返回 / 面包屑」一直在，因为压根没离开这一页。
+        ============================================================ */}
+    {/* 返回用的背板：铺满整屏，点它 = 返回（它比内容低一层，所以不会挡住卡片） */}
+    <button class="ws-vfx-backdrop" type="button" data-backdrop aria-label="返回" tabindex="-1"></button>
+
+    <section class="ws-vfx" data-vfx aria-label={t('works.archive.title', '特效作品存档')}>
+      {/* 背景：跟着当前选中的视频走（PS4 那种"画面铺底"） */}
+      <div class="ws-vfx-bg" data-vfx-bg aria-hidden="true"></div>
+      <div class="ws-vfx-bg is-b" data-vfx-bg2 aria-hidden="true"></div>
+
+      <div class="ws-vfx-wrap" data-vfx-wrap>
+        <div class="ws-vfx-track" data-vfx-track>
+          {/* 焦点框：选中哪张就滑到哪张，PS4 的选中框就是会移动的 */}
+          <span class="ws-vfx-focus" data-vfx-focus aria-hidden="true"></span>
+          {/* 卡片由 archive.ts 按频道数据渲染（一套网格服务所有频道） */}
+        </div>
+
+        {/* 左右两边各一条热区：鼠标贴到边上就翻上一组 / 下一组。
+            没有下一组时自动失效（pointer-events: none）。 */}
+        <button class="ws-vfx-zone is-prev" type="button" data-zone="prev" aria-label="上一组"></button>
+        <button class="ws-vfx-zone is-next" type="button" data-zone="next" aria-label="下一组"></button>
+        <div class="ws-vfx-pager" data-pager aria-hidden="true"><b>01</b> / 02</div>
+      </div>
+    </section>
+
+    {/* 存档频道的数据（JSON，客户端读它渲染卡片） */}
+    <script type="application/json" data-archive-channels set:html={archiveData} />
+
+    {/* 全屏播放：点当前那张卡打开。不放任何按钮 —— 点周围空白 / ESC 关闭 */}
+    <div class="ws-vfx-player" data-player hidden>
+      <video data-player-video controls playsinline></video>
+    </div>
+
+    {/* 底部只留「○ 返回」（存档态才出现）。操作提示和 HCR · WORKS 都撤了 */}
     <div class="ws-bar">
-      <span>← → 切换 · ENTER 打开</span>
-      <span class="line" aria-hidden="true"></span>
-      <span>HCR · WORKS</span>
+      <button class="ws-vfx-legend" type="button" data-vfx-close aria-label={t('ui.back.label', '回到五个方向')} hidden><i aria-hidden="true">○</i> {t('ui.back', '返回')}</button>
     </div>
   </div>
 </Base>
 
 <script>
   import { attachCrt, powerOn, powerOff } from '../scripts/crt-tv';
+  import { initArchive } from '../scripts/archive';
+  import { t } from '../data/copy';
 
   const rail = document.querySelector('[data-rail]');
   const track = document.querySelector('[data-track]');
@@ -232,12 +326,31 @@ const ready = list.filter((i) => i.state === '已有内容').length;
     else applyHero();
   };
 
+
   for (const [i, tile] of tiles.entries()) {
     // 鼠标移到哪块，哪块就选中（变大 + 开机，其余关掉）；
     // 键盘 Tab 聚焦同样算选中；点一下也是（触屏没有 hover）。
-    tile.addEventListener('mouseenter', () => select(i));
-    tile.addEventListener('focus', () => select(i));
+    // 存档态下这条规则换人管：方块成了频道条，悬停/点击 = 切卡片，不碰 hero。
+    tile.addEventListener('mouseenter', () => {
+      // 存档态：顶部那排是「五个方向」，不是这 5 条视频的选择器 —— 悬停不切卡片
+      if (shell?.classList.contains('is-vfx')) return;
+      select(i);
+    });
+    tile.addEventListener('focus', () => {
+      if (shell?.classList.contains('is-vfx')) return;
+      select(i);
+    });
     tile.addEventListener('click', (event) => {
+      // 存档态：点另一个方向 = 换频道。先退出存档，再按它自己的规则走
+      if (shell?.classList.contains('is-vfx')) {
+        const nextHref = tile.getAttribute('href') ?? '';
+        setVfx(false);
+        if (nextHref.startsWith('#')) {
+          event.preventDefault();
+          select(i);
+        }
+        return;
+      }
       // 有真地址的（比如 AI 功能 → /works/ai/）让它正常跳过去，
       // 只有还没内容、href 是 "#id" 的占位块才拦下来，只切选中。
       const href = tile.getAttribute('href') ?? '';
@@ -253,19 +366,23 @@ const ready = list.filter((i) => i.state === '已有内容').length;
 
   window.addEventListener('keydown', (event) => {
     if (event.key === 'ArrowRight') {
+      if (shell?.classList.contains('is-vfx')) return; // 存档态的 ←→ 归卡片管
       event.preventDefault();
       select(current + 1, { slideRow: true });
     }
     if (event.key === 'ArrowLeft') {
+      if (shell?.classList.contains('is-vfx')) return;
       event.preventDefault();
       select(current - 1, { slideRow: true });
     }
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && !shell?.classList.contains('is-vfx')) {
       tiles[current]?.click();
     }
   });
 
   window.addEventListener('resize', () => {
+    // 存档态下顶部是「方向」，别让 resize 把选中抢回第一个
+    if (shell?.classList.contains('is-vfx')) return;
     if (tiles[current]) select(current, { animate: false, slideRow: false });
   });
 
@@ -277,7 +394,81 @@ const ready = list.filter((i) => i.state === '已有内容').length;
   tick();
   window.setInterval(tick, 30_000);
 
-  requestAnimationFrame(() => {
-    if (tiles[0]) select(0, { animate: false, slideRow: false });
+  /* ============================================================
+     就地展开的存档层（XMB）
+     ------------------------------------------------------------
+     行为全部走 scripts/archive.ts，这一页只做接线：
+     哪个方块开哪个频道、频道条怎么高亮、面包屑补什么字。
+     ============================================================ */
+  const channels = JSON.parse(
+    document.querySelector<HTMLScriptElement>('[data-archive-channels]')?.textContent ?? '{}',
+  );
+
+  /* href 是 #xxx 的方块 = 就地展开；真地址的（战策经验 / AI 功能）正常跳转 */
+  const channelOf = (tile: HTMLElement): string | null => {
+    const href = tile.getAttribute('href') ?? '';
+    if (!href.startsWith('#')) return null;
+    const id = href.slice(1);
+    return channels[id] ? id : null;
+  };
+
+  const archive = initArchive({
+    root: shell as HTMLElement | null,
+    grid: document.querySelector<HTMLElement>('[data-vfx-track]'),
+    pageSize: 4,
+    pager: document.querySelector<HTMLElement>('[data-pager]'),
+    focus: document.querySelector<HTMLElement>('[data-vfx-focus]'),
+    bgLayers: [
+      document.querySelector<HTMLElement>('[data-vfx-bg]'),
+      document.querySelector<HTMLElement>('[data-vfx-bg2]'),
+    ].filter(Boolean) as HTMLElement[],
+    legend: document.querySelector<HTMLElement>('.ws-vfx-legend'),
+    crumbs: (() => {
+      const host = document.querySelector<HTMLElement>('.crumbs');
+      if (!host) return null;
+      return {
+        host,
+        html: (channel) =>
+          '<span class="sep" aria-hidden="true">/</span><span class="here">' +
+          (channel.title ?? t('works.archive.title', '特效作品存档')) +
+          '</span>',
+      };
+    })(),
+    player: (() => {
+      const box = document.querySelector<HTMLElement>('[data-player]');
+      const video = document.querySelector<HTMLVideoElement>('[data-player-video]');
+      return box && video ? { box, video } : null;
+    })(),
+    channels,
+    urlParam: 'ch',
+    emptyText: t('works.empty', '还没有内容'),
+    /* 存档态：顶部那排是「五个方向」，选中永远是当前那个方向 */
+    onToggle: (_open, channel) => {
+      const i = tiles.findIndex((tile) => channelOf(tile) === channel.id);
+      if (i >= 0) select(i, { animate: false });
+    },
   });
+
+  for (const [i, tile] of tiles.entries()) {
+    /* 就地展开的方块：不走转场，点它开存档 */
+    if (channelOf(tile)) tile.setAttribute('data-no-xfer', '');
+
+    tile.addEventListener('click', (event) => {
+      const id = channelOf(tile);
+      if (id) {
+        event.preventDefault();
+        archive.open(id);
+        return;
+      }
+      /* 存档态下点别的方向 = 换频道：先退出存档，再按它自己的规则走 */
+      if (archive.open) {
+        archive.close();
+        const href = tile.getAttribute('href') ?? '';
+        if (href.startsWith('#')) {
+          event.preventDefault();
+          select(i);
+        }
+      }
+    });
+  }
 </script>

@@ -2,6 +2,7 @@
 // 联系页：四个通道 → 横向轨道（和 /works/、/articles/ 同一套骨架）
 // 配色只有中性灰阶，方块封面是渐变 + 纹理，没有纯色块，也没有红/橙等色相。
 import Base from '../layouts/Base.astro';
+import { t as ct, tf } from '../data/copy';
 import { SITE, WECHAT } from '../consts';
 import '../styles/contact.css';
 
@@ -26,43 +27,43 @@ type Channel = {
 const channels: Channel[] = [
   {
     id: 'mail',
-    cn: '邮件',
+    cn: ct('contact.mail.name', '邮件'),
     en: 'MAIL',
     glyph: '✉',
     note: `${SITE.email} —— 最稳的一条。项目、外包、约稿都走这里，两天内回。`,
     action: 'copy',
     value: SITE.email,
-    label: '复制地址',
+    label: ct('contact.mail.copy', '复制地址'),
     alt: { label: '直接发信', href: `mailto:${SITE.email}` },
   },
   {
     id: 'bilibili',
-    cn: 'B 站',
+    cn: ct('contact.bilibili.name', 'B 站'),
     en: 'BILIBILI',
     glyph: '▶',
-    note: '日常发拆解和试玩，账号 horob。想看我最近在玩什么、写了什么，看这里最全。',
+    note: ct('contact.bilibili.note', '日常发拆解和试玩，账号 horob。想看我最近在玩什么、写了什么，看这里最全。'),
     action: 'open',
     href: 'https://space.bilibili.com/4592990',
-    label: '打开主页',
+    label: ct('contact.bilibili.open', '打开主页'),
   },
   {
     id: 'github',
-    cn: 'GitHub',
+    cn: ct('contact.github.name', 'GitHub'),
     en: 'GITHUB',
     glyph: '</>',
-    note: '工具、脚本，还有这个站本身的源码，都在 hcr116 下面。',
+    note: ct('contact.github.note', '工具、脚本，还有这个站本身的源码，都在 hcr116 下面。'),
     action: 'open',
     href: 'https://github.com/hcr116',
-    label: '打开主页',
+    label: ct('contact.github.open', '打开主页'),
   },
   {
     id: 'wechat',
-    cn: '微信',
+    cn: ct('contact.wechat.name', '微信'),
     en: 'WECHAT',
     glyph: '▣',
     note: `公众号「${WECHAT.name}」。扫码关注，或者在微信里直接搜这个名字。`,
     action: 'qr',
-    label: '看二维码',
+    label: ct('contact.wechat.qr', '看二维码'),
   },
 ];
 
@@ -133,19 +134,15 @@ const count = (i: number) => `${plan(i)} / ${plan(total - 1)}`;
 
       <figure class="ab-qr" data-qr hidden>
         <img src={WECHAT.qr} alt={`${WECHAT.name} 的微信二维码`} width="132" height="132" />
-        <figcaption>微信扫码</figcaption>
+        <figcaption>{ct('contact.qr.caption', '微信扫码')}</figcaption>
       </figure>
     </div>
 
-    <div class="ab-bar">
-      <span>← → 切换 · ENTER 执行 · ESC 返回</span>
-      <span class="line" aria-hidden="true"></span>
-      <span>HCR · CONTACT</span>
-    </div>
   </div>
 </Base>
 
 <script>
+  import { t as ct } from '../data/copy';
   const tiles = [...document.querySelectorAll<HTMLElement>('[data-tile]')];
   const track = document.querySelector<HTMLElement>('[data-track]');
   const glow = document.querySelector<HTMLElement>('[data-glow]');
@@ -246,7 +243,7 @@ const count = (i: number) => `${plan(i)} / ${plan(total - 1)}`;
       navigator.clipboard
         ?.writeText(text)
         .then(() => {
-          goBtn.textContent = '✓ 已复制';
+          goBtn.textContent = ct('contact.mail.copied', '✓ 已复制');
           goBtn.classList.add('is-done');
           clearTimeout(doneTimer);
           doneTimer = window.setTimeout(() => applyHero(tile), 1400);

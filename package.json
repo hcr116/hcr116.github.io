@@ -8,12 +8,13 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "node scripts/copy-import.mjs && astro build",
     "preview": "astro preview",
-    "check": "node scripts/check-links.mjs && node scripts/check-isolation.mjs",
+    "check": "node scripts/check-links.mjs && node scripts/check-isolation.mjs && node scripts/check-copy-refs.mjs",
     "links": "node scripts/links.mjs",
     "img": "node scripts/img.mjs",
-    "sample-pdf": "node scripts/make-sample-pdf.mjs"
+    "sample-pdf": "node scripts/make-sample-pdf.mjs",
+    "probe": "node scripts/probe-interactions.mjs"
   },
   "dependencies": {
     "astro": "5.18.2"

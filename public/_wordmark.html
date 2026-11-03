@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>wordmark</title>
+    <style>
+      @font-face { font-family: 'Bodoni'; src: url('/fonts/bodonimoda.woff2') format('woff2'); font-display: block; }
+      @font-face { font-family: 'Zpix'; src: url('/fonts/zpix.woff2') format('woff2'); font-display: block; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body { background: #05060c; color: #e8ecf2; padding: 22px 38px 34px; font-family: 'Zpix', monospace; }
+      .row { display: grid; grid-template-columns: 138px 1fr; align-items: center; gap: 24px; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .row:last-child { border-bottom: 0; }
+      .k { font-size: 10.5px; letter-spacing: 0.16em; color: #6a6875; line-height: 1.8; }
+      .k b { display: block; color: #cfd6df; font-size: 12px; letter-spacing: 0.08em; margin-bottom: 5px; }
+      .stage { position: relative; height: 106px; display: flex; align-items: center; }
+
+      .wm { position: relative; font-family: 'Bodoni', serif; font-size: 74px; font-weight: 600; letter-spacing: 0.012em; line-height: 1; white-space: nowrap; color: #f3f5f7; display: inline-block; }
+      .rule { position: absolute; left: -8px; right: -8px; top: 51%; height: 1px; background: rgba(255,255,255,0.4); pointer-events: none; }
+
+      /* V1：末尾 i 反白块 */
+      .slab-i { background: #f3f5f7; color: #05060c; padding: 0 0.12em 0 0.04em; margin-left: 0.02em; }
+
+      /* V2：齿轮 */
+      .gear { display: inline-block; width: 0.32em; height: 0.32em; margin-left: 0.03em; vertical-align: 0.5em; animation: spin 26s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* V3：上下分裂 */
+      .split { position: relative; }
+      .split .lay { position: absolute; inset: 0; }
+      .split .top { clip-path: inset(0 0 51% 0); }
+      .split .bot { clip-path: inset(49% 0 0 0); transform: translateX(2.5px); opacity: 0.55; }
+
+      /* V4：缺块（一条竖条覆盖带） */
+      .corrupt { position: relative; }
+      .corrupt .band { position: absolute; left: 34%; right: 20%; top: 34%; height: 32%; }
+      .corrupt .band::after { content: ''; position: absolute; inset: 0;
+        background: repeating-linear-gradient(90deg, rgba(243,245,247,0.75) 0 5px, transparent 5px 9px); }
+      .corrupt .slip { position: absolute; inset: 0; clip-path: inset(30% 34% 42% 22%); transform: translateX(4px); opacity: 0.9; }
+
+      /* V5：整块反白 */
+      .inv { display: inline-block; background: #f3f5f7; padding: 0.02em 0.14em 0.06em; }
+      .inv .wm { color: #05060c; }
+
+      /* V6 / V7：轨道与极简 */
+      .track { width: 100%; }
+      .track .en { font-family: 'Bodoni', serif; font-size: 33px; font-weight: 500; letter-spacing: 0.44em; text-transform: uppercase; color: #eef2f6; }
+      .track .caps { margin-top: 10px; font-size: 9.5px; letter-spacing: 0.5em; color: #6a6875; }
+      .track .lines { position: relative; padding: 10px 0; }
+      .track .lines::before, .track .lines::after { content: ''; position: absolute; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.24); }
+      .track .lines::before { top: 0; }
+      .track .lines::after { bottom: 0; }
+
+      .cap-right { position: absolute; right: 0; top: 6px; font-size: 9.5px; letter-spacing: 0.36em; color: #6a6875; }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <div class="k"><b>V1 反白 i</b>中线 + 末尾 i<br />整块刷白挖空</div>
+      <div class="stage">
+        <span class="wm">HuangChenR<span class="slab-i">ui</span><span class="rule"></span></span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="k"><b>V2 齿轮 i</b>i 的点换成<br />缓慢旋转的齿轮</div>
+      <div class="stage">
+        <span class="wm">HuangChenRuı<svg class="gear" viewBox="0 0 24 24" aria-hidden="true">
+            <g fill="currentColor">
+              <rect x="10.2" y="-0.6" width="3.6" height="5.4"/>
+              <rect x="10.2" y="-0.6" width="3.6" height="5.4" transform="rotate(60 12 12)"/>
+              <rect x="10.2" y="-0.6" width="3.6" height="5.4" transform="rotate(120 12 12)"/>
+              <rect x="10.2" y="-0.6" width="3.6" height="5.4" transform="rotate(180 12 12)"/>
+              <rect x="10.2" y="-0.6" width="3.6" height="5.4" transform="rotate(240 12 12)"/>
+              <rect x="10.2" y="-0.6" width="3.6" height="5.4" transform="rotate(300 12 12)"/>
+            </g>
+            <circle cx="12" cy="12" r="9" fill="currentColor"/>
+            <circle cx="12" cy="12" r="4.2" fill="#05060c"/>
+          </svg><span class="rule"></span></span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="k"><b>V3 分裂</b>沿中线切开<br />下半错开压暗</div>
+      <div class="stage">
+        <span class="wm split">HuangChenRui
+          <span class="lay top">HuangChenRui</span>
+          <span class="lay bot">HuangChenRui</span>
+          <span class="rule" style="top:50%"></span>
+        </span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="k"><b>V4 缺块</b>中段被信号<br />吃掉一截</div>
+      <div class="stage">
+        <span class="wm corrupt">HuangChenRui
+          <span class="slip">HuangChenRui</span>
+          <span class="band"></span>
+          <span class="rule"></span>
+        </span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="k"><b>V5 整块反白</b>整行挖空在<br />白块里</div>
+      <div class="stage">
+        <span class="inv"><span class="wm">HuangChenRui</span></span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="k"><b>V6 轨道</b>拉开字距 + 细线<br />最像"界面"的一版</div>
+      <div class="stage">
+        <div class="track">
+          <div class="lines"><div class="en">Huang Chen Rui</div></div>
+          <div class="caps">PORTFOLIO · 2026 · BATTLE DESIGN</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="k"><b>V7 极简</b>只留字 + 一条线<br />什么都不加</div>
+      <div class="stage">
+        <span class="wm">HuangChenRui<span class="rule"></span></span>
+        <span class="cap-right">v0.6 · 2026</span>
+      </div>
+    </div>
+  </body>
+</html>

@@ -12,6 +12,7 @@
  */
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { countVfx as countVfxItems } from './vfx';
 import { join } from 'node:path';
 
 const root = process.cwd();
@@ -36,6 +37,11 @@ export function countAi(): number {
     .filter((f) => !isDraft(join(dir, f))).length;
 }
 
+/** 特效作品：已经到位的视频条数 */
+export function countVfx(): number {
+  return countVfxItems();
+}
+
 /** 战策经验：三份拆解文档里的章节数 */
 export function countCombat(): number {
   const dir = join(root, 'src/articles/combat');
@@ -55,7 +61,7 @@ export function counts(): Record<string, number> {
     combat: countCombat(),
     ai: countAi(),
     bass: 0,
-    vfx: 0,
+    vfx: countVfx(),
   };
 }
 

@@ -353,22 +353,7 @@
   cursor: pointer;
 }
 
-.ar-bar {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  padding-top: 26px;
-  color: rgba(255, 255, 255, 0.32);
-  font-family: 'Zpix', monospace;
-  font-size: 10px;
-  letter-spacing: 2px;
-}
 
-.ar-bar .line {
-  flex: 1;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.07);
-}
 
 @media (max-width: 900px) {
   .ar-tile {

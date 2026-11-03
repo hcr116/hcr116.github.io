@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import { SITE } from '../../../consts';
+import { t as ct } from '../../../data/copy';
 import '../../../styles/works-ps.css';
 import '../../../styles/crt.css';
 /* AI 功能：作品五个方向里的第三个现在有真内容了。
@@ -113,32 +114,29 @@ const openCount = items.filter((it) => !it.data.locked).length;
         <div class="ws-hero" data-hero>
           <h1 data-hero-title>{first.data.title}</h1>
           <div class="en" data-hero-en>
-            {first.data.en || 'AI FEATURES'}
+            {first.data.en || ct('ai.hero.en', 'AI FEATURES')}
           </div>
           <p data-hero-note>{first.data.summary}</p>
           <div class="ws-actions">
             <a class="ws-play" href={`/works/ai/${first.id}/`} data-hero-go>
-              ▶ 打开
+              ▶ {ct('ui.open', '打开')}
             </a>
           </div>
         </div>
       )
     }
 
-    <div class="ws-bar">
-      <span>← → 切换 · ENTER 打开 · 鼠标移过去也能切</span>
-      <span class="line" aria-hidden="true"></span>
-      <span>HCR · AI</span>
-    </div>
   </div>
 </Base>
 
 <script>
-  import { attachCrt, powerOn, powerOff } from '../../../scripts/crt-tv';
+  import { attachCrt } from '../../../scripts/crt-tv';
   import { initLocked } from '../../../scripts/locked';
+  import { t as ct } from '../../../data/copy';
+  /* 横排频道的行为（选中 / 开关机 / 键盘）全部走标准模块，
+     这一页只负责"下方大标题写什么"和"锁定条目怎么拦截"。 */
+  import { initRail } from '../../../scripts/rail';
 
-  const track = document.querySelector<HTMLElement>('[data-track]');
-  const tiles = track ? [...track.querySelectorAll<HTMLElement>('[data-tile]')] : [];
   const titleEl = document.querySelector<HTMLElement>('[data-hero-title]');
   const enEl = document.querySelector<HTMLElement>('[data-hero-en]');
   const noteEl = document.querySelector<HTMLElement>('[data-hero-note]');
@@ -152,7 +150,6 @@ const openCount = items.filter((it) => !it.data.locked).length;
     return out;
   };
 
-  let current = -1;
   let heroScramble = 0;
 
   const stopHeroScramble = () => {
@@ -166,13 +163,13 @@ const openCount = items.filter((it) => !it.data.locked).length;
     titleEl?.classList.remove('is-denied');
 
     if (tile.hasAttribute('data-locked')) {
-      const len = (tile.dataset.base || '未公开').length;
+      const len = (tile.dataset.base || ct('ai.locked', '未公开')).length;
       if (titleEl) titleEl.textContent = noise(len);
       heroScramble = window.setInterval(() => {
         if (titleEl) titleEl.textContent = noise(len);
       }, 90);
       if (enEl) enEl.textContent = 'RESTRICTED';
-      if (noteEl) noteEl.textContent = '未公开条目。点一下试试。';
+      if (noteEl) noteEl.textContent = ct('ai.locked.note', '未公开条目。点一下试试。');
       if (goEl) {
         goEl.removeAttribute('href');
         goEl.setAttribute('aria-disabled', 'true');
@@ -182,7 +179,7 @@ const openCount = items.filter((it) => !it.data.locked).length;
     }
 
     if (titleEl) titleEl.textContent = tile.dataset.cn ?? '';
-    if (enEl) enEl.textContent = tile.dataset.en ?? 'AI FEATURES';
+    if (enEl) enEl.textContent = tile.dataset.en ?? ct('ai.hero.en', 'AI FEATURES');
     if (noteEl) noteEl.textContent = tile.dataset.note ?? '';
     if (goEl) {
       goEl.setAttribute('href', tile.getAttribute('href') ?? '#');
@@ -191,25 +188,7 @@ const openCount = items.filter((it) => !it.data.locked).length;
     }
   };
 
-  const select = (index: number, force = false) => {
-    if (!tiles.length) return;
-    const next = (index + tiles.length) % tiles.length;
-    const tile = tiles[next];
-    if (!tile || !tile.isConnected) return;
-    if (!force && next === current) return;
-
-    current = next;
-
-    tiles.forEach((t, i) => {
-      const was = t.classList.contains('is-on');
-      const now = i === current;
-      t.classList.toggle('is-on', now);
-      if (was && !now) powerOff(t);
-      if (!was && now) powerOn(t);
-    });
-
-    paintHero(tile);
-  };
+  const rail = initRail({ onSelect: (tile) => paintHero(tile) });
 
   /* 「权限不足」写进大标题：先打字机删掉当前文字，再一个字一个字打出来 */
   const denyHero = async () => {
@@ -231,7 +210,7 @@ const openCount = items.filter((it) => !it.data.locked).length;
       el.textContent = (el.textContent ?? '').slice(0, n);
       await sleep(34);
     }
-    const text = '权限不足';
+    const text = ct('ai.forbidden', '权限不足');
     for (let n = 1; n <= text.length; n += 1) {
       el.textContent = text.slice(0, n);
       await sleep(72);
@@ -241,7 +220,7 @@ const openCount = items.filter((it) => !it.data.locked).length;
   /** 乱码块消失之后，大标题回到最近一个还能打开的条目 */
   const restoreHero = () => {
     titleEl?.classList.remove('is-denied');
-    const alive = tiles.filter((t) => t.isConnected);
+    const alive = rail.tiles.filter((t) => t.isConnected);
     const pick = alive.find((t) => !t.hasAttribute('data-locked')) ?? alive[0];
     if (!pick) {
       if (titleEl) titleEl.textContent = '';
@@ -249,14 +228,8 @@ const openCount = items.filter((it) => !it.data.locked).length;
       if (noteEl) noteEl.textContent = '';
       return;
     }
-    current = -1;
-    select(tiles.indexOf(pick), true);
+    rail.select(rail.tiles.indexOf(pick), true);
   };
-
-  tiles.forEach((tile, i) => {
-    tile.addEventListener('mouseenter', () => select(i));
-    tile.addEventListener('focus', () => select(i));
-  });
 
   initLocked({
     onDeny: () => {
@@ -264,21 +237,6 @@ const openCount = items.filter((it) => !it.data.locked).length;
       // locked.ts 里：定格 420 + 收线 170 + 淡出 320 ≈ 910ms 之后这一块才被摘掉
       window.setTimeout(restoreHero, 1100);
     },
-  });
-
-  // 第一帧先把 hero 对齐到第 0 块
-  if (tiles[0]) paintHero(tiles[0]);
-
-  window.addEventListener('keydown', (event) => {
-    if (event.key === 'ArrowRight') {
-      event.preventDefault();
-      select(current + 1);
-    }
-    if (event.key === 'ArrowLeft') {
-      event.preventDefault();
-      select(current - 1);
-    }
-    if (event.key === 'Enter') tiles[current]?.click();
   });
 
   attachCrt();

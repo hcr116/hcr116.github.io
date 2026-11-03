@@ -1,0 +1,247 @@
+/* ==========================================================================
+   V3「仪式」示意层
+   --------------------------------------------------------------------------
+   只在 .tp[data-look='3'] 下生效（?look=3 打开，?look=0 关掉）。
+   这层是纯叠加：不改原有结构，删掉这一整段就回到现在的样子。
+
+   加的东西：
+     ① 前景剪影 .tp-fore      —— 底部一条水岸暗影，把"镜头"塞进场景里
+     ② 发光核心 .tp-core      —— 地平线上的一个点，给视线一个落点
+     ③ 尘埃   .tp-dust        —— 近景粒子，和远处星空拉开纵深
+     ④ 呼吸   .tp-breathe     —— 整屏亮度 ±2%，8 秒一个来回
+     ⑤ 推镜   .tp-scene       —— 20 秒 scale 1 → 1.035
+     ⑥ 版本行 .tp-ver         —— 标题下面那行小字
+   ========================================================================== */
+
+.tp-core,
+.tp-dust,
+.tp-fore,
+.tp-ver,
+.tp-breathe {
+  display: none;
+}
+
+.tp[data-look='3'] .tp-core,
+.tp[data-look='3'] .tp-dust,
+.tp[data-look='3'] .tp-fore,
+.tp[data-look='3'] .tp-ver {
+  display: block;
+}
+
+/* ---------- ① 前景剪影 ---------- */
+
+.tp-fore {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 6;
+  height: 17svh;
+  pointer-events: none;
+}
+
+.tp-fore svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: #04050a;
+}
+
+/* 剪影上沿一道极淡的湿边，让它不是一块纯黑 */
+.tp-fore::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: 0;
+  left: 0;
+  height: 26px;
+  background: linear-gradient(180deg, rgba(198, 231, 243, 0.16), transparent);
+}
+
+/* 剪影上方再压一层雾，纵深更明显 */
+.tp-fore::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 88%;
+  left: 0;
+  height: 22svh;
+  background: radial-gradient(70% 100% at 50% 100%, rgba(150, 180, 220, 0.07), transparent 74%);
+}
+
+/* ---------- ② 发光核心 ---------- */
+
+.tp-core {
+  position: absolute;
+  z-index: 7;
+  left: 84%;
+  top: var(--axis);
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 12px 4px rgba(198, 231, 243, 0.7),
+    0 0 64px 24px rgba(120, 170, 220, 0.2);
+  animation: tpCore 4.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes tpCore {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+}
+
+/* ---------- ③ 尘埃 ---------- */
+
+.tp-dust {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.tp-dust i {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: rgba(232, 242, 255, 0.9);
+  opacity: var(--o);
+  filter: blur(0.6px);
+  animation: tpDust var(--d) linear var(--delay) infinite;
+}
+
+@keyframes tpDust {
+  0% {
+    transform: translate3d(0, 14px, 0);
+  }
+
+  50% {
+    transform: translate3d(7px, -10px, 0);
+  }
+
+  100% {
+    transform: translate3d(0, 14px, 0);
+  }
+}
+
+/* ---------- ④ 呼吸 ---------- */
+
+.tp[data-look='3'] .tp-breathe {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 13;
+  pointer-events: none;
+  background: #dceaf7;
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: tpBreathe 8.5s ease-in-out infinite;
+}
+
+@keyframes tpBreathe {
+  0%,
+  100% {
+    opacity: 0.004;
+  }
+
+  50% {
+    opacity: 0.022;
+  }
+}
+
+/* ---------- ⑤ 推镜 ---------- */
+
+.tp[data-look='3'] .tp-scene {
+  transform-origin: 64% 52%;
+  animation: tpPush 22s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+}
+
+@keyframes tpPush {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.035);
+  }
+}
+
+/* ---------- ⑥ 版本行 ---------- */
+
+.tp-ver {
+  position: absolute;
+  z-index: 14;
+  left: 0;
+  right: 0;
+  top: calc(var(--axis) + 76px);
+  margin: 0;
+  text-align: center;
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  letter-spacing: 0.42em;
+  color: rgba(214, 226, 240, 0.4);
+  pointer-events: none;
+}
+
+/* ---------- 中景提亮（让"中间那层"出来） ---------- */
+
+.tp[data-look='3'] .tp-haze {
+  opacity: calc(0.75 + var(--vol) * 0.45);
+}
+
+.tp[data-look='3'] .tp-water {
+  opacity: calc(0.9 + var(--vol) * 0.3);
+}
+
+/* ---------- PRESS 行的呼吸（打完字之后一直在等） ---------- */
+
+.tp[data-look='3'] .tp-press .txt {
+  animation: tpPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes tpPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 窄屏：剪影压矮一点，别挡菜单 */
+@media (max-width: 900px) {
+  .tp-fore {
+    height: 11svh;
+  }
+
+  .tp-ver {
+    top: calc(var(--axis) + 58px);
+    font-size: 9px;
+  }
+}
+
+/* 尊重"减少动态"：推镜、呼吸、尘埃全停，只留静态层次 */
+@media (prefers-reduced-motion: reduce) {
+  .tp[data-look='3'] .tp-scene,
+  .tp[data-look='3'] .tp-press .txt,
+  .tp[data-look='3'] .tp-core,
+  .tp[data-look='3'] .tp-dust i,
+  .tp[data-look='3'] .tp-breathe {
+    animation: none !important;
+  }
+}

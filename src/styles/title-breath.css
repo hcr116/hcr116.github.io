@@ -1,0 +1,38 @@
+/* ==========================================================================
+   标题的「呼吸」（方案 C）
+   --------------------------------------------------------------------------
+   只在 .tp[data-breath='1'] 下生效（?breath=1 跟音乐 / ?breath=demo 假呼吸）。
+   整行字随乐句浮一下：位移 ≤1.8px、缩放 ≤1.006、色散稍微开一点。
+   字不抖、不跳、不踏步 —— 是"活着"，不是"在打拍子"。
+   ========================================================================== */
+
+.tp[data-breath='1'] .tp-word {
+  --breath-amp: 1.8px;
+
+  /* 原有位移是 translate(-50%, -0.022em)，这里把呼吸叠在 Y 上 */
+  transform: translate(-50%, calc(-0.022em - var(--breath, 0) * var(--breath-amp)))
+    scale(calc(1 + var(--breath, 0) * 0.006));
+  transform-origin: 50% 88%;
+  will-change: transform;
+}
+
+/* 色散层跟着开一点点：呼吸时边缘微微发散，静态看不出，动态很明显。
+   只加模糊，不改 opacity —— 那层的透明度是别处在管的，抢过来会打架。 */
+.tp[data-breath='1'] .tp-word .chroma {
+  filter: blur(calc(0.65px + var(--breath, 0) * 0.55px));
+}
+
+/* 地平线旁边那点光晕也跟着一起明暗，不然只有字在动会显得孤立 */
+.tp[data-breath='1'] .tp-haze {
+  opacity: calc(0.75 + var(--vol) * 0.45 + var(--breath, 0) * 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tp[data-breath='1'] .tp-word {
+    transform: translate(-50%, -0.022em);
+  }
+
+  .tp[data-breath='1'] .tp-word .chroma {
+    filter: blur(0.65px);
+  }
+}
