@@ -732,13 +732,32 @@ body:has(.ws-main) .site-header {
   }
 }
 
+/* 减少动态效果：**不做位移，但保留 120ms 交叉淡入**。
+   以前这里是 transition:none —— 结果"开/关存档"变成硬切，比有动画还难看清。
+   减动态真正要避免的是位移和缩放（会引起眩晕），淡入淡出不在此列。
+
+   :root:not(.force-motion) —— 访问 ?motion=full 时整段让路，
+   方便在"系统关了动画"的机器上也能看到完整动效。 */
 @media (prefers-reduced-motion: reduce) {
-  .ws-vfx,
-  .ws-vfx-card,
-  :is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile,
-  :is(.ws-main, .ar-main).is-vfx .ws-hero {
-    transition: none !important;
+  :root:not(.force-motion) .ws-vfx,
+  :root:not(.force-motion) .ws-vfx-card,
+  :root:not(.force-motion) :is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile,
+  :root:not(.force-motion) :is(.ws-main, .ar-main).is-vfx .ws-hero {
     animation: none !important;
+    transition-property: opacity, border-color, background-color;
+    transition-duration: 120ms !important;
+    transition-delay: 0s !important;
+  }
+
+  /* 位移一律归零：不挪、不缩、不推 */
+  :root:not(.force-motion) .ws-vfx,
+  :root:not(.force-motion) :is(.ws-main, .ar-main).is-vfx .ws-hero,
+  :root:not(.force-motion) .is-motion-v2 .ws-vfx,
+  :root:not(.force-motion) .is-motion-v2.is-vfx .ws-vfx,
+  :root:not(.force-motion) .is-motion-v2.is-vfx-closing .ws-vfx,
+  :root:not(.force-motion) .is-motion-v2.is-vfx-switch-out .ws-vfx,
+  :root:not(.force-motion) .is-motion-v2.is-vfx-switch-in .ws-vfx {
+    transform: none !important;
   }
 }
 
@@ -1737,27 +1756,27 @@ html.is-vfx-playing .ws-bar {
 
 /* 降低动效：不位移、不溶解，只 100ms 淡入 */
 @media (prefers-reduced-motion: reduce) {
-  .is-motion-v2 .ws-vfx,
-  .is-motion-v2.is-vfx .ws-vfx,
-  .is-motion-v2.is-vfx-closing .ws-vfx {
+  :root:not(.force-motion) .is-motion-v2 .ws-vfx,
+  :root:not(.force-motion) .is-motion-v2.is-vfx .ws-vfx,
+  :root:not(.force-motion) .is-motion-v2.is-vfx-closing .ws-vfx {
     transform: none !important;
     transition-duration: 100ms !important;
     transition-delay: 0s !important;
   }
 
-  .is-motion-v2.is-rail-hidden .ws-rail,
-  .is-motion-v2.is-vfx-closing .ws-rail {
+  :root:not(.force-motion) .is-motion-v2.is-rail-hidden .ws-rail,
+  :root:not(.force-motion) .is-motion-v2.is-vfx-closing .ws-rail {
     opacity: 1;
     transition-duration: 100ms !important;
   }
 
-  .is-motion-v2.is-vfx-switch-in .ws-vfx,
-  .is-motion-v2.is-vfx .ws-vfx-card.is-on {
+  :root:not(.force-motion) .is-motion-v2.is-vfx-switch-in .ws-vfx,
+  :root:not(.force-motion) .is-motion-v2.is-vfx .ws-vfx-card.is-on {
     animation: none;
   }
 
-  .is-motion-v2.is-vfx-switch-out .ws-vfx,
-  .is-motion-v2.is-vfx-switch-in .ws-vfx {
+  :root:not(.force-motion) .is-motion-v2.is-vfx-switch-out .ws-vfx,
+  :root:not(.force-motion) .is-motion-v2.is-vfx-switch-in .ws-vfx {
     transform: none !important;
   }
 }

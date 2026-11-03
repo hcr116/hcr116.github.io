@@ -1978,13 +1978,21 @@ main {
   }
 }
 
+/* 系统关了「动画效果」时的全站降级。
+   ⚠️ 这里以前是 `*` 通配 + transition-duration: 0.01ms —— 等于把**全站所有过渡**一刀切没了，
+   于是"减少动态"的用户看到的是硬切（比有动画还难看清）。
+   现在拆成两件事：
+     · 位移/缩放类：全部归零（防眩晕，这是这个开关真正的目的）
+     · 颜色/透明度类：保留 120ms（不触发不适，但能看清"变了"）
+   :root:not(.force-motion) 让 ?motion=full 能把整套降级关掉（给需要对照的人用）。 */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  :root:not(.force-motion) *,
+  :root:not(.force-motion) *::before,
+  :root:not(.force-motion) *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 120ms !important;
+    transition-property: opacity, color, background-color, border-color, box-shadow !important;
     scroll-behavior: auto !important;
   }
 }
