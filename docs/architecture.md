@@ -141,3 +141,29 @@ npm run check      # 链接 / 隔离 / 文案引用
 | 卡片不可聚焦 | 纯键盘用户只能靠 ← → 选，Tab 到不了卡片 |
 | 触屏 | 边缘热区靠 hover，触屏翻不了组（可用 ← → / 返回 / 页码提示） |
 | reduced-motion | 覆盖不全（焦点框、背景淡入未关） |
+
+---
+
+## 七、动效护栏（`scripts/check-motion.mjs`）
+
+**为什么有它**：动效失效的时候，页面状态是对的，探针会全绿 —— 但用户看到的是"硬切"。
+踩过一次大的：`--ease-film: var(--ease-film)` 自引用 + 压缩器把变量删掉，
+导致全站 `transition: ... var(--ease-film)` 整条被丢弃，**所有动画静默失效**。
+
+它查两件事：
+
+| 检查 | 查什么 |
+| --- | --- |
+| **A 静态** | 构建产物里所有 `var(--x)` 的 `--x` 必须有定义（含内联 style / JS setProperty 注入的），且不能自己引自己 |
+| **B 运行时** | 无头浏览器打开作品页/文章页，**像用户那样点开频道**，量 `.ws-vfx` 的 `transition-duration`，必须是 > 0s |
+
+B 会带 `--force-prefers-reduced-motion` 跑 —— 即"系统开了减少动画也必须动"，
+这是产品要求（有且只有动效），不是可选项。
+
+```bash
+npm run motion           # A + B（需要先 build，且 preview 在 4321 跑着）
+npm run check            # 只跑 A（快，不用浏览器）
+```
+
+**注意**：深链 `?ch=vfx` 走 `is-vfx-instant`，本来就该没有过渡，
+所以 B 一定要用"点击"触发，别用 query 直接开。

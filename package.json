@@ -10,12 +10,13 @@
     "dev": "astro dev",
     "build": "node scripts/copy-import.mjs && astro build",
     "preview": "astro preview",
-    "check": "node scripts/check-links.mjs && node scripts/check-isolation.mjs && node scripts/check-copy-refs.mjs",
+    "check": "node scripts/check-links.mjs && node scripts/check-isolation.mjs && node scripts/check-copy-refs.mjs && node scripts/check-motion.mjs --static",
     "links": "node scripts/links.mjs",
     "img": "node scripts/img.mjs",
     "sample-pdf": "node scripts/make-sample-pdf.mjs",
     "probe": "node scripts/probe-interactions.mjs",
-    "console": "node scripts/check-console.mjs"
+    "console": "node scripts/check-console.mjs",
+    "motion": "node scripts/check-motion.mjs"
   },
   "dependencies": {
     "astro": "5.18.2"

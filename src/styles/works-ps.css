@@ -774,7 +774,7 @@ body:has(.ws-main) .site-header {
   font-family: 'Zpix', monospace;
   font-size: 11px;
   letter-spacing: 0.12em;
-  color: var(--fun-dim);
+  color: var(--fun-dim, rgba(198, 231, 243, 0.5));
   cursor: pointer;
 }
 
@@ -797,7 +797,7 @@ body:has(.ws-main) .site-header {
   font-family: 'Zpix', monospace;
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: var(--fun-dim);
+  color: var(--fun-dim, rgba(198, 231, 243, 0.5));
   cursor: pointer;
   transition: color 0.25s, border-color 0.25s;
 }

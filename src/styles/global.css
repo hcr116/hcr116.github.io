@@ -2069,9 +2069,10 @@ main {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: calc(var(--r) * 2);
-  height: calc(var(--r) * 2);
-  margin: calc(var(--r) * -1) 0 0 calc(var(--r) * -1);
+  /* --r 由 JS 注入（涟漪半径）；没注入时给个兜底，别让整条失效 */
+  width: calc(var(--r, 0px) * 2);
+  height: calc(var(--r, 0px) * 2);
+  margin: calc(var(--r, 0px) * -1) 0 0 calc(var(--r, 0px) * -1);
   border: 1px solid color-mix(in srgb, var(--fun-accent) 16%, transparent);
   border-radius: 50%;
 }
@@ -2535,11 +2536,11 @@ main {
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--spine) 84%, #f2f0ea 16%),
-      var(--spine) 38%,
-      color-mix(in srgb, var(--spine) 72%, #000 28%)
+      color-mix(in srgb, var(--spine, #b3492f) 84%, #f2f0ea 16%),
+      var(--spine, #b3492f) 38%,
+      color-mix(in srgb, var(--spine, #b3492f) 72%, #000 28%)
     );
-  color: color-mix(in srgb, var(--spine) 22%, #fff 78%);
+  color: color-mix(in srgb, var(--spine, #b3492f) 22%, #fff 78%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
     0 12px 24px -18px #000;
