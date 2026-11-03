@@ -59,6 +59,11 @@ export type ArchiveOptions = {
   onSelect?: (item: ArchiveItem, index: number) => void;
   /** 没内容时的那句话，默认「还没有内容」 */
   emptyText?: string;
+  /**
+   * 动效版本：v1 = 老的一层淡入（文章页还在用）；
+   * v2 = 上浮式入场 + 反放退场 + 换频道整排推出推入（先在作品页试）
+   */
+  motion?: 'v1' | 'v2';
 };
 
 export type ArchiveHandle = {
@@ -92,7 +97,23 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
     onToggle,
     onSelect,
     emptyText: emptyFallback = '还没有内容',
+    motion = 'v1',
   } = options;
+
+  /* v2 = 上浮式入场 / 反放退场 / 换频道整排推出推入（先在作品页试用） */
+  const useMotion2 = motion === 'v2';
+  if (useMotion2) root?.classList.add('is-motion-v2');
+
+  const CLOSE_MS = 380;
+  const SWITCH_OUT_MS = 180;
+  const SWITCH_IN_MS = 240;
+  const STAGGER_MS = 45;
+
+  const reduceMotion = (): boolean =>
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let closeTimer = 0;
+  let switchBusy = false;
 
   const param = `?${urlParam}=1`;
   /** URL 里有没有这个参数（?ch=1 和 ?ch=vfx 都算有） */
@@ -347,9 +368,37 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
 
   /* ---------------- 开 / 关 ---------------- */
 
+  /** v2 入场：四张卡从下方错峰升起 */
+  const riseCards = (): void => {
+    if (!useMotion2 || reduceMotion()) return;
+    const visible = cards.filter((card) => !card.classList.contains('is-offpage'));
+
+    visible.forEach((card, i) => {
+      card.classList.add('is-enter');
+      card.style.setProperty('--i', String(i));
+      /* 延迟写在行内：is-enter 摘掉之后这条还要继续生效，错峰才看得出来 */
+      card.style.transitionDelay = `${160 + i * STAGGER_MS}ms`;
+    });
+
+    /* 下一帧再放开，让"从下往上"这一帧成立 */
+    window.setTimeout(() => {
+      visible.forEach((card) => card.classList.remove('is-enter'));
+    }, 40);
+
+    /* 入场结束后清掉行内延迟，别影响退场/换频道的节奏 */
+    window.setTimeout(() => {
+      visible.forEach((card) => {
+        card.style.transitionDelay = '';
+      });
+    }, 160 + visible.length * STAGGER_MS + 520);
+  };
+
   const open = (id: string, animate = true): void => {
     const channel = channels[id];
     if (!channel) return;
+
+    const wasOpen = isOpen;
+    const switching = useMotion2 && wasOpen && channelId !== id;
 
     if (!animate) root?.classList.add('is-vfx-instant');
     else root?.classList.remove('is-vfx-instant');
@@ -375,17 +424,36 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
       crumbs.host.insertAdjacentHTML('beforeend', crumbs.html(channel));
     }
 
-    renderChannel(channel);
-    index = -1;
-    goTo(0);
-    onToggle?.(true, channel);
+    const commit = (): void => {
+      renderChannel(channel);
+      index = -1;
+      goTo(0);
+      onToggle?.(true, channel);
+    };
+
+    /* v2 换频道：整排先推出去，换了内容再推回来 */
+    if (switching && !reduceMotion() && !switchBusy) {
+      switchBusy = true;
+      root?.classList.add('is-vfx-switch-out');
+      window.setTimeout(() => {
+        root?.classList.remove('is-vfx-switch-out');
+        commit();
+        root?.classList.add('is-vfx-switch-in');
+        window.setTimeout(() => {
+          root?.classList.remove('is-vfx-switch-in');
+          switchBusy = false;
+        }, SWITCH_IN_MS);
+      }, SWITCH_OUT_MS);
+      return;
+    }
+
+    commit();
+
+    /* v2 打开：卡片错峰升起（换频道那条路径由推入负责） */
+    if (!wasOpen) riseCards();
   };
 
-  const close = (): void => {
-    if (!isOpen) return;
-    isOpen = false;
-
-    root?.classList.remove('is-vfx');
+  const finishClose = (): void => {
     if (legend) legend.hidden = true;
     if (crumbs && crumbBackup) crumbs.host.innerHTML = crumbBackup;
     for (const card of cards) card.querySelector('video')?.pause();
@@ -393,6 +461,27 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
 
     if (hasParam()) {
       history.pushState({ [urlParam]: 0 }, '', baseUrl);
+    }
+  };
+
+  const close = (): void => {
+    if (!isOpen) return;
+    isOpen = false;
+
+    /* v2：卡片先退场（错峰），再收容器 —— 打开时的反放 */
+    if (useMotion2) {
+      root?.classList.add('is-vfx-closing');
+      window.clearTimeout(closeTimer);
+      closeTimer = window.setTimeout(
+        () => {
+          root?.classList.remove('is-vfx', 'is-vfx-closing');
+          finishClose();
+        },
+        reduceMotion() ? 100 : CLOSE_MS,
+      );
+    } else {
+      root?.classList.remove('is-vfx');
+      finishClose();
     }
   };
 

@@ -78,13 +78,13 @@ const CASES = [
       check('ESC 一次：只关播放层', !player.classList.contains('is-on') && shell.classList.contains('is-vfx'));
 
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-      await sleep(200);
+      await sleep(600); /* v2 退场是反向播放，要等它播完 */
       check('ESC 两次：退出存档', !shell.classList.contains('is-vfx'));
 
       tile && tile.click();
-      await sleep(400);
+      await sleep(700);
       document.querySelector('[data-backdrop]')?.click();
-      await sleep(200);
+      await sleep(600);
       check('点空白背板 → 退出存档', !shell.classList.contains('is-vfx'));
 
       return out;
@@ -120,7 +120,7 @@ const CASES = [
       check('空态出现', !!document.querySelector('.ws-vfx-empty'));
 
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-      await sleep(200);
+      await sleep(600); /* v2 退场 380ms */
       check('ESC 退出', !shell.classList.contains('is-vfx'));
 
       return out;
@@ -149,7 +149,7 @@ const CASES = [
       check('页码藏起来', document.querySelector('[data-pager]')?.hidden !== false);
 
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-      await sleep(200);
+      await sleep(600); /* v2 退场 380ms */
       check('ESC 退出', !shell.classList.contains('is-vfx'));
 
       return out;
@@ -227,9 +227,8 @@ const CASES = [
       tile && tile.click();
       await sleep(400);
       check('开存档后 URL 带 ch', location.search.includes('ch='), location.search);
-
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-      await sleep(300);
+      await sleep(600); /* v2 退场 380ms 之后才清 URL */
       check('关存档后 URL 干净', !location.search.includes('ch='), location.search || '(空)');
       check('关存档后类名去掉', !shell.classList.contains('is-vfx'));
 

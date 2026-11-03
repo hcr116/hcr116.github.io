@@ -1641,3 +1641,87 @@ html.is-vfx-playing .ws-bar {
   opacity: 0;
   pointer-events: none;
 }
+
+/* ==========================================================================
+   存档层动效 v2（上浮式）—— 目前只给作品页用，文章页还是 v1
+   --------------------------------------------------------------------------
+   入场：容器上移 12px 淡入 → 四张卡从下方 14px 处错峰升起（45ms 间隔）
+   退场：卡片错峰下坠 → 容器收回去（反向播放）
+   换频道：整排先向左推出 → 换内容 → 从右推回
+   降低动效：只留 100ms 淡入，不做位移
+   ========================================================================== */
+
+.is-motion-v2 .ws-vfx-card {
+  transition:
+    opacity 0.42s var(--ease-film),
+    transform 0.42s var(--ease-film),
+    border-color 0.2s var(--ease),
+    box-shadow 0.2s var(--ease);
+}
+
+/* --- 入场：这一条只是"起手式"，40ms 后 JS 摘掉，靠上面的 transition 回到原位 --- */
+.is-motion-v2.is-vfx .ws-vfx-card.is-enter {
+  opacity: 0 !important;
+  transform: translateY(14px);
+  transition-delay: calc(var(--i, 0) * 45ms + 160ms);
+}
+
+/* --- 退场：反向，最后一张先走 --- */
+.is-motion-v2.is-vfx-closing .ws-vfx-card {
+  opacity: 0 !important;
+  transform: translateY(10px);
+  transition-delay: calc((3 - var(--i, 0)) * 35ms);
+}
+
+.is-motion-v2.is-vfx-closing .ws-vfx {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.24s ease 0.12s,
+    transform 0.3s var(--ease-film) 0.12s;
+}
+
+/* --- 换频道：整排推出 → 推入 --- */
+.is-motion-v2.is-vfx-switch-out .ws-vfx-card {
+  opacity: 0 !important;
+  transform: translateX(-18px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s var(--ease-film);
+}
+
+.is-motion-v2.is-vfx-switch-in .ws-vfx-card {
+  animation: ws-card-in 0.24s var(--ease-film) both;
+  animation-delay: calc(var(--i, 0) * 30ms);
+}
+
+@keyframes ws-card-in {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- 降低动效：不位移，只 100ms 淡入 --- */
+@media (prefers-reduced-motion: reduce) {
+  .is-motion-v2 .ws-vfx-card,
+  .is-motion-v2.is-vfx-closing .ws-vfx {
+    transition-duration: 100ms !important;
+    transition-delay: 0s !important;
+  }
+
+  .is-motion-v2.is-vfx-switch-in .ws-vfx-card {
+    animation-duration: 100ms;
+    animation-delay: 0s;
+  }
+
+  .is-motion-v2.is-vfx .ws-vfx-card.is-enter,
+  .is-motion-v2.is-vfx-closing .ws-vfx-card,
+  .is-motion-v2.is-vfx-switch-out .ws-vfx-card {
+    transform: none !important;
+  }
+}
