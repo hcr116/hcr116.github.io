@@ -156,6 +156,29 @@ const CASES = [
     `,
   },
   {
+    id: 'works-link-card',
+    page: 'works',
+    title: '作品页 → AI 频道：卡片是跳转型（没有视频、带 href）',
+    code: `
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const out = [];
+      const check = (name, ok, info = '') => out.push({ name, ok: !!ok, info });
+      const player = document.querySelector('[data-player]');
+      const tile = [...document.querySelectorAll('.ws-rail .ws-tile')]
+        .find((t) => t.getAttribute('href') === '#ai');
+
+      tile && tile.click();
+      await sleep(400);
+      const cards = [...document.querySelectorAll('.ws-vfx-card')];
+      check('AI 频道有卡片', cards.length > 0, String(cards.length));
+      check('卡片带跳转地址', !!cards[0]?.getAttribute('data-href'), cards[0]?.getAttribute('data-href') ?? '');
+      check('卡片不是视频（没有 video 元素）', !cards[0]?.querySelector('video'));
+      check('进入存档后播放层是关的', !player.classList.contains('is-on'));
+
+      return out;
+    `,
+  },
+  {
     id: 'works-rail',
     page: 'works',
     title: '作品页 rail：方向键换方向、hero 跟着变',
