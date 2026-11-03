@@ -3,5 +3,5 @@
 # 留空 = 不显示喇叭按钮，也不会加载音频。
 bgm: '/audio/emil-title.mp3'
 # 音量，0-100
-bgmVolume: 16
+bgmVolume: 22
 ---

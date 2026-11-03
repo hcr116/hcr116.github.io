@@ -4,7 +4,7 @@
  * 规则（2026-11-02）：
  *   · 只有首页的标题画面有音乐，加载/自检那段**不响**，内页一律静音
  *   · 用户第一次交互（点击/按键）之后才允许出声 —— 浏览器的硬规则
- *   · 起播是 2.4 秒渐入；离开首页时 0.35 秒渐出，不留硬切
+ *   · 起播不渐入（音频开头本身是静的）；离开首页时 0.35 秒渐出，不留硬切
  *   · 全站没有音量 UI（开关按钮已撤），音量写死在 DEFAULT_VOLUME
  *
  * 节拍检测（bgm-beat.ts）挂在同一个 <audio> 上，标题呼吸靠它。
@@ -13,10 +13,11 @@
 import { attachBgmBeat } from './bgm-beat';
 
 /** 目标音量：0–1。氛围音乐，别压过人声。 */
-const DEFAULT_VOLUME = 0.16;
+const DEFAULT_VOLUME = 0.22;
 
-/** 起播渐入时长 */
-const FADE_IN_MS = 2400;
+/* 起播渐入：0 = 不渐入，直接到目标音量。
+   这条音频开头本来就是静音，再渐入等于白等 2.4 秒（用户要求关掉）。 */
+const FADE_IN_MS = 0;
 
 let el: HTMLAudioElement | null = null;
 let target = DEFAULT_VOLUME;
@@ -81,7 +82,8 @@ export function initBgm(src: string, volume = DEFAULT_VOLUME): HTMLAudioElement 
 export function startBgm(fadeMs = FADE_IN_MS): void {
   if (!el || started) return;
   started = true;
-  el.volume = 0;
+  /* 不渐入时先给到目标音量，避免起播那一帧是 0 */
+  el.volume = fadeMs > 0 ? 0 : Math.max(0, Math.min(1, target));
   void el
     .play()
     .then(() => fadeTo(target, fadeMs))
