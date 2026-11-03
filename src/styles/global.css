@@ -4378,3 +4378,35 @@ html.gate-open {
     inset 0 0 0 1px rgba(241, 243, 246, 0.42),
     inset 0 -2px 0 #f1f3f6 !important;
 }
+
+/* ============================================================
+   媒体防护：图片/视频不许拖拽、不许长按保存
+   ------------------------------------------------------------
+   只管媒体，正文照常能选中、邮箱照常能复制 —— 别为了防扒
+   把正常读者（招聘方）也挡在外面。
+   ============================================================ */
+img,
+video,
+canvas,
+picture {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 触屏：去掉长按弹菜单（iOS / Android 的"存储图像"） */
+@media (hover: none) {
+  img,
+  video {
+    -webkit-touch-callout: none;
+  }
+}
+
+/* 水印容器：不占位、不参与选中 */
+.wm-mark {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}

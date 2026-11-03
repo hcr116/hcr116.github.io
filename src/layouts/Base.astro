@@ -3,6 +3,7 @@ import { getEntry } from 'astro:content';
 import '../styles/global.css';
 import '../styles/xfer.css';
 import { SITE, GOATCOUNTER } from '../consts';
+import { wmEncode } from '../scripts/watermark';
 
 interface Props {
   title?: string;
@@ -55,6 +56,9 @@ const toggleAria = isFunRoute ? '去看作品' : '返回上一级';
 
 // 背景音乐设置来自 src/content/settings/settings.md
 const settings = await getEntry('settings', 'settings');
+/* 不可见文字水印（零宽字符编码）：整段被复制走时，来源会跟着走 */
+const wmMark = wmEncode('hcr116.github.io');
+
 const bgmSrc = settings?.data.bgm?.trim() ?? '';
 const bgmVolume = Math.min(100, Math.max(0, settings?.data.bgmVolume ?? 35)) / 100;
 
@@ -103,6 +107,7 @@ const crumbs = crumbParts.map((seg, i) => {
     <meta name="dsh-build" content={new Date().toISOString()} />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="copyright" content="© 2026 黄晨睿 · hcr116.github.io · 未经许可请勿转载" />
     {/* noai / noimageai 是非标准标记，愿意遵守的爬虫会读；真正的拦截在 robots.txt */}
     <meta
       name="robots"
@@ -172,6 +177,8 @@ const crumbs = crumbParts.map((seg, i) => {
   </head>
 
   <body class={bodyClass} data-bgm={bgmSrc} data-bgm-volume={String(bgmVolume)}>
+    {/* 不可见水印：整段复制会把来源一起带走（零宽字符，肉眼与读屏都无感） */}
+    <span class="wm-mark" aria-hidden="true" set:html={wmMark} />
     <!-- 换页转场幕布：必须在 body 最前面，首帧就要盖住，晚一帧就会闪 -->
     <div id="xfer" class="xfer" aria-hidden="true">
       <span class="xfer-slices"><i></i><i></i><i></i><i></i></span>
