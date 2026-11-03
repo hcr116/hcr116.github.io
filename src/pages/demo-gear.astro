@@ -1,0 +1,551 @@
+---
+/*
+  齿轮示意页（不进导航，只在本地/线上直接访问 /demo-gear/ 查看）
+  ------------------------------------------------------------------
+  三版反应方式，都带"静止时一格一格地嗒嗒嗒"：
+    A 齿比传动：主齿轮 + 两边小齿轮反向咬合，悬停菜单项 → 转到该格
+    B 刻度环：带刻度的环，悬停 → 把第 N 个刻度转到标记线
+    C 可变结构：悬停时齿轮换形态（齿数 / 方齿 / 内圈辐条）再转
+*/
+const MENU = ['简介', '作品', '文章', '联系'];
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>齿轮示意</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      @font-face {
+        font-family: 'Zpix';
+        src: url('/fonts/zpix-subset.woff2') format('woff2');
+        font-display: swap;
+      }
+
+      :root {
+        --bg: #05060a;
+        --ink: #dff2fb;
+        --dim: rgba(198, 231, 243, 0.55);
+        --line: rgba(255, 255, 255, 0.12);
+        --cyan: rgba(198, 231, 243, 0.8);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: 'Zpix', ui-monospace, monospace;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ---------- 顶部控制条 ---------- */
+      .bar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        align-items: center;
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(5, 6, 10, 0.92);
+        backdrop-filter: blur(6px);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: var(--dim);
+      }
+
+      .bar label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .bar input[type='range'] {
+        width: 110px;
+        accent-color: #9fd6ea;
+      }
+
+      .bar b {
+        color: var(--ink);
+        font-weight: normal;
+        min-width: 42px;
+        display: inline-block;
+      }
+
+      .bar .sep {
+        width: 1px;
+        height: 16px;
+        background: var(--line);
+      }
+
+      /* ---------- 三个面板 ---------- */
+      .stage {
+        position: relative;
+        height: 460px;
+        display: grid;
+        place-items: center;
+        border-bottom: 1px solid var(--line);
+        overflow: hidden;
+      }
+
+      .tag {
+        position: absolute;
+        left: 24px;
+        top: 16px;
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        color: var(--dim);
+      }
+
+      .gear-wrap {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+        will-change: transform;
+      }
+
+      .gear-wrap svg,
+      .gear-wrap canvas {
+        position: absolute;
+        display: block;
+      }
+
+      .word {
+        position: relative;
+        z-index: 2;
+        margin: 0;
+        font-size: 64px;
+        line-height: 1;
+        letter-spacing: 0.18em;
+        text-indent: 0.18em;
+        color: #fff;
+        text-shadow: 0 0 26px rgba(10, 14, 22, 0.9);
+        user-select: none;
+      }
+
+      .menu {
+        position: absolute;
+        bottom: 56px;
+        z-index: 3;
+        display: flex;
+        gap: 26px;
+        font-size: 13px;
+        letter-spacing: 0.12em;
+      }
+
+      .menu a {
+        display: flex;
+        gap: 8px;
+        padding: 6px 10px;
+        color: var(--dim);
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: color 0.18s ease, border-color 0.18s ease;
+      }
+
+      .menu a .n {
+        color: rgba(198, 231, 243, 0.45);
+      }
+
+      .menu a:hover,
+      .menu a.is-on {
+        color: #fff;
+        border-color: rgba(198, 231, 243, 0.4);
+      }
+
+      /* 像素齿轮：放大时保持硬边 */
+      canvas.pixel {
+        image-rendering: pixelated;
+      }
+
+      .hint {
+        position: absolute;
+        right: 24px;
+        bottom: 16px;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        color: rgba(198, 231, 243, 0.35);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="bar">
+      <label>质感 <select id="style"><option value="line">细线矢量</option><option value="pixel">像素</option></select></label>
+      <span class="sep"></span>
+      <label>齿数 <input id="teeth" type="range" min="8" max="36" step="2" value="20" /><b id="teeth-v">20</b></label>
+      <label>半径 <input id="radius" type="range" min="90" max="260" step="10" value="150" /><b id="radius-v">150</b></label>
+      <label>透明度 <input id="alpha" type="range" min="6" max="30" step="2" value="14" /><b id="alpha-v">.14</b></label>
+      <span class="sep"></span>
+      <label>嗒一下间隔 <input id="tick" type="range" min="600" max="4000" step="200" value="2200" /><b id="tick-v">2.2s</b></label>
+    </div>
+
+    {
+      ['A', 'B', 'C'].map((key) => (
+        <section class="stage" data-variant={key}>
+          <span class="tag">{key} · {key === 'A' ? '齿比传动' : key === 'B' ? '刻度环' : '可变结构'}</span>
+          <div class="gear-wrap" data-gear />
+          <h1 class="word">黄晨睿</h1>
+          <nav class="menu">
+            {MENU.map((label, i) => (
+              <a href="#" data-i={i}>
+                <span class="n">{String(i + 1).padStart(2, '0')}</span>
+                <span>{label}</span>
+              </a>
+            ))}
+          </nav>
+          <span class="hint">悬停菜单，齿轮会转到对应格；不动的时候一格一格地嗒</span>
+        </section>
+      ))
+    }
+
+    <script>
+      type Style = 'line' | 'pixel';
+
+      const state = {
+        style: 'line' as Style,
+        teeth: 20,
+        radius: 150,
+        alpha: 0.14,
+        tick: 2200,
+      };
+
+      /* ---------------- 画齿轮：细线 ---------------- */
+      function lineGear(teeth: number, r: number, alpha: number): SVGSVGElement {
+        const ns = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(ns, 'svg');
+        const size = r * 2.3;
+        svg.setAttribute('viewBox', `${-size / 2} ${-size / 2} ${size} ${size}`);
+        svg.setAttribute('width', String(size));
+        svg.setAttribute('height', String(size));
+
+        const root = r * 0.88;   /* 齿根圆 */
+        const tip = r;           /* 齿顶圆 */
+        const step = (Math.PI * 2) / teeth;
+
+        /* 齿廓：每个齿四个点（根 → 顶 → 顶 → 根），首尾自然连成谷 */
+        const points: Array<[number, number]> = [];
+        for (let i = 0; i < teeth; i += 1) {
+          const a = i * step;
+          points.push([root, a - step * 0.3]);
+          points.push([tip, a - step * 0.16]);
+          points.push([tip, a + step * 0.16]);
+          points.push([root, a + step * 0.3]);
+        }
+
+        const d = points
+          .map(([rr, aa], i) => `${i === 0 ? 'M' : 'L'}${(Math.cos(aa) * rr).toFixed(2)},${(Math.sin(aa) * rr).toFixed(2)}`)
+          .join(' ');
+
+        const path = document.createElementNS(ns, 'path');
+        path.setAttribute('d', `${d} Z`);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', `rgba(198, 231, 243, ${alpha})`);
+        path.setAttribute('stroke-width', '1.1');
+        path.setAttribute('stroke-linejoin', 'round');
+
+        /* 内圈 */
+        const hub = document.createElementNS(ns, 'circle');
+        hub.setAttribute('r', String(root * 0.42));
+        hub.setAttribute('fill', 'none');
+        hub.setAttribute('stroke', `rgba(198, 231, 243, ${alpha * 0.9})`);
+        hub.setAttribute('stroke-width', '1');
+
+        /* 辐条 */
+        const spokes = document.createElementNS(ns, 'g');
+        const count = Math.max(4, Math.round(teeth / 6));
+        for (let i = 0; i < count; i += 1) {
+          const a = (i / count) * Math.PI * 2;
+          const l = document.createElementNS(ns, 'line');
+          l.setAttribute('x1', String(Math.cos(a) * root * 0.42));
+          l.setAttribute('y1', String(Math.sin(a) * root * 0.42));
+          l.setAttribute('x2', String(Math.cos(a) * root * 0.92));
+          l.setAttribute('y2', String(Math.sin(a) * root * 0.92));
+          l.setAttribute('stroke', `rgba(198, 231, 243, ${alpha * 0.55})`);
+          l.setAttribute('stroke-width', '1');
+          spokes.append(l);
+        }
+
+        svg.append(path, hub, spokes);
+        return svg;
+      }
+      /* ---------------- 画齿轮：像素 ---------------- */
+      function pixelGear(teeth: number, r: number, alpha: number): HTMLCanvasElement {
+        const px = 96; /* 低分辨率画布，放大后就是像素 */
+        const c = document.createElement('canvas');
+        c.width = px;
+        c.height = px;
+        c.className = 'pixel';
+        c.style.width = `${r * 2.4}px`;
+        c.style.height = `${r * 2.4}px`;
+        c.style.opacity = String(Math.min(1, alpha * 3.4));
+
+        const g = c.getContext('2d');
+        if (!g) return c;
+        g.clearRect(0, 0, px, px);
+        g.fillStyle = 'rgba(198, 231, 243, 1)';
+
+        const cx = px / 2;
+        const cy = px / 2;
+        const outer = px * 0.44;
+        const inner = px * 0.34;
+        const toothW = (Math.PI * 2) / teeth / 2;
+
+        g.beginPath();
+        for (let i = 0; i < teeth; i += 1) {
+          const a = (i / teeth) * Math.PI * 2;
+          for (const [rr, aa] of [
+            [inner, a - toothW],
+            [outer, a - toothW * 0.6],
+            [outer, a + toothW * 0.6],
+            [inner, a + toothW],
+          ] as Array<[number, number]>) {
+            const x = Math.round(cx + Math.cos(aa) * rr);
+            const y = Math.round(cy + Math.sin(aa) * rr);
+            g.lineTo(x, y);
+          }
+        }
+        g.closePath();
+        g.fill();
+
+        /* 掏空中间，留一圈环 */
+        g.globalCompositeOperation = 'destination-out';
+        g.beginPath();
+        g.arc(cx, cy, px * 0.2, 0, Math.PI * 2);
+        g.fill();
+        g.globalCompositeOperation = 'source-over';
+
+        return c;
+      }
+
+      /* ---------------- 每块的实例 ---------------- */
+      type Inst = {
+        root: HTMLElement;
+        variant: string;
+        gear: HTMLElement | null;      /* 主齿轮容器 */
+        smalls: HTMLElement[];
+        angle: number;                 /* 当前角度 */
+        target: number;
+        step: number;                  /* 一格 = 多少度 */
+        timer: number;
+        locked: boolean;
+      };
+
+      const insts: Inst[] = [];
+
+      function build(root: HTMLElement, variant: string): Inst {
+        const wrap = root.querySelector<HTMLElement>('[data-gear]');
+        if (wrap) wrap.innerHTML = '';
+
+        const inst: Inst = {
+          root,
+          variant,
+          gear: null,
+          smalls: [],
+          angle: 0,
+          target: 0,
+          step: 360 / state.teeth,
+          timer: 0,
+          locked: false,
+        };
+
+        if (variant === 'A') {
+          /* 主齿轮 + 两个小齿轮（左右咬合，反向转） */
+          const main = document.createElement('div');
+          main.className = 'gear-main';
+          main.style.cssText = 'position:absolute;display:grid;place-items:center;';
+
+          const smallL = document.createElement('div');
+          smallL.style.cssText = `position:absolute;transform:translate(${-state.radius * 1.16}px, ${-state.radius * 0.44}px)`;
+          const smallR = document.createElement('div');
+          smallR.style.cssText = `position:absolute;transform:translate(${state.radius * 1.16}px, ${state.radius * 0.44}px)`;
+
+          const big = state.style === 'line' ? lineGear(state.teeth, state.radius, state.alpha) : pixelGear(state.teeth, state.radius, state.alpha);
+          const s1 = state.style === 'line' ? lineGear(Math.round(state.teeth / 2), state.radius * 0.42, state.alpha) : pixelGear(Math.round(state.teeth / 2), state.radius * 0.42, state.alpha);
+          const s2 = state.style === 'line' ? lineGear(Math.round(state.teeth / 2), state.radius * 0.42, state.alpha) : pixelGear(Math.round(state.teeth / 2), state.radius * 0.42, state.alpha);
+
+          main.append(big);
+          smallL.append(s1);
+          smallR.append(s2);
+          wrap?.append(main, smallL, smallR);
+
+          inst.gear = main;
+          inst.smalls = [smallL, smallR];
+        } else if (variant === 'B') {
+          /* 刻度环：外圈 + 若干刻度 + 一个固定标记 */
+          const ring = document.createElement('div');
+          ring.style.cssText = 'position:absolute;display:grid;place-items:center;';
+
+          const ns = 'http://www.w3.org/2000/svg';
+          const size = state.radius * 2.6;
+          const svg = document.createElementNS(ns, 'svg');
+          svg.setAttribute('viewBox', `${-size / 2} ${-size / 2} ${size} ${size}`);
+          svg.setAttribute('width', String(size));
+          svg.setAttribute('height', String(size));
+
+          const circle = document.createElementNS(ns, 'circle');
+          circle.setAttribute('r', String(state.radius));
+          circle.setAttribute('fill', 'none');
+          circle.setAttribute('stroke', `rgba(198, 231, 243, ${state.alpha * 3.4})`);
+          circle.setAttribute('stroke-width', '1.2');
+          svg.append(circle);
+
+          for (let i = 0; i < 24; i += 1) {
+            const a = (i / 24) * Math.PI * 2 - Math.PI / 2;
+            const long = i % 6 === 0;
+            const l = document.createElementNS(ns, 'line');
+            const r1 = state.radius * (long ? 0.9 : 0.95);
+            const r2 = state.radius;
+            l.setAttribute('x1', String(Math.cos(a) * r1));
+            l.setAttribute('y1', String(Math.sin(a) * r1));
+            l.setAttribute('x2', String(Math.cos(a) * r2));
+            l.setAttribute('y2', String(Math.sin(a) * r2));
+            l.setAttribute('stroke', `rgba(198, 231, 243, ${state.alpha * (long ? 4 : 2.2)})`);
+            l.setAttribute('stroke-width', long ? '1.6' : '1');
+            svg.append(l);
+          }
+
+          ring.append(svg);
+          wrap?.append(ring);
+          inst.gear = ring;
+        } else {
+          /* C：可变结构（悬停换形态） */
+          const box = document.createElement('div');
+          box.style.cssText = 'position:absolute;display:grid;place-items:center;';
+          const gear =
+            state.style === 'line' ? lineGear(state.teeth, state.radius, state.alpha) : pixelGear(state.teeth, state.radius, state.alpha);
+          box.append(gear);
+          wrap?.append(box);
+          inst.gear = box;
+        }
+
+        return inst;
+      }
+
+      function applyAngle(inst: Inst, deg: number, ms: number): void {
+        inst.angle = deg;
+        if (inst.gear) {
+          inst.gear.style.transition = `transform ${ms}ms cubic-bezier(.22,.9,.2,1)`;
+          inst.gear.style.transform = `rotate(${deg}deg)`;
+        }
+        /* 小齿轮反向（齿比 = 2:1） */
+        inst.smalls.forEach((s, i) => {
+          s.style.transition = `transform ${ms}ms cubic-bezier(.22,.9,.2,1)`;
+          const base = i === 0 ? `translate(${-state.radius * 1.16}px, ${-state.radius * 0.44}px)` : `translate(${state.radius * 1.16}px, ${state.radius * 0.44}px)`;
+          s.style.transform = `${base} rotate(${-deg * 2}deg)`;
+        });
+      }
+
+      /* ---------------- 嗒：一格一格 ---------------- */
+      function startTicking(inst: Inst): void {
+        window.clearInterval(inst.timer);
+        inst.timer = window.setInterval(() => {
+          if (inst.locked) return;
+          inst.target = Math.round((inst.target + inst.step) / inst.step) * inst.step;
+          applyAngle(inst, inst.target, 260);
+        }, state.tick);
+      }
+
+      /* ---------------- 装配 ---------------- */
+      function rebuild(): void {
+        insts.length = 0;
+        for (const section of document.querySelectorAll<HTMLElement>('.stage')) {
+          const variant = section.dataset.variant ?? 'A';
+          const inst = build(section, variant);
+          inst.step = 360 / state.teeth;
+          insts.push(inst);
+
+          const links = section.querySelectorAll<HTMLAnchorElement>('.menu a');
+          links.forEach((a) => {
+            a.addEventListener('mouseenter', () => {
+              const i = Number(a.dataset.i ?? 0);
+              inst.locked = true;
+              links.forEach((x) => x.classList.toggle('is-on', x === a));
+
+              if (variant === 'B') {
+                /* 环转到"第 i 个刻度对准顶部标记" */
+                inst.target = -(i * 90);
+                applyAngle(inst, inst.target, 520);
+                return;
+              }
+
+              if (variant === 'C') {
+                /* 换形态：不同项 → 不同齿数 / 方齿 */
+                const shape = [12, 24, 30, 16][i] ?? state.teeth;
+                const box = inst.gear;
+                if (box) {
+                  box.innerHTML = '';
+                  box.append(
+                    state.style === 'line'
+                      ? lineGear(shape, state.radius, state.alpha)
+                      : pixelGear(shape, state.radius, state.alpha),
+                  );
+                }
+                inst.step = 360 / shape;
+                inst.target = i * 30;
+                applyAngle(inst, inst.target, 420);
+                return;
+              }
+
+              /* A：主齿轮转到第 i 格（45° 一档） */
+              inst.target = i * 45;
+              applyAngle(inst, inst.target, 420);
+            });
+
+            a.addEventListener('click', (e) => e.preventDefault());
+          });
+
+          section.querySelector('.menu')?.addEventListener('mouseleave', () => {
+            inst.locked = false;
+            section.querySelectorAll('.menu a').forEach((x) => x.classList.remove('is-on'));
+          });
+
+          startTicking(inst);
+        }
+      }
+
+      /* ---------------- 控制条 ---------------- */
+      const bind = (id: string, key: keyof typeof state, fmt: (v: number) => string) => {
+        const input = document.getElementById(id) as HTMLInputElement | null;
+        const out = document.getElementById(`${id}-v`);
+        if (!input) return;
+        input.value = String(key === 'alpha' ? Math.round(state.alpha * 100) : state[key]);
+        const sync = () => {
+          const v = Number(input.value);
+          if (key === 'alpha') state.alpha = v / 100;
+          else state[key] = v;
+          if (out) out.textContent = fmt(v);
+        };
+        sync();
+        input.addEventListener('input', () => {
+          sync();
+          rebuild();
+        });
+      };
+
+      bind('teeth', 'teeth', (v) => String(v));
+      bind('radius', 'radius', (v) => String(v));
+      bind('alpha', 'alpha', (v) => (v / 100).toFixed(2));
+      bind('tick', 'tick', (v) => `${(v / 1000).toFixed(1)}s`);
+
+      document.getElementById('style')?.addEventListener('change', (e) => {
+        state.style = (e.target as HTMLSelectElement).value as Style;
+        rebuild();
+      });
+
+      rebuild();
+    </script>
+  </body>
+</html>
