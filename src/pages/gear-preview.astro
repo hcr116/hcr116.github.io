@@ -1,0 +1,399 @@
+---
+/*
+  齿轮预览（不进导航，noindex）：直接给标题帧，不走启动序列。
+  自成一页的样式，不依赖 boot.css —— 免得和启动序列的定位规则打架。
+  只回答一个问题：一个**大**齿轮压在 "Rui" 背后，悬停菜单时 A/B/C 哪种反应对。
+*/
+const MENU = ['简介', '作品', '文章', '联系'];
+const VARIANTS = [
+  { key: 'a', name: 'A 齿比传动' },
+  { key: 'b', name: 'B 刻度定位' },
+  { key: 'c', name: 'C 换形态' },
+];
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>齿轮预览</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      @font-face {
+        font-family: 'Zpix';
+        src: url('/fonts/zpix-subset.woff2') format('woff2');
+        font-display: swap;
+      }
+
+      :root {
+        --ink: #eef4f8;
+        --cyan: 198, 231, 243;
+        --serif: 'Songti SC', 'Noto Serif SC', 'Times New Roman', Georgia, serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #04050a;
+        color: var(--ink);
+      }
+
+      .sky {
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(120% 80% at 50% 18%, rgba(24, 34, 52, 0.85), transparent 62%),
+          radial-gradient(90% 60% at 50% 100%, rgba(10, 16, 26, 0.9), transparent 70%),
+          linear-gradient(180deg, #05070c 0%, #070a11 58%, #04050a 100%);
+      }
+
+      .horizon {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 54%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(var(--cyan), 0.5) 12%, rgba(var(--cyan), 0.85) 50%, rgba(var(--cyan), 0.5) 88%, transparent);
+        box-shadow: 0 0 24px rgba(var(--cyan), 0.25);
+      }
+
+      .scan {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 3px);
+        mix-blend-mode: screen;
+        opacity: 0.5;
+      }
+
+      .vignette {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(120% 90% at 50% 45%, transparent 40%, rgba(0, 0, 0, 0.75) 100%);
+      }
+
+      .bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        z-index: 40;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: center;
+        padding: 10px 22px;
+        background: rgba(4, 5, 9, 0.92);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        font-family: 'Zpix', ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: rgba(var(--cyan), 0.6);
+      }
+
+      .bar b { color: var(--ink); font-weight: normal; }
+      .bar span { opacity: 0.75; }
+
+      .bar a {
+        color: rgba(var(--cyan), 0.8);
+        text-decoration: none;
+        padding: 3px 10px;
+        border: 1px solid rgba(var(--cyan), 0.25);
+      }
+
+      .bar a.is-on {
+        color: #05060a;
+        background: rgb(var(--cyan));
+        border-color: rgb(var(--cyan));
+      }
+
+      .stage {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding-top: 30px;
+      }
+
+      .wordbox {
+        position: relative;
+        display: inline-flex;
+        align-items: baseline;
+        font-family: var(--serif);
+        font-size: clamp(48px, 8.4vw, 104px);
+        font-weight: 600;
+        letter-spacing: 0.012em;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      .wordbox .part {
+        position: relative;
+        display: inline-block;
+        z-index: 1;
+      }
+
+      /* 齿轮：压在 Rui 背后 */
+      .gear {
+        position: absolute;
+        z-index: 0;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+      }
+
+      .gear svg {
+        display: block;
+        transform-origin: center;
+      }
+
+      .menu {
+        position: fixed;
+        left: 50%;
+        bottom: 17%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 30px;
+        font-family: 'Zpix', ui-monospace, monospace;
+        font-size: 13px;
+        letter-spacing: 0.12em;
+        z-index: 3;
+      }
+
+      .menu a {
+        display: flex;
+        gap: 9px;
+        padding: 6px 10px;
+        color: rgba(var(--cyan), 0.55);
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      }
+
+      .menu a .n { color: rgba(var(--cyan), 0.35); }
+
+      .menu a:hover,
+      .menu a.is-on {
+        color: #fff;
+        border-color: rgba(var(--cyan), 0.45);
+        background: rgba(var(--cyan), 0.06);
+      }
+
+      .hint {
+        position: fixed;
+        left: 50%;
+        bottom: 9%;
+        transform: translateX(-50%);
+        font-family: 'Zpix', ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        color: rgba(var(--cyan), 0.4);
+        z-index: 3;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="sky"></div>
+    <div class="horizon"></div>
+    <div class="scan"></div>
+    <div class="vignette"></div>
+
+    <div class="bar" id="bar">
+      <b>齿轮预览</b>
+      <span>把鼠标放到下面的菜单上</span>
+      {VARIANTS.map((v) => <a href={`?v=${v.key}`} data-v={v.key}>{v.name}</a>)}
+    </div>
+
+    <div class="stage">
+      <div class="wordbox" id="wordbox">
+        <span class="part" id="head">HuangChen</span>
+        <span class="part" id="tail">Rui</span>
+        <div class="gear" id="gear"></div>
+      </div>
+    </div>
+
+    <nav class="menu" id="menu">
+      {MENU.map((label, i) => (
+        <a href="#" data-i={i}>
+          <span class="n">{String(i + 1).padStart(2, '0')}</span>
+          <span>{label}</span>
+        </a>
+      ))}
+    </nav>
+
+    <div class="hint">静止：每 2.2 秒嗒一格 · 悬停：转到对应格，移开继续嗒</div>
+
+    <script>
+      const NS = 'http://www.w3.org/2000/svg';
+      const params = new URLSearchParams(location.search);
+      const variant = (params.get('v') ?? 'a') as 'a' | 'b' | 'c';
+
+      for (const a of document.querySelectorAll<HTMLAnchorElement>('#bar a')) {
+        a.classList.toggle('is-on', a.dataset.v === variant);
+      }
+
+      const gearEl = document.getElementById('gear')!;
+      const tail = document.getElementById('tail')!;
+      const menu = document.getElementById('menu')!;
+
+      function gearSvg(teeth: number, r: number): SVGSVGElement {
+        const svg = document.createElementNS(NS, 'svg') as SVGSVGElement;
+        const size = r * 2.28;
+        svg.setAttribute('viewBox', `${-size / 2} ${-size / 2} ${size} ${size}`);
+        svg.setAttribute('width', String(size));
+        svg.setAttribute('height', String(size));
+
+        const rootR = r * 0.9;
+        const tipR = r;
+        const step = (Math.PI * 2) / teeth;
+
+        const pts: string[] = [];
+        for (let i = 0; i < teeth; i += 1) {
+          const a = i * step;
+          for (const [rr, aa] of [
+            [rootR, a - step * 0.29],
+            [tipR, a - step * 0.16],
+            [tipR, a + step * 0.16],
+            [rootR, a + step * 0.29],
+          ] as Array<[number, number]>) {
+            pts.push(`${(Math.cos(aa) * rr).toFixed(2)},${(Math.sin(aa) * rr).toFixed(2)}`);
+          }
+        }
+
+        const path = document.createElementNS(NS, 'path');
+        path.setAttribute('d', `M${pts.join(' L')} Z`);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', 'rgba(198, 231, 243, 0.26)');
+        path.setAttribute('stroke-width', '1.5');
+        path.setAttribute('stroke-linejoin', 'round');
+        svg.append(path);
+
+        for (const k of [0.74, 0.46]) {
+          const c = document.createElementNS(NS, 'circle');
+          c.setAttribute('r', String(rootR * k));
+          c.setAttribute('fill', 'none');
+          c.setAttribute('stroke', `rgba(198, 231, 243, ${k === 0.74 ? 0.15 : 0.2})`);
+          c.setAttribute('stroke-width', '1.2');
+          svg.append(c);
+        }
+
+        const spokes = Math.max(6, Math.round(teeth / 3));
+        for (let i = 0; i < spokes; i += 1) {
+          const a = (i / spokes) * Math.PI * 2;
+          const l = document.createElementNS(NS, 'line');
+          l.setAttribute('x1', String(Math.cos(a) * rootR * 0.46));
+          l.setAttribute('y1', String(Math.sin(a) * rootR * 0.46));
+          l.setAttribute('x2', String(Math.cos(a) * rootR * 0.93));
+          l.setAttribute('y2', String(Math.sin(a) * rootR * 0.93));
+          l.setAttribute('stroke', 'rgba(198, 231, 243, 0.11)');
+          l.setAttribute('stroke-width', '1');
+          svg.append(l);
+        }
+
+        const hub = document.createElementNS(NS, 'circle');
+        hub.setAttribute('r', String(rootR * 0.16));
+        hub.setAttribute('fill', 'none');
+        hub.setAttribute('stroke', 'rgba(198, 231, 243, 0.24)');
+        hub.setAttribute('stroke-width', '1.2');
+        svg.append(hub);
+
+        return svg;
+      }
+
+      let radius = 150;
+      let teeth = 20;
+      let angle = 0;
+      let target = 0;
+      let locked = false;
+
+      function layout(): void {
+        const tailBox = tail.getBoundingClientRect();
+        const box = document.getElementById('wordbox')!.getBoundingClientRect();
+
+        /* 大齿轮：直径 ≈ Rui 宽度的 2.6 倍（托住这三个字母，而不是塞在缝里） */
+        radius = Math.max(tailBox.height * 1.05, tailBox.width * 1.3);
+        gearEl.style.width = `${radius * 2.28}px`;
+        gearEl.style.height = `${radius * 2.28}px`;
+        gearEl.style.left = `${tailBox.left - box.left + tailBox.width / 2}px`;
+        gearEl.style.top = `${tailBox.top - box.top + tailBox.height / 2}px`;
+
+        paint();
+      }
+
+      function paint(): void {
+        gearEl.textContent = '';
+        gearEl.append(gearSvg(teeth, radius));
+        rotate(angle, 0);
+      }
+
+      function rotate(deg: number, ms: number): void {
+        angle = deg;
+        const svg = gearEl.querySelector('svg');
+        if (!svg) return;
+        svg.style.transition = ms ? `transform ${ms}ms cubic-bezier(.22,.9,.2,1)` : 'none';
+        svg.style.transform = `rotate(${deg}deg)`;
+      }
+
+      window.setInterval(() => {
+        if (locked) return;
+        target += 360 / teeth;
+        rotate(target, 260);
+      }, 2200);
+
+      const links = [...menu.querySelectorAll<HTMLAnchorElement>('a')];
+      links.forEach((link, index) => {
+        link.addEventListener('mouseenter', () => {
+          locked = true;
+          links.forEach((l) => l.classList.toggle('is-on', l === link));
+
+          if (variant === 'b') {
+            target = index * 90;
+            rotate(target, 560);
+            return;
+          }
+
+          if (variant === 'c') {
+            const shapes = [12, 24, 30, 16];
+            teeth = shapes[index] ?? 20;
+            paint();
+            target = angle + 30;
+            rotate(target, 420);
+            return;
+          }
+
+          target = index * 45;
+          rotate(target, 380);
+
+          window.setTimeout(() => {
+            const svg = gearEl.querySelector('svg');
+            if (!svg || variant !== 'a') return;
+            svg.style.transition = 'transform 150ms cubic-bezier(.3,1.5,.4,1)';
+            svg.style.transform = `rotate(${target + 3.5}deg)`;
+            window.setTimeout(() => rotate(target, 160), 160);
+          }, 390);
+        });
+
+        link.addEventListener('click', (e) => e.preventDefault());
+      });
+
+      menu.addEventListener('mouseleave', () => {
+        locked = false;
+        links.forEach((l) => l.classList.remove('is-on'));
+      });
+
+      window.addEventListener('resize', layout);
+      document.fonts?.ready.then(() => layout());
+
+      layout();
+      window.setTimeout(layout, 300);
+    </script>
+  </body>
+</html>
