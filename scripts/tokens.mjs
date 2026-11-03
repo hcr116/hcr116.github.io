@@ -72,9 +72,12 @@ for (const rel of FILES) {
   let changed = 0;
 
   for (const [pattern, to] of RULES) {
-    const hits = css.match(pattern)?.length ?? 0;
+    /* ⚠️ 不允许替换 token 定义本身：--ease-film: cubic-bezier(...) 被换成
+       var(--ease-film) 会变成自己引自己，整站动效全废（踩过一次）。 */
+    const guarded = css.replace(/--ease-film:\\s*cubic-bezier\\([^)]*\\);/g, '__KEEP_EASE__');
+    const hits = guarded.match(pattern)?.length ?? 0;
     if (!hits) continue;
-    css = css.replace(pattern, to);
+    css = guarded.replace(pattern, to).replace('__KEEP_EASE__', '--ease-film: cubic-bezier(0.22, 0.9, 0.2, 1);');
     changed += hits;
   }
 

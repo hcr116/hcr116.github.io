@@ -191,21 +191,6 @@ const crumbs = crumbParts.map((seg, i) => {
       import { xferIn, bindXfer, bindXferLifecycle, bindPrefetch } from '../scripts/xfer';
       import { attachSfx } from '../scripts/sfx';
 
-      /* 动效开关（给"系统关了动画"的机器用）：
-         ?motion=full  → 无视 prefers-reduced-motion，看完整动效
-         ?motion=off   → 取消，回到跟随系统
-         记在 sessionStorage 里，本次浏览期间一直有效。 */
-      try {
-        const want = new URLSearchParams(location.search).get('motion');
-        if (want === 'full') sessionStorage.setItem('dsh-motion', 'full');
-        if (want === 'off') sessionStorage.removeItem('dsh-motion');
-        if (sessionStorage.getItem('dsh-motion') === 'full') {
-          document.documentElement.classList.add('force-motion');
-        }
-      } catch {
-        /* 隐私模式下拿不到 storage，就当没设置 */
-      }
-
       xferIn();
       bindXfer();
       bindXferLifecycle();

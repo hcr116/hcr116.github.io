@@ -292,14 +292,3 @@ html.xf-run.xf-soft .xfer {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .xfer,
-  html.xf-leaving .xfer,
-  html.xf-entering .xfer,
-  html.xf-run .xfer,
-  html.xf-leaving body,
-  html.xf-run body {
-    animation: none !important;
-    transition: none !important;
-  }
-}

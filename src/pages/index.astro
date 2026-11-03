@@ -127,8 +127,6 @@ const year = new Date().getFullYear();
 
   const abyss = document.querySelector<HTMLElement>('[data-abyss]');
   const LOST_KEY = 'hcr:abyss:lost';
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
   const markLost = () => {
     document.documentElement.classList.add('abyss-lost');
     try {
@@ -359,10 +357,11 @@ const year = new Date().getFullYear();
   const tp = document.querySelector<HTMLElement>('[data-tp]');
   const root = document.documentElement;
 
+  /* 降级已移除：这个站永远走完整动效（用户明确要求：有且只有动效）。 */
+  const reduce = false;
+
   if (tp) {
     const KEY = 'hcr:boot:v1';
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     /* ---------------- 音乐：只在标题画面起播 ----------------
      * 加载/自检那一段不响（用户明确要求）。所以在标题帧落位的地方调这里，
      * 而不是在页面一加载就初始化。渐入 2.4s，见 scripts/bgm.ts。 */

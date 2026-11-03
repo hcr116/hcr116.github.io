@@ -343,7 +343,6 @@ html.is-booting {
   }
 }
 
-
 .tp-scan {
   z-index: 17;
   height: 200px;
@@ -1338,52 +1337,12 @@ html.is-booting {
 
 /* ================= 减弱动效 ================= */
 
-@media (prefers-reduced-motion: reduce) {
-  /* 减动效：黑幕直接不出现，LOADING 也不延迟 */
-  .tp-veil {
-    display: none;
-  }
-
-  .tp-loading {
-    animation: none;
-    opacity: 1;
-  }
-
-  .tp-water,
-  .tp-scan,
-  .tp[data-phase='3'] .tp-fault .ft {
-    animation: none;
-  }
-
-  .tp-log .bl {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-
-  .tp-word,
-  .tp-is-flash .tp-word {
-    transition: none;
-    animation: none;
-  }
-
-  .tp-read,
-  .tp-press,
-  .tp-credit,
-  .tp-foot {
-    transition: none;
-  }
-}
-
 /* ===== 剑与光池：整组关掉（保留 DOM，方便以后想开一刀就能回来） ===== */
 .tp-sword,
 .tp-scene > .tp-glow,
 .tp-pool {
   display: none !important;
 }
-
-
-
 
 /* ===== 阿比斯 =====
  * 不再是「锁定态」：`.is-locked` 和「· 未开放」那套已经删掉，

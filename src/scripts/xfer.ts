@@ -22,9 +22,6 @@ const IN_MS = 520;
 
 export type Kind = 'connect' | 'scan' | 'slide' | 'soft';
 
-const reduceMotion = (): boolean =>
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
 /** 根据「从哪到哪」决定用哪一档 */
 function kindOf(to: URL): Kind {
   const from = location.pathname.replace(/\/index\.html$/, '/');
@@ -106,8 +103,6 @@ export function bindXfer(): void {
       const url = new URL(link.href, location.href);
       if (url.origin !== location.origin) return;
       if (url.pathname === location.pathname && url.search === location.search) return;
-
-      if (reduceMotion()) return;
 
       event.preventDefault();
       leave(url.href, kindOf(url));

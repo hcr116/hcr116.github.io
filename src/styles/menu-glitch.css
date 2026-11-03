@@ -52,13 +52,6 @@
   color: inherit;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .fun-menu a.sig-band,
-  .fun-menu a.sig-fringe {
-    display: none;
-  }
-}
-
 /* ------------------------------------------------------------------
    把 global.css 里那套旧效果关掉。
    旧的是「整行位移 + 两片重影撕裂 + 色差」，就是之前嫌乱的那种；
@@ -157,9 +150,3 @@
   color: inherit !important;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .sig-band,
-  .sig-fringe {
-    display: none;
-  }
-}

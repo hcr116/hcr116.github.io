@@ -219,14 +219,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .dive-zone.is-new,
-  .dive-hud-value.is-crossing b,
-  .dive.is-deep .dive-deep-flash {
-    animation: none;
-  }
-}
-
 /* 底部「更深处」——点不动的锁 */
 .dive-locked {
   display: inline-flex;
@@ -353,22 +345,6 @@
     width: 0.3rem;
     opacity: 0.7;
     background: currentColor;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dive-route-ticks li.is-found,
-  .dive-route-ticks li.is-found::after {
-    animation: none;
-  }
-
-  .dive-route-ticks li.is-found {
-    opacity: 1;
-    translate: 0 0;
-  }
-
-  .dive-route-ticks li.is-found::after {
-    opacity: 0.7;
   }
 }
 
@@ -1067,7 +1043,6 @@ html.vscroll::-webkit-scrollbar {
 .dive-route-dot[data-hot]::after {
   background: color-mix(in srgb, var(--fun-accent) 92%, #fff 8%);
 }
-
 
 /* ---------- 从 global.css 搬过来的：压暗、上升诅咒、阿比斯入口版本号 ---------- */
 

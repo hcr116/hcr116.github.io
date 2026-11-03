@@ -24,7 +24,6 @@ type Band = HTMLAnchorElement;
 function initMenuGlitch(): void {
   const link = document.querySelector<HTMLAnchorElement>('a.is-signal');
   if (!link) return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   link.classList.add('is-signal-ready');
 

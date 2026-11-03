@@ -738,28 +738,7 @@ body:has(.ws-main) .site-header {
 
    :root:not(.force-motion) —— 访问 ?motion=full 时整段让路，
    方便在"系统关了动画"的机器上也能看到完整动效。 */
-@media (prefers-reduced-motion: reduce) {
-  :root:not(.force-motion) .ws-vfx,
-  :root:not(.force-motion) .ws-vfx-card,
-  :root:not(.force-motion) :is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile,
-  :root:not(.force-motion) :is(.ws-main, .ar-main).is-vfx .ws-hero {
-    animation: none !important;
-    transition-property: opacity, border-color, background-color;
-    transition-duration: 120ms !important;
-    transition-delay: 0s !important;
-  }
 
-  /* 位移一律归零：不挪、不缩、不推 */
-  :root:not(.force-motion) .ws-vfx,
-  :root:not(.force-motion) :is(.ws-main, .ar-main).is-vfx .ws-hero,
-  :root:not(.force-motion) .is-motion-v2 .ws-vfx,
-  :root:not(.force-motion) .is-motion-v2.is-vfx .ws-vfx,
-  :root:not(.force-motion) .is-motion-v2.is-vfx-closing .ws-vfx,
-  :root:not(.force-motion) .is-motion-v2.is-vfx-switch-out .ws-vfx,
-  :root:not(.force-motion) .is-motion-v2.is-vfx-switch-in .ws-vfx {
-    transform: none !important;
-  }
-}
 
 /* ---------- 全屏播放层 ---------- */
 
@@ -1629,11 +1608,7 @@ html.is-vfx-playing .ws-bar {
 }
 
 /* 关掉动效时，这套演出不该有 */
-@media (prefers-reduced-motion: reduce) {
-  .wl-noise i {
-    animation: none;
-  }
-}
+
 
 /* 收束阶段：方块自己的边框和底也一起淡掉，别留一个空框 */
 .ws-tile.is-collapsing {
@@ -1755,31 +1730,7 @@ html.is-vfx-playing .ws-bar {
 }
 
 /* 降低动效：不位移、不溶解，只 100ms 淡入 */
-@media (prefers-reduced-motion: reduce) {
-  :root:not(.force-motion) .is-motion-v2 .ws-vfx,
-  :root:not(.force-motion) .is-motion-v2.is-vfx .ws-vfx,
-  :root:not(.force-motion) .is-motion-v2.is-vfx-closing .ws-vfx {
-    transform: none !important;
-    transition-duration: 100ms !important;
-    transition-delay: 0s !important;
-  }
 
-  :root:not(.force-motion) .is-motion-v2.is-rail-hidden .ws-rail,
-  :root:not(.force-motion) .is-motion-v2.is-vfx-closing .ws-rail {
-    opacity: 1;
-    transition-duration: 100ms !important;
-  }
-
-  :root:not(.force-motion) .is-motion-v2.is-vfx-switch-in .ws-vfx,
-  :root:not(.force-motion) .is-motion-v2.is-vfx .ws-vfx-card.is-on {
-    animation: none;
-  }
-
-  :root:not(.force-motion) .is-motion-v2.is-vfx-switch-out .ws-vfx,
-  :root:not(.force-motion) .is-motion-v2.is-vfx-switch-in .ws-vfx {
-    transform: none !important;
-  }
-}
 
 /* ==========================================================================
    v3 修正：内容层是一张**不透明的纸**
@@ -1807,4 +1758,10 @@ html.is-vfx-playing .ws-bar {
 /* 入场时卡片本身不透明，避免矩阵纹理透出背景 */
 .is-motion-v2.is-vfx .ws-vfx-card {
   background-color: #0a0b10;
+}
+
+/* 入场时旧的 hero 立刻让位（60ms），否则文字会从半透明的卡片里透出来 */
+.is-motion-v2.is-vfx .ws-hero {
+  opacity: 0;
+  transition: opacity 0.06s linear;
 }

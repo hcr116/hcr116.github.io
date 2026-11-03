@@ -109,10 +109,7 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
   const SWITCH_OUT_MS = 130;
   const SWITCH_IN_MS = 190;
 
-  const reduceMotion = (): boolean =>
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  let closeTimer = 0;
+    let closeTimer = 0;
   let switchBusy = false;
 
   const param = `?${urlParam}=1`;
@@ -375,7 +372,7 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
    * 内容层作为一整张纸被推上来。卡片不再各自淡入。
    */
   const enterSheet = (): void => {
-    if (!useMotion2 || reduceMotion()) return;
+    if (!useMotion2 ) return;
     root?.classList.add('is-rail-hidden');
     window.setTimeout(() => {
       root?.classList.remove('is-rail-hidden');
@@ -421,7 +418,7 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
     };
 
     /* v3 换频道：整排向左推走 → 换内容 → 从右侧推回 */
-    if (switching && !reduceMotion() && !switchBusy) {
+    if (switching && !switchBusy) {
       switchBusy = true;
       root?.classList.add('is-vfx-switch-out');
       window.setTimeout(() => {
@@ -466,7 +463,7 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
           root?.classList.remove('is-vfx', 'is-vfx-closing');
           finishClose();
         },
-        reduceMotion() ? 100 : CLOSE_MS,
+        CLOSE_MS,
       );
     } else {
       root?.classList.remove('is-vfx');

@@ -30,7 +30,9 @@
   --r-xs: 2px;
   --r-sm: 4px;
   --r-md: 7px;
-  --ease-film: var(--ease-film);
+  /* ⚠️ 这里必须是字面值。之前被脚本误改成 var(--ease-film) 自己引自己，
+     导致全站所有用它的 transition/animation 整条声明失效 —— 动画全死。 */
+  --ease-film: cubic-bezier(0.22, 0.9, 0.2, 1);
   --ease: var(--ease-film);
 
   /* 页眉的确切高度（含 1px 底线）。整屏页算 100svh 时只许减这个值，
@@ -1985,17 +1987,7 @@ main {
      · 位移/缩放类：全部归零（防眩晕，这是这个开关真正的目的）
      · 颜色/透明度类：保留 120ms（不触发不适，但能看清"变了"）
    :root:not(.force-motion) 让 ?motion=full 能把整套降级关掉（给需要对照的人用）。 */
-@media (prefers-reduced-motion: reduce) {
-  :root:not(.force-motion) *,
-  :root:not(.force-motion) *::before,
-  :root:not(.force-motion) *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 120ms !important;
-    transition-property: opacity, color, background-color, border-color, box-shadow !important;
-    scroll-behavior: auto !important;
-  }
-}
+
 
 /* ============================================================
    下潜 → /brief/
@@ -2371,41 +2363,7 @@ main {
 }
 
 /* 关掉动效时退化成普通长页面，内容和链接都还能用 */
-@media (prefers-reduced-motion: reduce) {
-  .dive {
-    height: auto;
-  }
 
-  .dive-stage {
-    position: static;
-    height: auto;
-    overflow: visible;
-    padding-block: 2.5rem;
-  }
-
-  .dive-scene {
-    display: none;
-  }
-
-  .dive-panels {
-    position: static;
-    pointer-events: auto;
-  }
-
-  .dive-panel {
-    position: static;
-    padding-block: 2.5rem;
-    opacity: 1 !important;
-    transform: none !important;
-    pointer-events: auto !important;
-  }
-
-  .dive-hud,
-  .dive-scale,
-  .dive-veil {
-    display: none;
-  }
-}
 
 
 /* ============================================================
@@ -3218,21 +3176,7 @@ html.gate-open {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .book-gate-stage,
-  .book-gate-cover,
-  .book-gate-scrim {
-    transition: none;
-  }
 
-  .book-gate.is-open .gate-eyebrow,
-  .book-gate.is-open .gate-title,
-  .book-gate.is-open .gate-body,
-  .book-gate.is-open .gate-close,
-  .gate-form.is-nope {
-    animation: none;
-  }
-}
 
 /* ============================================================
    单篇文章

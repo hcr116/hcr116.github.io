@@ -430,12 +430,4 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ab-track,
-  .ab-tile,
-  .ab-art,
-  .ab-glyph,
-  .ab-glow {
-    transition: none;
-  }
-}
+

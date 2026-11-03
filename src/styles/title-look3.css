@@ -236,12 +236,4 @@
 }
 
 /* 尊重"减少动态"：推镜、呼吸、尘埃全停，只留静态层次 */
-@media (prefers-reduced-motion: reduce) {
-  .tp[data-look='3'] .tp-scene,
-  .tp[data-look='3'] .tp-press .txt,
-  .tp[data-look='3'] .tp-core,
-  .tp[data-look='3'] .tp-dust i,
-  .tp[data-look='3'] .tp-breathe {
-    animation: none !important;
-  }
-}
+

@@ -1,3 +1,6 @@
+/* 降级已移除：这个站永远走完整动效（用户明确要求：有且只有动效）。 */
+const reduce = false;
+
 /*
  * 标题画面里"活着"的两样东西
  * ------------------------------------------------------------------
@@ -28,8 +31,6 @@ function rnd(min: number, max: number): number {
 export function initSky(canvas: HTMLCanvasElement, horizon = 0.503): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
-
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let stars: Star[] = [];
   let w = 0;
   let h = 0;
@@ -155,7 +156,6 @@ function maskUri(seed = Math.random()): string {
  * calmer 的间隔留给"已经看过很多次"的访客，别一直闪。
  */
 export function initCorruption(word: HTMLElement, host: HTMLElement): void {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   const blocks = [...word.querySelectorAll<HTMLElement>('.w-blocks i')];
   if (!blocks.length) return;
@@ -203,7 +203,6 @@ export function initCorruption(word: HTMLElement, host: HTMLElement): void {
 
 /** 乱码行：每隔几十毫秒换掉一批字 */
 export function startFault(el: HTMLElement, text: string): () => void {
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce) {
     el.textContent = text;
     return () => {};

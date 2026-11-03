@@ -396,15 +396,7 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ar-tile,
-  .ar-glow,
-  .ar-wash,
-  .ar-track,
-  .ar-head {
-    transition: none;
-  }
-}
+
 
 
 /* 和作品页同一套骨架：轨道在上，动作在下面。

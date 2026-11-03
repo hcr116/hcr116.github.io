@@ -364,19 +364,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .crt-noise,
-  .crt-scan,
-  .crt-roll,
-  .crt-flash {
-    animation: none !important;
-  }
-
-  .crt-tile.is-switching .crt-flash {
-    display: none;
-  }
-}
-
 /* ==========================================================
    未公开条目（data-locked）：字是跳动的乱码，点一下弹【权限不足】再消失
    逻辑在 src/scripts/locked.ts
@@ -407,7 +394,6 @@
   filter: blur(2px);
   pointer-events: none;
 }
-
 
 /* 关机那一瞬，文字跟着屏幕一起收掉（不然「权限不足」会孤零零留在黑框里） */
 .crt-tile.is-power-off .ws-tag-name,
