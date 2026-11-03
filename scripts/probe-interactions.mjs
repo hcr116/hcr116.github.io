@@ -263,7 +263,14 @@ const CASES = [
       const check = (name, ok, info = '') => out.push({ name, ok: !!ok, info });
 
       const tiles = [...document.querySelectorAll('.ar-tile')];
+      const h1 = () => (document.querySelector('[data-h1]')?.textContent ?? '').trim();
       check('开局有选中', !!document.querySelector('.ar-tile.is-on'), String(tiles.length) + ' 个文件夹');
+
+      /* 悬停要能把下面的标题换掉（rail 用的是 mouseover 委托，不是 mouseenter） */
+      const before = h1();
+      tiles[1]?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+      await sleep(300);
+      check('悬停第二个文件夹 → 标题跟着变', h1() !== before, before + ' → ' + h1());
 
       const first = tiles[0];
       first && first.click();

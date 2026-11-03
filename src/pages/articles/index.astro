@@ -252,10 +252,40 @@ const archiveData = JSON.stringify(archiveChannels);
     return channels[href.slice(1)] ? href.slice(1) : null;
   };
 
+  /* 标题区 + 背景色调：跟着选中的文件夹走（鼠标移上去、方向键、点都算） */
+  const head = document.querySelector<HTMLElement>('[data-head]');
+  const h1 = head?.querySelector<HTMLElement>('[data-h1]');
+  const enEl = head?.querySelector<HTMLElement>('[data-en]');
+  const noteEl = head?.querySelector<HTMLElement>('[data-note]');
+  const playEl = document.querySelector<HTMLAnchorElement>('[data-play]');
+  const washer = document.querySelector<HTMLElement>('[data-wash]');
+  const glow = document.querySelector<HTMLElement>('[data-glow]');
+
+  const paintSelection = (tile: HTMLElement): void => {
+    const tone = tile.dataset.tone ?? '#6a4a3a';
+    main?.style.setProperty('--tone', tone);
+    if (washer) washer.style.background = tone;
+    if (glow && main) {
+      const box = main.getBoundingClientRect();
+      const rect = tile.getBoundingClientRect();
+      glow.style.setProperty('--gx', `${rect.left - box.left + rect.width / 2}px`);
+      glow.style.setProperty('--gy', `${rect.top - box.top + rect.height / 2}px`);
+    }
+
+    if (h1) h1.textContent = tile.dataset.cn ?? '';
+    if (enEl) enEl.textContent = tile.dataset.en ?? '';
+    if (noteEl) noteEl.textContent = tile.dataset.note ?? '';
+    if (playEl) {
+      playEl.textContent = '▶ ' + ct('articles.openFolder', '打开文件夹');
+      playEl.setAttribute('href', '#');
+    }
+  };
+
   /* 先把频道条接上，存档层的 onToggle 要用到它 */
   const rail = initRail({
     track: '.ar-track',
     tile: '.ar-tile',
+    onSelect: (tile) => paintSelection(tile),
     initial: 0,
   });
 
