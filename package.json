@@ -14,7 +14,8 @@
     "links": "node scripts/links.mjs",
     "img": "node scripts/img.mjs",
     "sample-pdf": "node scripts/make-sample-pdf.mjs",
-    "probe": "node scripts/probe-interactions.mjs"
+    "probe": "node scripts/probe-interactions.mjs",
+    "console": "node scripts/check-console.mjs"
   },
   "dependencies": {
     "astro": "5.18.2"
