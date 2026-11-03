@@ -439,6 +439,9 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
       }
       close();
     }
+    /* 播放层开着时，方向键交给视频自己（快进 / 快退），别切卡片 */
+    if (playerOpen) return;
+
     if (event.key === 'ArrowRight') {
       event.preventDefault();
       goTo(index + 1);
