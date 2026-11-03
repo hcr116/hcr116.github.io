@@ -23,7 +23,15 @@
 
   --radius: 4px;
   --wrap: 1080px;
-  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* ---- 统一刻度（全站只认这几档，别再临时加值） ----
+     圆角：2 小块 / 4 卡片 / 7 大方块 / 999 胶囊
+     曲线：先快后慢一律用 --ease-film */
+  --r-xs: 2px;
+  --r-sm: 4px;
+  --r-md: 7px;
+  --ease-film: var(--ease-film);
+  --ease: var(--ease-film);
 
   /* 页眉的确切高度（含 1px 底线）。整屏页算 100svh 时只许减这个值，
      不许再出现 64 / 76 / 88 这类魔法数。 */
@@ -633,7 +641,7 @@ main {
   font-size: 0.875em;
   background: var(--bg-soft);
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: 4px;
   padding: 0.1em 0.35em;
 }
 
@@ -974,7 +982,7 @@ main {
   flex: none;
   width: 180px;
   height: auto;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .wechat-meta .wechat-name {
@@ -2420,7 +2428,7 @@ main {
   opacity: 0;
   transform: translateY(115%);
   transition:
-    transform 560ms cubic-bezier(0.22, 0.9, 0.24, 1),
+    transform 560ms var(--ease-film),
     opacity 360ms cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, opacity;
 }
@@ -2550,7 +2558,7 @@ main {
   display: block;
   width: clamp(4rem, 6.6vw, 5.5rem);
   height: clamp(15rem, 30vh, 19.5rem);
-  border-radius: 3px 3px 1px 1px;
+  border-radius: 4px 3px 1px 1px;
   background:
     linear-gradient(
       90deg,
@@ -2690,7 +2698,7 @@ main {
   margin: 0.9rem 0 0;
   padding: 1.1rem 1.2rem;
   border: 1px dashed var(--fun-line);
-  border-radius: 3px;
+  border-radius: 4px;
   font-size: 0.8125rem;
   letter-spacing: 0.06em;
   color: var(--fun-faint);
@@ -2796,7 +2804,7 @@ main {
   width: 100%;
   max-width: 20rem;
   margin-top: 0.8rem;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .brief-tl-prose {
@@ -2919,7 +2927,7 @@ html.gate-open {
   flex-direction: column;
   gap: 0.7rem;
   padding: clamp(1.6rem, 3vw, 2.3rem);
-  border-radius: 1px 4px 4px 1px;
+  border-radius: 2px 4px 4px 1px;
   background:
     linear-gradient(100deg, rgba(112, 92, 62, 0.14), transparent 20%),
     #f3ede1;
@@ -3085,7 +3093,7 @@ html.gate-open {
 .cover-face {
   position: absolute;
   inset: 0;
-  border-radius: 1px 4px 4px 1px;
+  border-radius: 2px 4px 4px 1px;
   overflow: hidden;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -3323,7 +3331,7 @@ html.gate-open {
 
 .article-body code {
   padding: 0.1em 0.35em;
-  border-radius: 3px;
+  border-radius: 4px;
   background: #1c1c24;
   font-size: 0.875em;
 }
@@ -3332,7 +3340,7 @@ html.gate-open {
   display: block;
   max-width: 100%;
   margin: 1.2rem 0 0;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 /* 目录/正文里的斜体行当「元信息」用：字小、去斜、压暗 */
@@ -3463,7 +3471,7 @@ html.gate-open {
   width: 100%;
   padding: 0.35rem 0.5rem;
   border: 1px solid var(--fun-line);
-  border-radius: 3px;
+  border-radius: 4px;
   background: #12121a;
   color: var(--fun-ink);
   font: inherit;
@@ -3780,7 +3788,7 @@ html.gate-open {
 }
 
 .sound-toggle.is-calling .sound-wave {
-  animation: sound-ring 2.6s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+  animation: sound-ring 2.6s var(--ease-film) infinite;
 }
 
 .sound-toggle.is-calling .sound-wave:nth-of-type(2) {
@@ -3963,7 +3971,7 @@ html.gate-open {
    ============================================================ */
 
 .sound-toggle.is-calling .sound-wave {
-  animation: sound-ring 3.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+  animation: sound-ring 3.8s var(--ease-film) infinite;
 }
 
 .sound-toggle.is-calling .sound-wave:nth-of-type(2) {

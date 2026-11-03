@@ -47,7 +47,7 @@
   );
   filter: blur(44px);
   transform: translate3d(var(--gx, 22%), var(--gy, 20%), 0) rotate(-8deg);
-  transition: transform 0.5s cubic-bezier(0.3, 0.9, 0.2, 1);
+  transition: transform 0.5s var(--ease-film);
 }
 
 /* ---------- 版心 ---------- */
@@ -98,7 +98,7 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  transition: transform 0.36s cubic-bezier(0.3, 0.9, 0.2, 1);
+  transition: transform 0.36s var(--ease-film);
   will-change: transform;
 }
 
@@ -109,12 +109,12 @@
   width: 112px;
   height: 112px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
+  border-radius: 7px;
   background: transparent;
   text-decoration: none;
   cursor: pointer;
-  transition: width 0.32s cubic-bezier(0.3, 0.9, 0.2, 1),
-    height 0.32s cubic-bezier(0.3, 0.9, 0.2, 1), border-color 0.25s var(--ease),
+  transition: width 0.32s var(--ease-film),
+    height 0.32s var(--ease-film), border-color 0.25s var(--ease),
     box-shadow 0.3s var(--ease);
 }
 
@@ -150,7 +150,7 @@
 }
 
 .ab-art[data-p='2'] {
-  background: radial-gradient(rgba(255, 255, 255, 0.11) 1px, transparent 1.2px) 0 0 / 9px 9px,
+  background: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1.2px) 0 0 / 9px 9px,
     linear-gradient(160deg, #191a22, #0a0b10 82%);
 }
 
@@ -287,7 +287,7 @@
   margin: 2px 0 0;
   max-width: 560px;
   color: rgba(255, 255, 255, 0.62);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.95;
   overflow-wrap: anywhere;
 }
@@ -335,7 +335,7 @@
   height: 40px;
   padding: 0 4px;
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
   background: none;
   color: rgba(255, 255, 255, 0.55);
   font-family: 'Zpix', monospace;
@@ -356,7 +356,7 @@
   flex: none;
   margin: 0;
   padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.03);
 }

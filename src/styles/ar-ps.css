@@ -42,7 +42,7 @@
   filter: blur(120px) saturate(1.2) brightness(0.62);
   mask-image: radial-gradient(64% 66% at 30% 46%, #000 0%, rgba(0, 0, 0, 0.5) 55%, transparent 86%);
   -webkit-mask-image: radial-gradient(64% 66% at 30% 46%, #000 0%, rgba(0, 0, 0, 0.5) 55%, transparent 86%);
-  transition: background-color 0.55s cubic-bezier(0.3, 0.9, 0.2, 1);
+  transition: background-color 0.55s var(--ease-film);
   pointer-events: none;
 }
 
@@ -63,7 +63,7 @@
   );
   transform: translate3d(var(--gx, 20%), var(--gy, 30%), 0) rotate(-8deg);
   filter: blur(44px);
-  transition: transform 0.5s cubic-bezier(0.3, 0.9, 0.2, 1);
+  transition: transform 0.5s var(--ease-film);
   pointer-events: none;
 }
 
@@ -200,7 +200,7 @@
   display: flex;
   gap: 14px;
   align-items: flex-start;
-  transition: transform 0.36s cubic-bezier(0.3, 0.9, 0.2, 1);
+  transition: transform 0.36s var(--ease-film);
   will-change: transform;
 }
 
@@ -224,8 +224,8 @@
   text-decoration: none;
   cursor: pointer;
   transition:
-    width 0.3s cubic-bezier(0.3, 0.9, 0.2, 1),
-    height 0.3s cubic-bezier(0.3, 0.9, 0.2, 1),
+    width 0.3s var(--ease-film),
+    height 0.3s var(--ease-film),
     border-color 0.24s ease,
     box-shadow 0.3s ease;
 }
@@ -339,7 +339,7 @@
 
 .ar-play:hover {
   border-color: #fff;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .ar-more {
@@ -367,7 +367,7 @@
   }
 
   .ar-inline {
-    font-size: 15px;
+    font-size: 16px;
     letter-spacing: 1px;
     margin-left: 12px;
   }

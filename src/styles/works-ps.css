@@ -122,7 +122,7 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  transition: transform 0.36s cubic-bezier(0.3, 0.9, 0.2, 1);
+  transition: transform 0.36s var(--ease-film);
   will-change: transform;
 }
 
@@ -134,12 +134,12 @@
   height: 104px;
   overflow: visible;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
+  border-radius: 7px;
   background: #0f0f13;
   text-decoration: none;
   transition:
-    width 0.32s cubic-bezier(0.3, 0.9, 0.2, 1),
-    height 0.32s cubic-bezier(0.3, 0.9, 0.2, 1),
+    width 0.32s var(--ease-film),
+    height 0.32s var(--ease-film),
     border-color 0.25s var(--ease),
     box-shadow 0.3s var(--ease),
     /* 同页展开时方块要退场 / 回来，这两条留给它 */
@@ -336,7 +336,7 @@
   margin-top: 8px;
   color: #fff;
   font-family: 'Zpix', monospace;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .ws-card .row span {
@@ -469,7 +469,7 @@ body:has(.ws-main) .site-header {
   transform: translateY(10px);
   transition:
     opacity 0.28s ease,
-    transform 0.4s cubic-bezier(0.22, 0.9, 0.2, 1),
+    transform 0.4s var(--ease-film),
     visibility 0s linear 0.4s;
 }
 
@@ -479,7 +479,7 @@ body:has(.ws-main) .site-header {
   transform: none;
   transition:
     opacity 0.3s ease 0.12s,
-    transform 0.45s cubic-bezier(0.22, 0.9, 0.2, 1) 0.12s,
+    transform 0.45s var(--ease-film) 0.12s,
     visibility 0s linear 0s;
 }
 
@@ -605,7 +605,7 @@ body:has(.ws-main) .site-header {
 
 .ws-vfx-card .cap span {
   font-family: 'Zpix', monospace;
-  font-size: 9.5px;
+  font-size: 9px;
   letter-spacing: 0.18em;
   color: var(--fun-faint);
 }
@@ -680,14 +680,14 @@ body:has(.ws-main) .site-header {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 9.5px;
+  font-size: 9px;
   line-height: 1;
   white-space: nowrap;
   color: rgba(198, 231, 243, 0.7);
 }
 
 :is(.ws-main, .ar-main).is-vfx .ws-rail .ws-tile.is-on .ws-num {
-  font-size: 10.5px;
+  font-size: 10px;
   color: rgba(214, 242, 255, 0.95);
 }
 
@@ -700,7 +700,7 @@ body:has(.ws-main) .site-header {
 
 :is(.ws-main, .ar-main).is-vfx .ws-vfx-card {
   /* 进场：轨道从右侧稍微推进来一点，像换了个频道 */
-  animation: cardIn 0.5s cubic-bezier(0.22, 0.9, 0.2, 1) both;
+  animation: cardIn 0.5s var(--ease-film) both;
 }
 
 @keyframes cardIn {
@@ -797,7 +797,7 @@ body:has(.ws-main) .site-header {
   border: 1px solid var(--fun-line);
   background: transparent;
   font-family: 'Zpix', monospace;
-  font-size: 10.5px;
+  font-size: 10px;
   letter-spacing: 0.1em;
   color: var(--fun-dim);
   cursor: pointer;
@@ -897,7 +897,7 @@ body:has(.ws-main) .site-header {
   margin-top: 7px;
   transform: translateX(-50%);
   font-family: 'Zpix', monospace;
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 400;
   letter-spacing: 0.16em;
   white-space: nowrap;
@@ -980,7 +980,7 @@ body:has(.ws-main) .site-header {
    ========================================================================== */
 
 .ws-rail {
-  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.2, 1);
+  transition: transform 0.5s var(--ease-film);
 }
 
 :is(.ws-main, .ar-main).is-vfx .ws-rail {
@@ -1043,9 +1043,9 @@ body:has(.ws-main) .site-header {
     0 18px 50px -26px rgba(150, 210, 240, 0.55);
   opacity: 0;
   transition:
-    transform 0.34s cubic-bezier(0.22, 0.9, 0.2, 1),
-    width 0.34s cubic-bezier(0.22, 0.9, 0.2, 1),
-    height 0.34s cubic-bezier(0.22, 0.9, 0.2, 1),
+    transform 0.34s var(--ease-film),
+    width 0.34s var(--ease-film),
+    height 0.34s var(--ease-film),
     opacity 0.3s ease;
 }
 
@@ -1070,7 +1070,7 @@ body:has(.ws-main) .site-header {
 
 /* 进场：四格逐格升上来一点（接上"内容登场"，不再是整块硬出现） */
 :is(.ws-main, .ar-main).is-vfx .ws-vfx-card {
-  animation: vfxCardIn 0.42s cubic-bezier(0.22, 0.9, 0.2, 1) both;
+  animation: vfxCardIn 0.42s var(--ease-film) both;
 }
 
 :is(.ws-main, .ar-main).is-vfx .ws-vfx-card:nth-child(2) { animation-delay: 0.04s; }
@@ -1200,7 +1200,7 @@ html.is-vfx-playing .ws-bar {
 
 .ws-vfx-player video {
   transform: scale(0.985);
-  transition: transform 0.26s cubic-bezier(0.22, 0.9, 0.2, 1);
+  transition: transform 0.26s var(--ease-film);
 }
 
 .ws-vfx-player.is-on video {
@@ -1210,7 +1210,7 @@ html.is-vfx-playing .ws-bar {
 /* ---------- 4. 退出时序：内容先撤，频道条再落回 ---------- */
 
 .ws-rail {
-  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.2, 1) 0.16s;
+  transition: transform 0.5s var(--ease-film) 0.16s;
 }
 
 :is(.ws-main, .ar-main).is-vfx .ws-rail {
@@ -1221,7 +1221,7 @@ html.is-vfx-playing .ws-bar {
 .ws-vfx {
   transition:
     opacity 0.22s ease,
-    transform 0.3s cubic-bezier(0.22, 0.9, 0.2, 1),
+    transform 0.3s var(--ease-film),
     visibility 0s linear 0.3s;
 }
 
@@ -1232,7 +1232,7 @@ html.is-vfx-playing .ws-bar {
   right: 0;
   top: -20px;
   font-family: 'Zpix', monospace;
-  font-size: 9.5px;
+  font-size: 9px;
   letter-spacing: 0.18em;
   color: rgba(198, 231, 243, 0.38);
   pointer-events: none;
