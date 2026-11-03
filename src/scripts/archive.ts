@@ -104,10 +104,10 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
   const useMotion2 = motion === 'v2';
   if (useMotion2) root?.classList.add('is-motion-v2');
 
-  const CLOSE_MS = 380;
-  const SWITCH_OUT_MS = 180;
-  const SWITCH_IN_MS = 240;
-  const STAGGER_MS = 45;
+  /* v3 节奏：打开 ≈ 360ms、关闭 ≈ 220ms、换频道 ≈ 330ms */
+  const CLOSE_MS = 220;
+  const SWITCH_OUT_MS = 130;
+  const SWITCH_IN_MS = 190;
 
   const reduceMotion = (): boolean =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -368,29 +368,18 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
 
   /* ---------------- 开 / 关 ---------------- */
 
-  /** v2 入场：四张卡从下方错峰升起 */
-  const riseCards = (): void => {
+  const sleep = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
+
+  /**
+   * v3 入场：只有**一个动作** —— 频道条先溶解（盖住它自己的重排），
+   * 内容层作为一整张纸被推上来。卡片不再各自淡入。
+   */
+  const enterSheet = (): void => {
     if (!useMotion2 || reduceMotion()) return;
-    const visible = cards.filter((card) => !card.classList.contains('is-offpage'));
-
-    visible.forEach((card, i) => {
-      card.classList.add('is-enter');
-      card.style.setProperty('--i', String(i));
-      /* 延迟写在行内：is-enter 摘掉之后这条还要继续生效，错峰才看得出来 */
-      card.style.transitionDelay = `${160 + i * STAGGER_MS}ms`;
-    });
-
-    /* 下一帧再放开，让"从下往上"这一帧成立 */
+    root?.classList.add('is-rail-hidden');
     window.setTimeout(() => {
-      visible.forEach((card) => card.classList.remove('is-enter'));
-    }, 40);
-
-    /* 入场结束后清掉行内延迟，别影响退场/换频道的节奏 */
-    window.setTimeout(() => {
-      visible.forEach((card) => {
-        card.style.transitionDelay = '';
-      });
-    }, 160 + visible.length * STAGGER_MS + 520);
+      root?.classList.remove('is-rail-hidden');
+    }, 90);
   };
 
   const open = (id: string, animate = true): void => {
@@ -431,7 +420,7 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
       onToggle?.(true, channel);
     };
 
-    /* v2 换频道：整排先推出去，换了内容再推回来 */
+    /* v3 换频道：整排向左推走 → 换内容 → 从右侧推回 */
     if (switching && !reduceMotion() && !switchBusy) {
       switchBusy = true;
       root?.classList.add('is-vfx-switch-out');
@@ -449,8 +438,8 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
 
     commit();
 
-    /* v2 打开：卡片错峰升起（换频道那条路径由推入负责） */
-    if (!wasOpen) riseCards();
+    /* v3 打开：内容层整张推上来（不再是逐张卡） */
+    if (!wasOpen) enterSheet();
   };
 
   const finishClose = (): void => {
@@ -468,7 +457,7 @@ export function initArchive(options: ArchiveOptions): ArchiveHandle {
     if (!isOpen) return;
     isOpen = false;
 
-    /* v2：卡片先退场（错峰），再收容器 —— 打开时的反放 */
+    /* v3：内容层原路退回，快收 */
     if (useMotion2) {
       root?.classList.add('is-vfx-closing');
       window.clearTimeout(closeTimer);

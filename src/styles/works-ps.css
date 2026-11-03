@@ -1643,62 +1643,77 @@ html.is-vfx-playing .ws-bar {
 }
 
 /* ==========================================================================
-   存档层动效 v2（上浮式）—— 目前只给作品页用，文章页还是 v1
+   存档层动效 v3（作品页试用中）
    --------------------------------------------------------------------------
-   入场：容器上移 12px 淡入 → 四张卡从下方 14px 处错峰升起（45ms 间隔）
-   退场：卡片错峰下坠 → 容器收回去（反向播放）
-   换频道：整排先向左推出 → 换内容 → 从右推回
-   降低动效：只留 100ms 淡入，不做位移
+   上一版的问题：卡片各自淡入 + 频道条边缩尺寸边位移，两套动作同时跑，
+   看起来"散"。这一版只做**一个动作**：整块内容像一张纸被推上来。
+   · 频道条不缩不挪地硬切会被看见，所以用 90ms 溶解盖住重排
+   · 内容层整体上浮 + 淡入（一张纸，不是四张卡）
+   · 关闭 = 原路退回，220ms 收完
+   · 换频道 = 整排向左推走，新的从右侧推回
    ========================================================================== */
 
-.is-motion-v2 .ws-vfx-card {
+.is-motion-v2 .ws-rail {
   transition:
-    opacity 0.42s var(--ease-film),
-    transform 0.42s var(--ease-film),
-    border-color 0.2s var(--ease),
-    box-shadow 0.2s var(--ease);
+    transform 0.26s var(--ease-film),
+    opacity 0.18s linear;
 }
 
-/* --- 入场：这一条只是"起手式"，40ms 后 JS 摘掉，靠上面的 transition 回到原位 --- */
-.is-motion-v2.is-vfx .ws-vfx-card.is-enter {
-  opacity: 0 !important;
-  transform: translateY(14px);
-  transition-delay: calc(var(--i, 0) * 45ms + 160ms);
+/* 重排被溶解盖住：先黑掉 → 换布局 → 淡回来 */
+.is-motion-v2.is-rail-hidden .ws-rail {
+  opacity: 0;
+  transition: opacity 90ms linear;
 }
 
-/* --- 退场：反向，最后一张先走 --- */
-.is-motion-v2.is-vfx-closing .ws-vfx-card {
-  opacity: 0 !important;
-  transform: translateY(10px);
-  transition-delay: calc((3 - var(--i, 0)) * 35ms);
+/* 内容层：一张纸被推上来（不是四张卡各来各的） */
+.is-motion-v2 .ws-vfx {
+  transform: translateY(26px);
+  transition:
+    opacity 0.3s var(--ease-film),
+    transform 0.3s var(--ease-film),
+    visibility 0s linear 0.3s;
 }
 
+.is-motion-v2.is-vfx .ws-vfx {
+  transform: none;
+  transition:
+    opacity 0.3s var(--ease-film) 0.06s,
+    transform 0.3s cubic-bezier(0.16, 0.84, 0.24, 1) 0.06s,
+    visibility 0s linear 0s;
+}
+
+/* 关闭：原路退回，快 */
 .is-motion-v2.is-vfx-closing .ws-vfx {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(14px);
   transition:
-    opacity 0.24s ease 0.12s,
-    transform 0.3s var(--ease-film) 0.12s;
+    opacity 0.16s linear,
+    transform 0.2s cubic-bezier(0.4, 0, 1, 1),
+    visibility 0s linear 0.2s;
 }
 
-/* --- 换频道：整排推出 → 推入 --- */
-.is-motion-v2.is-vfx-switch-out .ws-vfx-card {
-  opacity: 0 !important;
-  transform: translateX(-18px);
+.is-motion-v2.is-vfx-closing .ws-rail {
+  opacity: 0.55;
+  transition: opacity 0.18s linear;
+}
+
+/* 换频道：整排推出 → 推入（没有逐张错峰，错峰在新旧之间） */
+.is-motion-v2.is-vfx-switch-out .ws-vfx {
+  opacity: 0;
+  transform: translateX(-22px);
   transition:
-    opacity 0.18s ease,
-    transform 0.18s var(--ease-film);
+    opacity 0.13s ease-in,
+    transform 0.13s ease-in;
 }
 
-.is-motion-v2.is-vfx-switch-in .ws-vfx-card {
-  animation: ws-card-in 0.24s var(--ease-film) both;
-  animation-delay: calc(var(--i, 0) * 30ms);
+.is-motion-v2.is-vfx-switch-in .ws-vfx {
+  animation: ws-sheet-in 0.19s cubic-bezier(0.16, 0.84, 0.24, 1) both;
 }
 
-@keyframes ws-card-in {
+@keyframes ws-sheet-in {
   from {
     opacity: 0;
-    transform: translateX(18px);
+    transform: translateX(22px);
   }
   to {
     opacity: 1;
@@ -1706,22 +1721,71 @@ html.is-vfx-playing .ws-bar {
   }
 }
 
-/* --- 降低动效：不位移，只 100ms 淡入 --- */
+/* 卡片本身不再逐个动：只让选中那格的边框"点亮"一下，交代选中落位 */
+.is-motion-v2.is-vfx .ws-vfx-card.is-on {
+  animation: ws-frame-on 0.32s var(--ease-film) 0.1s both;
+}
+
+@keyframes ws-frame-on {
+  from {
+    border-color: rgba(198, 231, 243, 0.18);
+  }
+  to {
+    border-color: rgba(198, 231, 243, 0.75);
+  }
+}
+
+/* 降低动效：不位移、不溶解，只 100ms 淡入 */
 @media (prefers-reduced-motion: reduce) {
-  .is-motion-v2 .ws-vfx-card,
+  .is-motion-v2 .ws-vfx,
+  .is-motion-v2.is-vfx .ws-vfx,
   .is-motion-v2.is-vfx-closing .ws-vfx {
+    transform: none !important;
     transition-duration: 100ms !important;
     transition-delay: 0s !important;
   }
 
-  .is-motion-v2.is-vfx-switch-in .ws-vfx-card {
-    animation-duration: 100ms;
-    animation-delay: 0s;
+  .is-motion-v2.is-rail-hidden .ws-rail,
+  .is-motion-v2.is-vfx-closing .ws-rail {
+    opacity: 1;
+    transition-duration: 100ms !important;
   }
 
-  .is-motion-v2.is-vfx .ws-vfx-card.is-enter,
-  .is-motion-v2.is-vfx-closing .ws-vfx-card,
-  .is-motion-v2.is-vfx-switch-out .ws-vfx-card {
+  .is-motion-v2.is-vfx-switch-in .ws-vfx,
+  .is-motion-v2.is-vfx .ws-vfx-card.is-on {
+    animation: none;
+  }
+
+  .is-motion-v2.is-vfx-switch-out .ws-vfx,
+  .is-motion-v2.is-vfx-switch-in .ws-vfx {
     transform: none !important;
   }
+}
+
+/* ==========================================================================
+   v3 修正：内容层是一张**不透明的纸**
+   --------------------------------------------------------------------------
+   上一版卡片是半透明的，入场途中会把底下的 hero 文字透出来（"特效作品"
+   会从卡片里透过去），看起来像两页叠在一起 —— 这就是手感差的真正原因。
+   ========================================================================== */
+
+.is-motion-v2 .ws-vfx {
+  /* 背景跟页面同色：上来的时候是"盖住"，不是"淡入叠在旧内容上" */
+  background: radial-gradient(
+    120% 100% at 50% 0%,
+    rgba(10, 12, 18, 0.98),
+    rgba(6, 7, 11, 1)
+  );
+  border-radius: 8px;
+}
+
+/* 旧的 hero 让位要快，别和内容层抢 */
+.is-motion-v2.is-vfx .ws-hero {
+  opacity: 0;
+  transition: opacity 0.12s linear;
+}
+
+/* 入场时卡片本身不透明，避免矩阵纹理透出背景 */
+.is-motion-v2.is-vfx .ws-vfx-card {
+  background-color: #0a0b10;
 }
