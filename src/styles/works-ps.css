@@ -122,7 +122,7 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  transition: transform 0.36s var(--ease-film);
+  transition: transform 0.36s cubic-bezier(0.22, 0.9, 0.2, 1);
   will-change: transform;
 }
 
@@ -138,8 +138,8 @@
   background: #0f0f13;
   text-decoration: none;
   transition:
-    width 0.32s var(--ease-film),
-    height 0.32s var(--ease-film),
+    width 0.32s cubic-bezier(0.22, 0.9, 0.2, 1),
+    height 0.32s cubic-bezier(0.22, 0.9, 0.2, 1),
     border-color 0.25s var(--ease),
     box-shadow 0.3s var(--ease),
     /* 同页展开时方块要退场 / 回来，这两条留给它 */
@@ -469,7 +469,7 @@ body:has(.ws-main) .site-header {
   transform: translateY(10px);
   transition:
     opacity 0.28s ease,
-    transform 0.4s var(--ease-film),
+    transform 0.4s cubic-bezier(0.22, 0.9, 0.2, 1),
     visibility 0s linear 0.4s;
 }
 
@@ -479,7 +479,7 @@ body:has(.ws-main) .site-header {
   transform: none;
   transition:
     opacity 0.3s ease 0.12s,
-    transform 0.45s var(--ease-film) 0.12s,
+    transform 0.45s cubic-bezier(0.22, 0.9, 0.2, 1) 0.12s,
     visibility 0s linear 0s;
 }
 
@@ -700,7 +700,7 @@ body:has(.ws-main) .site-header {
 
 :is(.ws-main, .ar-main).is-vfx .ws-vfx-card {
   /* 进场：轨道从右侧稍微推进来一点，像换了个频道 */
-  animation: cardIn 0.5s var(--ease-film) both;
+  animation: cardIn 0.5s cubic-bezier(0.22, 0.9, 0.2, 1) both;
 }
 
 @keyframes cardIn {
@@ -978,7 +978,7 @@ body:has(.ws-main) .site-header {
    ========================================================================== */
 
 .ws-rail {
-  transition: transform 0.5s var(--ease-film);
+  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.2, 1);
 }
 
 :is(.ws-main, .ar-main).is-vfx .ws-rail {
@@ -1041,9 +1041,9 @@ body:has(.ws-main) .site-header {
     0 18px 50px -26px rgba(150, 210, 240, 0.55);
   opacity: 0;
   transition:
-    transform 0.34s var(--ease-film),
-    width 0.34s var(--ease-film),
-    height 0.34s var(--ease-film),
+    transform 0.34s cubic-bezier(0.22, 0.9, 0.2, 1),
+    width 0.34s cubic-bezier(0.22, 0.9, 0.2, 1),
+    height 0.34s cubic-bezier(0.22, 0.9, 0.2, 1),
     opacity 0.3s ease;
 }
 
@@ -1068,7 +1068,7 @@ body:has(.ws-main) .site-header {
 
 /* 进场：四格逐格升上来一点（接上"内容登场"，不再是整块硬出现） */
 :is(.ws-main, .ar-main).is-vfx .ws-vfx-card {
-  animation: vfxCardIn 0.42s var(--ease-film) both;
+  animation: vfxCardIn 0.42s cubic-bezier(0.22, 0.9, 0.2, 1) both;
 }
 
 :is(.ws-main, .ar-main).is-vfx .ws-vfx-card:nth-child(2) { animation-delay: 0.04s; }
@@ -1198,7 +1198,7 @@ html.is-vfx-playing .ws-bar {
 
 .ws-vfx-player video {
   transform: scale(0.985);
-  transition: transform 0.26s var(--ease-film);
+  transition: transform 0.26s cubic-bezier(0.22, 0.9, 0.2, 1);
 }
 
 .ws-vfx-player.is-on video {
@@ -1208,7 +1208,7 @@ html.is-vfx-playing .ws-bar {
 /* ---------- 4. 退出时序：内容先撤，频道条再落回 ---------- */
 
 .ws-rail {
-  transition: transform 0.5s var(--ease-film) 0.16s;
+  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.2, 1) 0.16s;
 }
 
 :is(.ws-main, .ar-main).is-vfx .ws-rail {
@@ -1219,7 +1219,7 @@ html.is-vfx-playing .ws-bar {
 .ws-vfx {
   transition:
     opacity 0.22s ease,
-    transform 0.3s var(--ease-film),
+    transform 0.3s cubic-bezier(0.22, 0.9, 0.2, 1),
     visibility 0s linear 0.3s;
 }
 
@@ -1649,7 +1649,7 @@ html.is-vfx-playing .ws-bar {
 
 .is-motion-v2 .ws-rail {
   transition:
-    transform 0.26s var(--ease-film),
+    transform 0.26s cubic-bezier(0.22, 0.9, 0.2, 1),
     opacity 0.18s linear;
 }
 
@@ -1663,15 +1663,15 @@ html.is-vfx-playing .ws-bar {
 .is-motion-v2 .ws-vfx {
   transform: translateY(26px);
   transition:
-    opacity 0.3s var(--ease-film),
-    transform 0.3s var(--ease-film),
+    opacity 0.3s cubic-bezier(0.22, 0.9, 0.2, 1),
+    transform 0.3s cubic-bezier(0.22, 0.9, 0.2, 1),
     visibility 0s linear 0.3s;
 }
 
 .is-motion-v2.is-vfx .ws-vfx {
   transform: none;
   transition:
-    opacity 0.3s var(--ease-film) 0.06s,
+    opacity 0.3s cubic-bezier(0.22, 0.9, 0.2, 1) 0.06s,
     transform 0.3s cubic-bezier(0.16, 0.84, 0.24, 1) 0.06s,
     visibility 0s linear 0s;
 }
@@ -1717,7 +1717,7 @@ html.is-vfx-playing .ws-bar {
 
 /* 卡片本身不再逐个动：只让选中那格的边框"点亮"一下，交代选中落位 */
 .is-motion-v2.is-vfx .ws-vfx-card.is-on {
-  animation: ws-frame-on 0.32s var(--ease-film) 0.1s both;
+  animation: ws-frame-on 0.32s cubic-bezier(0.22, 0.9, 0.2, 1) 0.1s both;
 }
 
 @keyframes ws-frame-on {

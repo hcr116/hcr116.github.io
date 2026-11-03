@@ -42,7 +42,7 @@
   filter: blur(120px) saturate(1.2) brightness(0.62);
   mask-image: radial-gradient(64% 66% at 30% 46%, #000 0%, rgba(0, 0, 0, 0.5) 55%, transparent 86%);
   -webkit-mask-image: radial-gradient(64% 66% at 30% 46%, #000 0%, rgba(0, 0, 0, 0.5) 55%, transparent 86%);
-  transition: background-color 0.55s var(--ease-film);
+  transition: background-color 0.55s cubic-bezier(0.22, 0.9, 0.2, 1);
   pointer-events: none;
 }
 
@@ -63,7 +63,7 @@
   );
   transform: translate3d(var(--gx, 20%), var(--gy, 30%), 0) rotate(-8deg);
   filter: blur(44px);
-  transition: transform 0.5s var(--ease-film);
+  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.2, 1);
   pointer-events: none;
 }
 
@@ -200,7 +200,7 @@
   display: flex;
   gap: 14px;
   align-items: flex-start;
-  transition: transform 0.36s var(--ease-film);
+  transition: transform 0.36s cubic-bezier(0.22, 0.9, 0.2, 1);
   will-change: transform;
 }
 
@@ -224,8 +224,8 @@
   text-decoration: none;
   cursor: pointer;
   transition:
-    width 0.3s var(--ease-film),
-    height 0.3s var(--ease-film),
+    width 0.3s cubic-bezier(0.22, 0.9, 0.2, 1),
+    height 0.3s cubic-bezier(0.22, 0.9, 0.2, 1),
     border-color 0.24s ease,
     box-shadow 0.3s ease;
 }

@@ -47,7 +47,7 @@
   );
   filter: blur(44px);
   transform: translate3d(var(--gx, 22%), var(--gy, 20%), 0) rotate(-8deg);
-  transition: transform 0.5s var(--ease-film);
+  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.2, 1);
 }
 
 /* ---------- 版心 ---------- */
@@ -98,7 +98,7 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  transition: transform 0.36s var(--ease-film);
+  transition: transform 0.36s cubic-bezier(0.22, 0.9, 0.2, 1);
   will-change: transform;
 }
 
@@ -113,8 +113,8 @@
   background: transparent;
   text-decoration: none;
   cursor: pointer;
-  transition: width 0.32s var(--ease-film),
-    height 0.32s var(--ease-film), border-color 0.25s var(--ease),
+  transition: width 0.32s cubic-bezier(0.22, 0.9, 0.2, 1),
+    height 0.32s cubic-bezier(0.22, 0.9, 0.2, 1), border-color 0.25s var(--ease),
     box-shadow 0.3s var(--ease);
 }
 
