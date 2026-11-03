@@ -424,14 +424,21 @@ const archiveData = JSON.stringify(archiveChannels);
     // 鼠标移到哪块，哪块就选中（变大 + 开机，其余关掉）；
     // 键盘 Tab 聚焦同样算选中；点一下也是（触屏没有 hover）。
     // 存档态下这条规则换人管：方块成了频道条，悬停/点击 = 切卡片，不碰 hero。
+    //
+    // ⚠️ 下标必须**当场查**：战策经验被销毁后 tiles 会少一个，
+    //    闭包里那个 i 就过期了，会把"悬停 CH02"选成 CH03。
+    const indexOfTile = (): number => tiles.indexOf(tile);
+
     tile.addEventListener('mouseenter', () => {
       // 存档态：顶部那排是「五个方向」，不是这 5 条视频的选择器 —— 悬停不切卡片
       if (shell?.classList.contains('is-vfx')) return;
-      select(i);
+      const at = indexOfTile();
+      if (at >= 0) select(at);
     });
     tile.addEventListener('focus', () => {
       if (shell?.classList.contains('is-vfx')) return;
-      select(i);
+      const at = indexOfTile();
+      if (at >= 0) select(at);
     });
     tile.addEventListener('click', (event) => {
       // 存档态：点另一个方向 = 换频道。先退出存档，再按它自己的规则走
@@ -440,7 +447,8 @@ const archiveData = JSON.stringify(archiveChannels);
         setVfx(false);
         if (nextHref.startsWith('#')) {
           event.preventDefault();
-          select(i);
+          const at = indexOfTile();
+          if (at >= 0) select(at);
         }
         return;
       }
@@ -455,7 +463,8 @@ const archiveData = JSON.stringify(archiveChannels);
       const href = tile.getAttribute('href') ?? '';
       if (href.startsWith('#')) {
         event.preventDefault();
-        select(i);
+        const at = indexOfTile();
+        if (at >= 0) select(at);
       }
     });
   }

@@ -156,6 +156,40 @@ const CASES = [
     `,
   },
   {
+    id: 'works-destroy',
+    page: 'works',
+    title: '作品页：销毁战策经验 → 4 格重编号、不选中、悬停不再错位',
+    code: `
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const out = [];
+      const check = (name, ok, info = '') => out.push({ name, ok: !!ok, info });
+      const tiles = () => [...document.querySelectorAll('.ws-rail .ws-tile')];
+      const title = () => (document.querySelector('[data-hero-title]')?.textContent ?? '').trim();
+
+      const combat = tiles().find((t) => t.getAttribute('href') === '/articles/?from=combat');
+      check('找到战策经验', !!combat);
+      combat.click();
+
+      await sleep(3400);
+      check('剩 4 个方向', tiles().length === 4, String(tiles().length));
+      check('重新编号 01-04', tiles().map((t) => t.querySelector('.ws-num')?.textContent).join(',') === '01,02,03,04',
+        tiles().map((t) => t.querySelector('.ws-num')?.textContent).join(','));
+      check('销毁后没有选中项', tiles().every((t) => !t.classList.contains('is-on')));
+      check('整理进度变 2 / 4', (document.querySelector('[data-stat]')?.textContent ?? '').includes('2 / 4'),
+        document.querySelector('[data-stat]')?.textContent ?? '');
+
+      /* 悬停第二格：下标必须当场算，不能沿用闭包里的旧下标 */
+      tiles()[1].dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+      tiles()[1].dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+      await sleep(400);
+      check('悬停第二格选中的也是第二格', tiles().findIndex((t) => t.classList.contains('is-on')) === 1,
+        String(tiles().findIndex((t) => t.classList.contains('is-on'))));
+      check('标题跟着是 AI 功能', title() === 'AI 功能', title());
+
+      return out;
+    `,
+  },
+  {
     id: 'works-link-card',
     page: 'works',
     title: '作品页 → AI 频道：卡片是跳转型（没有视频、带 href）',
