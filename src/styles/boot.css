@@ -1401,3 +1401,58 @@ html.is-booting {
     inset 0 0 0 1px rgba(241, 243, 246, 0.42),
     inset 0 -2px 0 #f1f3f6 !important;
 }
+
+/* ==========================================================================
+   标题页齿轮（?gear=a|b|c 时才挂上，默认不出现）
+   --------------------------------------------------------------------------
+   位置：压在 "HuangChenRui" 里 Rui 三个字母的背后，用 Range 量出子串矩形再定位。
+   层级：字的下面（chroma 在 -1，齿轮在 -2），所以不会挡字。
+   ========================================================================== */
+
+.tp-word.has-gear {
+  isolation: isolate;
+}
+
+.tp-gear {
+  position: absolute;
+  z-index: -2;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  will-change: transform;
+}
+
+.tp-gear-stage {
+  display: grid;
+  place-items: center;
+  transform-origin: center;
+}
+
+.tp-gear-small {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  transform-origin: center;
+}
+
+/* 齿轮挂上后自己淡入（不依赖 data-phase，免得时序一变就不显示） */
+.tp-gear {
+  opacity: 0;
+  transition: opacity 1.2s ease 0.2s;
+}
+
+.tp-gear.is-ready {
+  opacity: 1;
+}
+
+.tp[data-phase='4'] .tp-gear,
+.tp.is-title .tp-gear {
+  opacity: 1;
+}
+
+@media (max-width: 720px) {
+  .tp-gear {
+    opacity: 0.9;
+  }
+}

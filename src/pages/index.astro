@@ -353,6 +353,13 @@ const year = new Date().getFullYear();
   import { initTitleBreath } from '../scripts/title-breath';
   import { t as ct } from '../data/copy';
   import { initBgm, startBgmWhenReady, fadeOutBgm } from '../scripts/bgm';
+  import { initGear } from '../scripts/gear';
+
+  /* 示意用：?gear=a|b|c 才挂齿轮，默认关闭（确认后再改成常驻） */
+  const gearVariant = new URLSearchParams(location.search).get('gear');
+  if (gearVariant === 'a' || gearVariant === 'b' || gearVariant === 'c') {
+    initGear(gearVariant);
+  }
 
   const tp = document.querySelector<HTMLElement>('[data-tp]');
   const root = document.documentElement;
